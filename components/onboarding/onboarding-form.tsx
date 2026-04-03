@@ -8,6 +8,7 @@ import {
   createHouseholdViaApi,
   joinHouseholdViaApi,
 } from "@/lib/households/client-api";
+import { signOutUser } from "@/lib/auth/auth-client";
 import { useAuth } from "@/components/auth/auth-provider";
 
 export function OnboardingForm() {
@@ -73,7 +74,16 @@ export function OnboardingForm() {
   return (
     <main className="mx-auto flex min-h-screen w-full max-w-5xl flex-col gap-8 px-6 py-12">
       <header className="space-y-2">
-        <h1 className="text-3xl font-semibold text-slate-900">Set up your household</h1>
+        <div className="flex items-start justify-between gap-3">
+          <h1 className="text-3xl font-semibold text-slate-900">Set up your household</h1>
+          <button
+            type="button"
+            onClick={() => void signOutUser()}
+            className="rounded-lg border border-slate-300 px-3 py-1.5 text-sm text-slate-700 hover:bg-slate-50"
+          >
+            Sign out
+          </button>
+        </div>
         <p className="text-slate-600">
           Create a new household or join one using an invite code.
         </p>

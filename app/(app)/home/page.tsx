@@ -1,30 +1,135 @@
 "use client";
 
-import { signOutUser } from "@/lib/auth/auth-client";
-import { useAuth } from "@/components/auth/auth-provider";
+import Link from "next/link";
+import { useEffect, useMemo, useState } from "react";
 
-export default function HomePage() {
-  const { user, profile } = useAuth();
+import { EmptyStateCard } from "@/components/common/empty-state-card";
+import { LoadingSkeleton } from "@/components/common/loading-skeleton";
+import { PosterCard } from "@/components/library/poster-card";
+import { listTitles } from "@/lib/tracker/client-api";
+import type { TitleRecord } from "@/lib/tracker/types";
+
+function Section({
+  title,
+  records,
+}: {
+  title: string;
+  records: TitleRecord[];
+}) {
+  if (records.length === 0) {
+    return null;
+  }
 
   return (
-    <main className="mx-auto flex min-h-screen w-full max-w-4xl flex-col gap-6 px-6 py-16">
-      <section className="rounded-xl border border-slate-200 bg-white p-6 shadow-sm">
-        <h1 className="text-3xl font-semibold text-slate-900">Home</h1>
-        <p className="mt-2 text-slate-600">Phase 1 foundation is complete.</p>
-        <p className="mt-4 text-sm text-slate-500">
-          Signed in as: {user?.email ?? user?.displayName ?? "Unknown user"}
-        </p>
-        <p className="mt-1 text-sm text-slate-500">
-          Household ID: {profile?.householdId ?? "Not set"}
-        </p>
-        <button
-          type="button"
-          className="mt-6 rounded-lg border border-slate-300 px-4 py-2 text-sm font-medium text-slate-700 hover:bg-slate-50"
-          onClick={() => void signOutUser()}
-        >
-          Sign out
-        </button>
+    <section className="space-y-2">
+      <h2 className="text-lg font-semibold text-slate-900">{title}</h2>
+      <div className="grid grid-cols-2 gap-3 sm:grid-cols-4 lg:grid-cols-6">
+        {records.slice(0, 6).map((record) => (
+          <PosterCard key={record.title.id} record={record} />
+        ))}
+      </div>
+    </section>
+  );
+}
+
+export default function HomePage() {
+  const [records, setRecords] = useState<TitleRecord[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    let cancelled = false;
+
+    async function load() {
+      setIsLoading(true);
+      setError(null);
+
+      try {
+        const next = await listTitles({ sort: "updated" });
+        if (!cancelled) {
+          setRecords(next);
+        }
+      } catch (err) {
+        if (!cancelled) {
+          setError(err instanceof Error ? err.message : "Failed to load home.");
+        }
+      } finally {
+        if (!cancelled) {
+          setIsLoading(false);
+        }
+      }
+    }
+
+    void load();
+
+    return () => {
+      cancelled = true;
+    };
+  }, []);
+
+  const recentlyAdded = useMemo(() => records.slice(0, 8), [records]);
+  const watchedTogether = useMemo(
+    () => records.filter((record) => record.status.watchedBy.together),
+    [records],
+  );
+  const ourWatchlist = useMemo(
+    () => records.filter((record) => record.status.wantToWatchBy.together),
+    [records],
+  );
+  const mattWatchlist = useMemo(
+    () => records.filter((record) => record.status.wantToWatchBy.matt),
+    [records],
+  );
+  const jessicaWatchlist = useMemo(
+    () => records.filter((record) => record.status.wantToWatchBy.jessica),
+    [records],
+  );
+
+  return (
+    <div className="space-y-5">
+      <section className="rounded-xl border border-slate-200 bg-white p-4 shadow-sm">
+        <h1 className="text-2xl font-semibold text-slate-900">Home</h1>
+        <p className="mt-1 text-sm text-slate-600">Quick overview and shortcuts.</p>
+        <div className="mt-3 flex gap-2">
+          <Link
+            href="/search"
+            className="rounded-md bg-slate-900 px-3 py-2 text-sm text-white hover:bg-slate-700"
+          >
+            Quick add
+          </Link>
+          <Link
+            href="/library"
+            className="rounded-md border border-slate-300 px-3 py-2 text-sm text-slate-700 hover:bg-slate-100"
+          >
+            Browse library
+          </Link>
+        </div>
       </section>
-    </main>
+
+      {error ? (
+        <p className="rounded-lg border border-red-200 bg-red-50 p-3 text-sm text-red-700">{error}</p>
+      ) : null}
+
+      {isLoading ? (
+        <div className="grid grid-cols-2 gap-3 sm:grid-cols-4 lg:grid-cols-6">
+          {Array.from({ length: 6 }).map((_, index) => (
+            <LoadingSkeleton key={index} className="aspect-[2/3]" />
+          ))}
+        </div>
+      ) : null}
+
+      {!isLoading && records.length === 0 ? (
+        <EmptyStateCard
+          title="No titles yet"
+          description="Start by adding a movie or show from the Search page."
+        />
+      ) : null}
+
+      <Section title="Recently added" records={recentlyAdded} />
+      <Section title="Recently watched together" records={watchedTogether} />
+      <Section title="Our watchlist" records={ourWatchlist} />
+      <Section title="Matt's watchlist" records={mattWatchlist} />
+      <Section title="Jessica's watchlist" records={jessicaWatchlist} />
+    </div>
   );
 }

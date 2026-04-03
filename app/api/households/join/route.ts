@@ -4,6 +4,7 @@ import { FieldValue } from "firebase-admin/firestore";
 import { requireUidFromRequest } from "@/lib/auth/server-auth";
 import { getAdminDb } from "@/lib/firebase/admin";
 import { isValidInviteCode, normalizeInviteCode } from "@/lib/households/invite";
+import { logServerError } from "@/lib/server/logger";
 
 export async function POST(request: NextRequest) {
   try {
@@ -96,6 +97,10 @@ export async function POST(request: NextRequest) {
   } catch (error) {
     const message = error instanceof Error ? error.message : "Failed to join household.";
     const status = message === "Missing auth token." ? 401 : 500;
-    return NextResponse.json({ error: message }, { status });
+    logServerError("api.households.join", error, { status });
+    return NextResponse.json(
+      { error: status === 401 ? message : "Failed to join household." },
+      { status },
+    );
   }
 }
