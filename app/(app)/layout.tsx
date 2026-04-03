@@ -1,4 +1,5 @@
 import { HouseholdGuard } from "@/components/auth/household-guard";
+import { HouseholdProvider } from "@/components/household/household-context";
 import { AppShell } from "@/components/layout/app-shell";
 
 export default function ProtectedAppLayout({
@@ -6,7 +7,9 @@ export default function ProtectedAppLayout({
 }: Readonly<{ children: React.ReactNode }>) {
   return (
     <HouseholdGuard>
-      <AppShell>{children}</AppShell>
+      <HouseholdProvider>
+        <AppShell>{children}</AppShell>
+      </HouseholdProvider>
     </HouseholdGuard>
   );
 }

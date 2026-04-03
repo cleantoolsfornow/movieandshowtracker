@@ -1,21 +1,48 @@
 import Link from "next/link";
 
+import { useHousehold } from "@/components/household/household-context";
 import { buildPosterUrl } from "@/lib/tracker/shared";
 import type { TitleRecord } from "@/lib/tracker/types";
 
-function SummaryBadge({ label, active }: { label: string; active: boolean }) {
+function SummaryBadge({
+  label,
+  active,
+  avatarUrl,
+}: {
+  label: string;
+  active: boolean;
+  avatarUrl?: string | null;
+}) {
+  const initial = label.trim().slice(0, 1).toUpperCase() || "?";
   return (
     <span
-      className={`rounded-full px-2 py-0.5 text-xs ${
+      className={`inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-xs ${
         active ? "bg-emerald-100 text-emerald-700" : "bg-slate-200 text-slate-500"
       }`}
     >
+      {avatarUrl ? (
+        // eslint-disable-next-line @next/next/no-img-element
+        <img
+          src={avatarUrl}
+          alt=""
+          aria-hidden="true"
+          className="h-3.5 w-3.5 rounded-full object-cover ring-1 ring-slate-300"
+        />
+      ) : (
+        <span
+          aria-hidden="true"
+          className="flex h-3.5 w-3.5 items-center justify-center rounded-full bg-white/70 text-[9px] font-semibold text-slate-600 ring-1 ring-slate-300"
+        >
+          {initial}
+        </span>
+      )}
       {label}
     </span>
   );
 }
 
 export function PosterCard({ record }: { record: TitleRecord }) {
+  const { personLabels, personAvatars } = useHousehold();
   const posterUrl = buildPosterUrl(record.title.posterPath);
 
   return (
@@ -43,10 +70,15 @@ export function PosterCard({ record }: { record: TitleRecord }) {
           {record.title.mediaType.toUpperCase()} · {record.title.releaseYear ?? "-"}
         </p>
         <div className="flex flex-wrap gap-1">
-          <SummaryBadge label="M watched" active={record.status.watchedBy.matt} />
           <SummaryBadge
-            label="J watched"
-            active={record.status.watchedBy.jessica}
+            label={`${personLabels.memberOne} watched`}
+            active={record.status.watchedBy.memberOne}
+            avatarUrl={personAvatars.memberOne}
+          />
+          <SummaryBadge
+            label={`${personLabels.memberTwo} watched`}
+            active={record.status.watchedBy.memberTwo}
+            avatarUrl={personAvatars.memberTwo}
           />
           <SummaryBadge
             label="Together"

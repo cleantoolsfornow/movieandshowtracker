@@ -23,7 +23,8 @@ export async function GET(request: NextRequest) {
     }
 
     const baseUrl = process.env.TMDB_BASE_URL ?? "https://api.themoviedb.org/3";
-    const url = new URL("/search/multi", baseUrl);
+    const normalizedBaseUrl = baseUrl.endsWith("/") ? baseUrl : `${baseUrl}/`;
+    const url = new URL("search/multi", normalizedBaseUrl);
     url.searchParams.set("api_key", apiKey);
     url.searchParams.set("query", query);
     url.searchParams.set("include_adult", "false");

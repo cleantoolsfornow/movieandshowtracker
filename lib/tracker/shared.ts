@@ -10,8 +10,8 @@ export function createTitleKey(
 
 export function defaultStatusFlags(): StatusFlags {
   return {
-    matt: false,
-    jessica: false,
+    memberOne: false,
+    memberTwo: false,
     together: false,
   };
 }

@@ -5,6 +5,7 @@ import {
   signInWithEmailAndPassword,
   signInWithPopup,
   signOut,
+  updateProfile,
 } from "firebase/auth";
 
 import { getFirebaseAuth, getGoogleProvider } from "@/lib/firebase/auth";
@@ -29,8 +30,15 @@ export async function signInWithEmail(
 export async function signUpWithEmail(
   email: string,
   password: string,
+  displayName: string,
 ): Promise<UserCredential> {
-  return createUserWithEmailAndPassword(getFirebaseAuth(), email, password);
+  const credential = await createUserWithEmailAndPassword(
+    getFirebaseAuth(),
+    email,
+    password,
+  );
+  await updateProfile(credential.user, { displayName });
+  return credential;
 }
 
 export async function signOutUser(): Promise<void> {
@@ -45,4 +53,15 @@ export async function getCurrentIdToken(): Promise<string> {
   }
 
   return currentUser.getIdToken();
+}
+
+export async function updateCurrentUserDisplayName(
+  displayName: string,
+): Promise<void> {
+  const currentUser = getFirebaseAuth().currentUser;
+  if (!currentUser) {
+    throw new Error("You must be signed in.");
+  }
+
+  await updateProfile(currentUser, { displayName });
 }

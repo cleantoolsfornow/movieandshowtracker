@@ -4,7 +4,7 @@ import { AppProviders } from "@/app/providers";
 
 export const metadata: Metadata = {
   title: "Shared Movie & TV Tracker",
-  description: "Track movies and shows for Matt and Jessica.",
+  description: "Track movies and shows for your household.",
 };
 
 export default function RootLayout({

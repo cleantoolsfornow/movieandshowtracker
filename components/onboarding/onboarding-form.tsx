@@ -114,7 +114,7 @@ export function OnboardingForm() {
             onChange={(event) => setHouseholdName(event.target.value)}
             required
             className="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm text-slate-900"
-            placeholder="Matt & Jessica"
+            placeholder="Our Household"
           />
 
           <button
@@ -138,7 +138,7 @@ export function OnboardingForm() {
         >
           <h2 className="text-xl font-semibold text-slate-900">Join household</h2>
           <p className="text-sm text-slate-600">
-            Paste the invite code from your partner.
+            Paste the invite code from another member.
           </p>
 
           <label htmlFor="invite-code" className="block text-sm text-slate-700">

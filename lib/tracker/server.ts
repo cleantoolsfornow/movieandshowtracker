@@ -37,8 +37,8 @@ export async function getHouseholdIdForUid(uid: string): Promise<string> {
 function normalizeFlags(value: unknown): StatusFlags {
   const raw = (value as Partial<StatusFlags> | undefined) ?? {};
   return {
-    matt: Boolean(raw.matt),
-    jessica: Boolean(raw.jessica),
+    memberOne: Boolean(raw.memberOne),
+    memberTwo: Boolean(raw.memberTwo),
     together: Boolean(raw.together),
   };
 }

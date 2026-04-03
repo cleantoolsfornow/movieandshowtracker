@@ -3,6 +3,7 @@ import {
   onSnapshot,
   runTransaction,
   serverTimestamp,
+  updateDoc,
 } from "firebase/firestore";
 import type { User } from "firebase/auth";
 
@@ -13,6 +14,7 @@ export type UserProfile = {
   email: string | null;
   displayName: string | null;
   photoURL: string | null;
+  avatarDataUrl: string | null;
   householdId: string | null;
 };
 
@@ -33,6 +35,7 @@ export async function ensureUserProfile(user: User): Promise<void> {
         email: user.email ?? null,
         displayName: user.displayName ?? null,
         photoURL: user.photoURL ?? null,
+        avatarDataUrl: null,
         householdId: null,
         createdAt: now,
         updatedAt: now,
@@ -44,12 +47,31 @@ export async function ensureUserProfile(user: User): Promise<void> {
       ref,
       {
         email: user.email ?? null,
-        displayName: user.displayName ?? null,
         photoURL: user.photoURL ?? null,
         updatedAt: now,
       },
       { merge: true },
     );
+  });
+}
+
+export async function updateUserDisplayName(
+  uid: string,
+  displayName: string,
+): Promise<void> {
+  await updateDoc(userRef(uid), {
+    displayName,
+    updatedAt: serverTimestamp(),
+  });
+}
+
+export async function updateUserAvatarDataUrl(
+  uid: string,
+  avatarDataUrl: string | null,
+): Promise<void> {
+  await updateDoc(userRef(uid), {
+    avatarDataUrl,
+    updatedAt: serverTimestamp(),
   });
 }
 
@@ -69,6 +91,7 @@ export function subscribeToUserProfile(
       email: (data.email as string | null | undefined) ?? null,
       displayName: (data.displayName as string | null | undefined) ?? null,
       photoURL: (data.photoURL as string | null | undefined) ?? null,
+      avatarDataUrl: (data.avatarDataUrl as string | null | undefined) ?? null,
       householdId: (data.householdId as string | null | undefined) ?? null,
     });
   });

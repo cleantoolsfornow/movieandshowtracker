@@ -5,6 +5,7 @@ import { useEffect, useMemo, useState } from "react";
 
 import { EmptyStateCard } from "@/components/common/empty-state-card";
 import { LoadingSkeleton } from "@/components/common/loading-skeleton";
+import { useHousehold } from "@/components/household/household-context";
 import { PosterCard } from "@/components/library/poster-card";
 import { listTitles } from "@/lib/tracker/client-api";
 import type { TitleRecord } from "@/lib/tracker/types";
@@ -33,6 +34,7 @@ function Section({
 }
 
 export default function HomePage() {
+  const { personLabels } = useHousehold();
   const [records, setRecords] = useState<TitleRecord[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -76,12 +78,12 @@ export default function HomePage() {
     () => records.filter((record) => record.status.wantToWatchBy.together),
     [records],
   );
-  const mattWatchlist = useMemo(
-    () => records.filter((record) => record.status.wantToWatchBy.matt),
+  const memberOneWatchlist = useMemo(
+    () => records.filter((record) => record.status.wantToWatchBy.memberOne),
     [records],
   );
-  const jessicaWatchlist = useMemo(
-    () => records.filter((record) => record.status.wantToWatchBy.jessica),
+  const memberTwoWatchlist = useMemo(
+    () => records.filter((record) => record.status.wantToWatchBy.memberTwo),
     [records],
   );
 
@@ -128,8 +130,8 @@ export default function HomePage() {
       <Section title="Recently added" records={recentlyAdded} />
       <Section title="Recently watched together" records={watchedTogether} />
       <Section title="Our watchlist" records={ourWatchlist} />
-      <Section title="Matt's watchlist" records={mattWatchlist} />
-      <Section title="Jessica's watchlist" records={jessicaWatchlist} />
+      <Section title={`${personLabels.memberOne} watchlist`} records={memberOneWatchlist} />
+      <Section title={`${personLabels.memberTwo} watchlist`} records={memberTwoWatchlist} />
     </div>
   );
 }

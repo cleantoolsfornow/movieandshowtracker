@@ -14,6 +14,7 @@ type Mode = "sign-in" | "sign-up";
 
 export function SignInForm() {
   const [mode, setMode] = useState<Mode>("sign-in");
+  const [displayName, setDisplayName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -48,7 +49,13 @@ export function SignInForm() {
 
     try {
       if (mode === "sign-up") {
-        await signUpWithEmail(email, password);
+        const trimmedName = displayName.trim();
+        if (!trimmedName) {
+          setError("Name is required.");
+          setIsSubmitting(false);
+          return;
+        }
+        await signUpWithEmail(email, password, trimmedName);
       } else {
         await signInWithEmail(email, password);
       }
@@ -106,6 +113,27 @@ export function SignInForm() {
       </div>
 
       <form onSubmit={handleEmailSubmit} className="space-y-3">
+        {mode === "sign-up" ? (
+          <>
+            <label className="block text-sm text-slate-700" htmlFor="display-name">
+              Name
+            </label>
+            <input
+              id="display-name"
+              name="display-name"
+              type="text"
+              autoComplete="name"
+              required
+              className="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm text-slate-900"
+              value={displayName}
+              onChange={(event) => setDisplayName(event.target.value)}
+            />
+            <p className="text-xs text-slate-500">
+              This name will be visible to members in your household.
+            </p>
+          </>
+        ) : null}
+
         <label className="block text-sm text-slate-700" htmlFor="email">
           Email
         </label>

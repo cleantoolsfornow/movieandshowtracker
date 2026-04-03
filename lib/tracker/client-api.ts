@@ -61,8 +61,8 @@ export async function addTitle(input: {
 
 export async function listTitles(filters?: {
   mediaType?: "movie" | "tv" | "all";
-  watchedBy?: "matt" | "jessica" | "together" | "all";
-  wantBy?: "matt" | "jessica" | "together" | "all";
+  watchedBy?: "memberOne" | "memberTwo" | "together" | "all";
+  wantBy?: "memberOne" | "memberTwo" | "together" | "all";
   sort?: "updated" | "release" | "alpha";
 }): Promise<TitleRecord[]> {
   const params = new URLSearchParams();
@@ -107,6 +107,17 @@ export async function patchTitleStatus(
   return data.record;
 }
 
+export async function refreshTitleMetadata(titleId: string): Promise<TitleRecord> {
+  const data = await authedFetch<{ record: TitleRecord }>(
+    `/api/titles/${titleId}/refresh`,
+    {
+      method: "POST",
+    },
+  );
+
+  return data.record;
+}
+
 export type HouseholdSummary = {
   id: string;
   name: string;
@@ -116,6 +127,7 @@ export type HouseholdSummary = {
     email: string | null;
     displayName: string | null;
     photoURL: string | null;
+    avatarDataUrl: string | null;
   }>;
 };
 

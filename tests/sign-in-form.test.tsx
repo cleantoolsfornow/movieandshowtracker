@@ -79,4 +79,35 @@ describe("SignInForm", () => {
       expect(pushMock).toHaveBeenCalledWith("/home");
     });
   });
+
+  it("requires a name when signing up with email", async () => {
+    render(<SignInForm />);
+
+    fireEvent.click(screen.getByRole("button", { name: "Sign up" }));
+    fireEvent.change(screen.getByLabelText("Name"), {
+      target: { value: "Alex" },
+    });
+    fireEvent.change(screen.getByLabelText("Email"), {
+      target: { value: "alex@example.com" },
+    });
+    fireEvent.change(screen.getByLabelText("Password"), {
+      target: { value: "secret123" },
+    });
+
+    const form = screen.getByLabelText("Email").closest("form");
+    if (!form) {
+      throw new Error("Sign-up form should exist");
+    }
+
+    fireEvent.click(within(form).getByRole("button", { name: "Create account" }));
+
+    await waitFor(() => {
+      expect(signUpWithEmailMock).toHaveBeenCalledWith(
+        "alex@example.com",
+        "secret123",
+        "Alex",
+      );
+      expect(pushMock).toHaveBeenCalledWith("/home");
+    });
+  });
 });

@@ -28,15 +28,15 @@ const addTitleSchema = z.object({
     .object({
       watchedBy: z
         .object({
-          matt: z.boolean().optional(),
-          jessica: z.boolean().optional(),
+          memberOne: z.boolean().optional(),
+          memberTwo: z.boolean().optional(),
           together: z.boolean().optional(),
         })
         .optional(),
       wantToWatchBy: z
         .object({
-          matt: z.boolean().optional(),
-          jessica: z.boolean().optional(),
+          memberOne: z.boolean().optional(),
+          memberTwo: z.boolean().optional(),
           together: z.boolean().optional(),
         })
         .optional(),
@@ -61,7 +61,10 @@ export async function POST(request: NextRequest) {
     await adminDb.runTransaction(async (transaction) => {
       const titleRef = adminDb.collection("titles").doc(titleId);
       const statusRef = adminDb.collection("titleStatuses").doc(titleId);
-      const titleSnapshot = await transaction.get(titleRef);
+      const [titleSnapshot, statusSnapshot] = await Promise.all([
+        transaction.get(titleRef),
+        transaction.get(statusRef),
+      ]);
       const now = FieldValue.serverTimestamp();
 
       if (!titleSnapshot.exists) {
@@ -98,7 +101,6 @@ export async function POST(request: NextRequest) {
         );
       }
 
-      const statusSnapshot = await transaction.get(statusRef);
       const existingWatched = statusSnapshot.exists
         ? ((statusSnapshot.get("watchedBy") as Record<string, boolean> | undefined) ??
           defaultStatusFlags())
@@ -112,13 +114,13 @@ export async function POST(request: NextRequest) {
       const merged = mergeStatusPatch(
         {
           watchedBy: {
-            matt: Boolean(existingWatched.matt),
-            jessica: Boolean(existingWatched.jessica),
+            memberOne: Boolean(existingWatched.memberOne),
+            memberTwo: Boolean(existingWatched.memberTwo),
             together: Boolean(existingWatched.together),
           },
           wantToWatchBy: {
-            matt: Boolean(existingWant.matt),
-            jessica: Boolean(existingWant.jessica),
+            memberOne: Boolean(existingWant.memberOne),
+            memberTwo: Boolean(existingWant.memberTwo),
             together: Boolean(existingWant.together),
           },
         },

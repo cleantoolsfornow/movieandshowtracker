@@ -1,11 +1,11 @@
 export type MediaType = "movie" | "tv";
 
 export type StatusField = "watchedBy" | "wantToWatchBy";
-export type StatusPerson = "matt" | "jessica" | "together";
+export type StatusPerson = "memberOne" | "memberTwo" | "together";
 
 export type StatusFlags = {
-  matt: boolean;
-  jessica: boolean;
+  memberOne: boolean;
+  memberTwo: boolean;
   together: boolean;
 };
 

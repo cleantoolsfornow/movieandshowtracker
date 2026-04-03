@@ -10,6 +10,16 @@ vi.mock("@/lib/tracker/client-api", () => ({
   patchTitleStatus: (...args: unknown[]) => patchTitleStatusMock(...args),
 }));
 
+vi.mock("@/components/household/household-context", () => ({
+  useHousehold: () => ({
+    personLabels: {
+      memberOne: "Member 1",
+      memberTwo: "Member 2",
+      together: "Together",
+    },
+  }),
+}));
+
 function buildRecord(): TitleRecord {
   return {
     title: {
@@ -30,13 +40,13 @@ function buildRecord(): TitleRecord {
       titleId: "household-1_movie_550",
       householdId: "household-1",
       watchedBy: {
-        matt: false,
-        jessica: false,
+        memberOne: false,
+        memberTwo: false,
         together: false,
       },
       wantToWatchBy: {
-        matt: false,
-        jessica: false,
+        memberOne: false,
+        memberTwo: false,
         together: false,
       },
     },
@@ -59,15 +69,17 @@ describe("TitleStatusEditor", () => {
       throw new Error("Watched section should exist");
     }
 
-    const mattButton = within(watchedSection).getByRole("button", { name: "Matt" });
-    expect(mattButton).toHaveAttribute("aria-pressed", "false");
+    const memberOneButton = within(watchedSection).getByRole("button", {
+      name: "Member 1",
+    });
+    expect(memberOneButton).toHaveAttribute("aria-pressed", "false");
 
-    fireEvent.click(mattButton);
-    expect(mattButton).toHaveAttribute("aria-pressed", "true");
+    fireEvent.click(memberOneButton);
+    expect(memberOneButton).toHaveAttribute("aria-pressed", "true");
 
     await waitFor(() => {
       expect(screen.getByRole("alert")).toHaveTextContent("Network failed.");
-      expect(mattButton).toHaveAttribute("aria-pressed", "false");
+      expect(memberOneButton).toHaveAttribute("aria-pressed", "false");
     });
   });
 });

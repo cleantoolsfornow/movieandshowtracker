@@ -4,20 +4,22 @@ import { useEffect, useState } from "react";
 
 import { EmptyStateCard } from "@/components/common/empty-state-card";
 import { LoadingSkeleton } from "@/components/common/loading-skeleton";
+import { useHousehold } from "@/components/household/household-context";
 import { PosterCard } from "@/components/library/poster-card";
 import { listTitles } from "@/lib/tracker/client-api";
 import type { TitleRecord } from "@/lib/tracker/types";
 
 export default function LibraryPage() {
+  const { personLabels } = useHousehold();
   const [records, setRecords] = useState<TitleRecord[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
   const [mediaType, setMediaType] = useState<"all" | "movie" | "tv">("all");
-  const [watchedBy, setWatchedBy] = useState<"all" | "matt" | "jessica" | "together">(
+  const [watchedBy, setWatchedBy] = useState<"all" | "memberOne" | "memberTwo" | "together">(
     "all",
   );
-  const [wantBy, setWantBy] = useState<"all" | "matt" | "jessica" | "together">("all");
+  const [wantBy, setWantBy] = useState<"all" | "memberOne" | "memberTwo" | "together">("all");
   const [sort, setSort] = useState<"updated" | "release" | "alpha">("updated");
 
   useEffect(() => {
@@ -69,8 +71,8 @@ export default function LibraryPage() {
             className="rounded-lg border border-slate-300 px-2 py-2 text-sm"
           >
             <option value="all">Any watched</option>
-            <option value="matt">Watched by Matt</option>
-            <option value="jessica">Watched by Jessica</option>
+            <option value="memberOne">Watched by {personLabels.memberOne}</option>
+            <option value="memberTwo">Watched by {personLabels.memberTwo}</option>
             <option value="together">Watched together</option>
           </select>
           <select
@@ -79,8 +81,8 @@ export default function LibraryPage() {
             className="rounded-lg border border-slate-300 px-2 py-2 text-sm"
           >
             <option value="all">Any watchlist</option>
-            <option value="matt">Want by Matt</option>
-            <option value="jessica">Want by Jessica</option>
+            <option value="memberOne">Wanted by {personLabels.memberOne}</option>
+            <option value="memberTwo">Wanted by {personLabels.memberTwo}</option>
             <option value="together">Want together</option>
           </select>
           <select

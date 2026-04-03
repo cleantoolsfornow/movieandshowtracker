@@ -12,15 +12,15 @@ import {
 const patchSchema = z.object({
   watchedBy: z
     .object({
-      matt: z.boolean().optional(),
-      jessica: z.boolean().optional(),
+      memberOne: z.boolean().optional(),
+      memberTwo: z.boolean().optional(),
       together: z.boolean().optional(),
     })
     .optional(),
   wantToWatchBy: z
     .object({
-      matt: z.boolean().optional(),
-      jessica: z.boolean().optional(),
+      memberOne: z.boolean().optional(),
+      memberTwo: z.boolean().optional(),
       together: z.boolean().optional(),
     })
     .optional(),

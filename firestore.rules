@@ -9,18 +9,26 @@ service cloud.firestore {
       return isSignedIn() && request.auth.uid == uid;
     }
 
+    function hasValidAvatarField() {
+      return request.resource.data.avatarDataUrl == null
+        || (request.resource.data.avatarDataUrl is string
+          && request.resource.data.avatarDataUrl.size() <= 60000);
+    }
+
     match /users/{uid} {
       allow read: if isSelf(uid);
 
       // Client can create its own profile on first sign-in only.
       allow create: if isSelf(uid)
         && request.resource.data.uid == uid
-        && request.resource.data.householdId == null;
+        && request.resource.data.householdId == null
+        && hasValidAvatarField();
 
       // Client may refresh profile fields but cannot self-assign household membership.
       allow update: if isSelf(uid)
         && request.resource.data.uid == resource.data.uid
-        && request.resource.data.householdId == resource.data.householdId;
+        && request.resource.data.householdId == resource.data.householdId
+        && hasValidAvatarField();
 
       allow delete: if false;
     }

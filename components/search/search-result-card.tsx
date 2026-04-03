@@ -3,21 +3,13 @@
 import { useState } from "react";
 
 import { addTitle } from "@/lib/tracker/client-api";
+import { useHousehold } from "@/components/household/household-context";
 import { buildPosterUrl } from "@/lib/tracker/shared";
 import type {
   StatusPatch,
   TmdbSearchResult,
   TitleRecord,
 } from "@/lib/tracker/types";
-
-const ACTIONS = [
-  { label: "Watched by Matt", patch: { watchedBy: { matt: true } } },
-  { label: "Watched by Jessica", patch: { watchedBy: { jessica: true } } },
-  { label: "Watched together", patch: { watchedBy: { together: true } } },
-  { label: "Want Matt", patch: { wantToWatchBy: { matt: true } } },
-  { label: "Want Jessica", patch: { wantToWatchBy: { jessica: true } } },
-  { label: "Want together", patch: { wantToWatchBy: { together: true } } },
-] as const;
 
 export function SearchResultCard({
   item,
@@ -26,11 +18,20 @@ export function SearchResultCard({
   item: TmdbSearchResult;
   onAdded?: (record: TitleRecord) => void;
 }) {
+  const { personLabels } = useHousehold();
   const [isSaving, setIsSaving] = useState(false);
   const [expanded, setExpanded] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
   const posterUrl = buildPosterUrl(item.posterPath);
+  const actions = [
+    { label: `Watched by ${personLabels.memberOne}`, patch: { watchedBy: { memberOne: true } } },
+    { label: `Watched by ${personLabels.memberTwo}`, patch: { watchedBy: { memberTwo: true } } },
+    { label: "Watched together", patch: { watchedBy: { together: true } } },
+    { label: `Want: ${personLabels.memberOne}`, patch: { wantToWatchBy: { memberOne: true } } },
+    { label: `Want: ${personLabels.memberTwo}`, patch: { wantToWatchBy: { memberTwo: true } } },
+    { label: "Want together", patch: { wantToWatchBy: { together: true } } },
+  ] as const;
 
   async function handleAdd(statusPatch: StatusPatch) {
     setIsSaving(true);
@@ -89,7 +90,7 @@ export function SearchResultCard({
 
       {expanded ? (
         <div className="mt-3 grid grid-cols-2 gap-2">
-          {ACTIONS.map((action) => (
+          {actions.map((action) => (
             <button
               key={action.label}
               type="button"

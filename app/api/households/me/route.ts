@@ -10,6 +10,7 @@ type MemberSummary = {
   email: string | null;
   displayName: string | null;
   photoURL: string | null;
+  avatarDataUrl: string | null;
 };
 
 export async function GET(request: NextRequest) {
@@ -39,6 +40,8 @@ export async function GET(request: NextRequest) {
         email: (snapshot.get("email") as string | null | undefined) ?? null,
         displayName: (snapshot.get("displayName") as string | null | undefined) ?? null,
         photoURL: (snapshot.get("photoURL") as string | null | undefined) ?? null,
+        avatarDataUrl:
+          (snapshot.get("avatarDataUrl") as string | null | undefined) ?? null,
       }));
 
     return NextResponse.json({

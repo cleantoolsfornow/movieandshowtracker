@@ -4,6 +4,7 @@ import { useState } from "react";
 
 import { patchTitleStatus } from "@/lib/tracker/client-api";
 import type { StatusField, StatusPerson, TitleRecord } from "@/lib/tracker/types";
+import { useHousehold } from "@/components/household/household-context";
 import { StatusChipGroup } from "@/components/status/status-chip-group";
 
 export function TitleStatusEditor({
@@ -13,6 +14,7 @@ export function TitleStatusEditor({
   record: TitleRecord;
   onUpdated?: (next: TitleRecord) => void;
 }) {
+  const { personLabels, personAvatars } = useHousehold();
   const [local, setLocal] = useState(record);
   const [isSaving, setIsSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -58,12 +60,16 @@ export function TitleStatusEditor({
         values={local.status.watchedBy}
         onToggle={handleToggle}
         disabled={isSaving}
+        personLabels={personLabels}
+        personAvatars={personAvatars}
       />
       <StatusChipGroup
         group="wantToWatchBy"
         values={local.status.wantToWatchBy}
         onToggle={handleToggle}
         disabled={isSaving}
+        personLabels={personLabels}
+        personAvatars={personAvatars}
       />
       {error ? (
         <p role="alert" aria-live="polite" className="text-sm text-red-600">

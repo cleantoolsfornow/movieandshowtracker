@@ -13,8 +13,8 @@ describe("tracker shared helpers", () => {
 
   it("returns all-false defaults", () => {
     expect(defaultStatusFlags()).toEqual({
-      matt: false,
-      jessica: false,
+      memberOne: false,
+      memberTwo: false,
       together: false,
     });
   });
@@ -22,8 +22,8 @@ describe("tracker shared helpers", () => {
   it("merges status patch without losing existing values", () => {
     const merged = mergeStatusPatch(
       {
-        watchedBy: { matt: true, jessica: false, together: false },
-        wantToWatchBy: { matt: false, jessica: true, together: false },
+        watchedBy: { memberOne: true, memberTwo: false, together: false },
+        wantToWatchBy: { memberOne: false, memberTwo: true, together: false },
       },
       {
         watchedBy: { together: true },
@@ -31,8 +31,8 @@ describe("tracker shared helpers", () => {
     );
 
     expect(merged).toEqual({
-      watchedBy: { matt: true, jessica: false, together: true },
-      wantToWatchBy: { matt: false, jessica: true, together: false },
+      watchedBy: { memberOne: true, memberTwo: false, together: true },
+      wantToWatchBy: { memberOne: false, memberTwo: true, together: false },
     });
   });
 });
