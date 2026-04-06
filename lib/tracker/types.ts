@@ -1,57 +1,188 @@
 export type MediaType = "movie" | "tv";
 
-export type StatusField = "watchedBy" | "wantToWatchBy";
-export type StatusPerson = "memberOne" | "memberTwo" | "together";
-
-export type StatusFlags = {
-  memberOne: boolean;
-  memberTwo: boolean;
-  together: boolean;
+export type TitleGenre = {
+  id: number;
+  name: string;
 };
 
-export type TitleStatus = {
-  titleId: string;
-  householdId: string;
-  watchedBy: StatusFlags;
-  wantToWatchBy: StatusFlags;
-  updatedAt?: string;
-};
+export type TimestampLike =
+  | string
+  | Date
+  | { toDate: () => Date }
+  | null
+  | undefined;
 
-export type TitleMetadata = {
+export type TitleDocument = {
   id: string;
   householdId: string;
   tmdbId: number;
   mediaType: MediaType;
-  title: string;
-  overview: string;
-  posterPath: string | null;
-  backdropPath: string | null;
-  releaseDate: string | null;
-  releaseYear: number | null;
-  genres: string[];
-  tmdbVoteAverage: number | null;
-  createdAt?: string;
-  updatedAt?: string;
+  name: string;
+  originalName?: string;
+  overview?: string;
+  posterPath?: string;
+  backdropPath?: string;
+  releaseDate?: string;
+  firstAirDate?: string;
+  genres?: TitleGenre[];
+  runtime?: number;
+  numberOfSeasons?: number;
+  voteAverage?: number;
+  createdAt?: TimestampLike;
+  createdBy?: string;
+  updatedAt?: TimestampLike;
 };
 
-export type TitleRecord = {
-  title: TitleMetadata;
-  status: TitleStatus;
+export type TitleUserStatusDocument = {
+  id: string;
+  householdId: string;
+  titleId: string;
+  userId: string;
+  wantsToWatch: boolean;
+  watched: boolean;
+  watchedAt?: string;
+  rating?: number;
+  notes?: string;
+  createdAt?: TimestampLike;
+  updatedAt?: TimestampLike;
+  updatedBy?: string;
+};
+
+export type TitleHouseholdStatusDocument = {
+  titleId: string;
+  householdId: string;
+  householdWantsToWatch: boolean;
+  watchedTogether: boolean;
+  watchedTogetherAt?: string;
+  createdAt?: TimestampLike;
+  updatedAt?: TimestampLike;
+  updatedBy?: string;
+};
+
+export type TitleDerivedSummary = {
+  memberCount: number;
+  watchedCount: number;
+  wantsToWatchCount: number;
+  allMembersWatched: boolean;
+  someMembersWatched: boolean;
+  noMembersWatched: boolean;
+  someMembersWantToWatch: boolean;
+  multipleMembersWantToWatch: boolean;
+};
+
+export type HouseholdMemberProfile = {
+  uid: string;
+  displayName?: string;
+  photoURL?: string;
+  avatarDataUrl?: string;
+};
+
+export type TitleViewModelMember = {
+  userId: string;
+  displayName?: string;
+  photoURL?: string;
+  avatarDataUrl?: string;
+  wantsToWatch: boolean;
+  watched: boolean;
+  watchedAt?: string;
+  rating?: number;
+  notes?: string;
+};
+
+export type TitleViewModel = {
+  id: string;
+  householdId: string;
+  tmdbId: number;
+  mediaType: MediaType;
+  name: string;
+  overview?: string;
+  posterPath?: string;
+  backdropPath?: string;
+  releaseDate?: string;
+  firstAirDate?: string;
+  genres?: TitleGenre[];
+  runtime?: number;
+  numberOfSeasons?: number;
+  voteAverage?: number;
+  household: {
+    wantsToWatch: boolean;
+    watchedTogether: boolean;
+    watchedTogetherAt?: string;
+    allMembersWatched: boolean;
+    someMembersWatched: boolean;
+    watchedCount: number;
+    wantsToWatchCount: number;
+    memberCount: number;
+  };
+  members: TitleViewModelMember[];
+  currentUser: {
+    userId: string;
+    wantsToWatch: boolean;
+    watched: boolean;
+    watchedAt?: string;
+    rating?: number;
+    notes?: string;
+  };
+  createdAt: string;
+  updatedAt: string;
 };
 
 export type TmdbSearchResult = {
   tmdbId: number;
   mediaType: MediaType;
-  title: string;
-  overview: string;
-  posterPath: string | null;
-  backdropPath: string | null;
-  releaseDate: string | null;
-  releaseYear: number | null;
-  voteAverage: number | null;
+  name: string;
+  originalName?: string;
+  title?: string;
+  overview?: string;
+  posterPath?: string;
+  backdropPath?: string;
+  releaseDate?: string;
+  firstAirDate?: string;
+  voteAverage?: number;
 };
 
-export type StatusPatch = {
-  watchedBy?: Partial<StatusFlags>;
-  wantToWatchBy?: Partial<StatusFlags>;
+export type AddTitleAction =
+  | "add_title_only"
+  | "mark_user_wants_to_watch"
+  | "mark_user_watched"
+  | "mark_household_wants_to_watch"
+  | "mark_watched_together";
+
+export type AddTitleRequest = {
+  tmdbId: number;
+  mediaType: MediaType;
+  action: AddTitleAction;
+  targetUserId?: string;
 };
+
+export type PatchTitleAction =
+  | {
+      action: "set_user_wants_to_watch";
+      userId: string;
+      value: boolean;
+    }
+  | {
+      action: "set_user_watched";
+      userId: string;
+      value: boolean;
+      watchedAt?: string;
+    }
+  | {
+      action: "set_household_wants_to_watch";
+      value: boolean;
+    }
+  | {
+      action: "set_watched_together";
+      value: boolean;
+      watchedTogetherAt?: string;
+    }
+  | {
+      action: "set_user_rating";
+      userId: string;
+      value?: number;
+    }
+  | {
+      action: "set_user_notes";
+      userId: string;
+      value?: string;
+    };

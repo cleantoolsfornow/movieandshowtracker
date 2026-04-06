@@ -1,61 +1,77 @@
 import { NextRequest, NextResponse } from "next/server";
 
 import { requireUidFromRequest } from "@/lib/auth/server-auth";
-import { getAdminDb } from "@/lib/firebase/admin";
 import { logServerError } from "@/lib/server/logger";
-import { mapTitleRecord, getHouseholdIdForUid } from "@/lib/tracker/server";
-import type { TitleRecord } from "@/lib/tracker/types";
+import {
+  filterTitleViewModels,
+  getHouseholdIdForUid,
+  listTitleViewModels,
+  sortTitleViewModels,
+} from "@/lib/tracker/server";
+import type { MediaType } from "@/lib/tracker/types";
 
-function filterRecords(
-  records: TitleRecord[],
-  params: URLSearchParams,
-): TitleRecord[] {
-  const mediaType = params.get("mediaType");
-  const watchedBy = params.get("watchedBy");
-  const wantBy = params.get("wantBy");
-
-  return records.filter((record) => {
-    if (mediaType && mediaType !== "all" && record.title.mediaType !== mediaType) {
-      return false;
-    }
-
-    if (watchedBy && watchedBy !== "all") {
-      if (!record.status.watchedBy[watchedBy as keyof typeof record.status.watchedBy]) {
-        return false;
-      }
-    }
-
-    if (wantBy && wantBy !== "all") {
-      if (!record.status.wantToWatchBy[wantBy as keyof typeof record.status.wantToWatchBy]) {
-        return false;
-      }
-    }
-
-    return true;
-  });
-}
-
-function sortRecords(records: TitleRecord[], sortBy: string | null): TitleRecord[] {
-  const copied = [...records];
-
+function normalizeSort(sortBy: string | null) {
   switch (sortBy) {
     case "alpha":
-      copied.sort((a, b) => a.title.title.localeCompare(b.title.title));
-      break;
+      return "alphabetical" as const;
     case "release":
-      copied.sort((a, b) => (b.title.releaseYear ?? 0) - (a.title.releaseYear ?? 0));
-      break;
+      return "release_date" as const;
     case "updated":
+      return "recently_updated" as const;
+    case "recently_added":
+      return "recently_added" as const;
+    case "recently_updated":
+    case "alphabetical":
+    case "release_date":
+      return sortBy;
     default:
-      copied.sort((a, b) => {
-        const aDate = a.title.updatedAt ?? "";
-        const bDate = b.title.updatedAt ?? "";
-        return bDate.localeCompare(aDate);
-      });
-      break;
+      return "recently_updated" as const;
+  }
+}
+
+function normalizeFilter(searchParams: URLSearchParams): {
+  mediaType?: MediaType | "all";
+  filter?:
+    | "my_wants_to_watch"
+    | "my_watched"
+    | "household_wants_to_watch"
+    | "watched_together"
+    | "all_members_watched"
+    | "watched_by_anyone"
+    | "not_watched_by_me";
+} {
+  const mediaTypeParam = searchParams.get("mediaType");
+  const mediaType: MediaType | "all" | undefined =
+    mediaTypeParam === "movie" || mediaTypeParam === "tv" || mediaTypeParam === "all"
+      ? mediaTypeParam
+      : undefined;
+
+  const legacyWatchedBy = searchParams.get("watchedBy");
+  const legacyWantBy = searchParams.get("wantBy");
+  const filterParam = searchParams.get("filter");
+
+  if (legacyWatchedBy === "together") {
+    return { mediaType, filter: "watched_together" };
+  }
+  if (legacyWatchedBy === "all") {
+    return { mediaType, filter: "watched_by_anyone" };
+  }
+  if (legacyWantBy === "all") {
+    return { mediaType, filter: "household_wants_to_watch" };
   }
 
-  return copied;
+  const filter =
+    filterParam === "my_wants_to_watch" ||
+    filterParam === "my_watched" ||
+    filterParam === "household_wants_to_watch" ||
+    filterParam === "watched_together" ||
+    filterParam === "all_members_watched" ||
+    filterParam === "watched_by_anyone" ||
+    filterParam === "not_watched_by_me"
+      ? filterParam
+      : undefined;
+
+  return { mediaType, filter };
 }
 
 export async function GET(request: NextRequest) {
@@ -63,26 +79,12 @@ export async function GET(request: NextRequest) {
     const uid = await requireUidFromRequest(request);
     const householdId = await getHouseholdIdForUid(uid);
 
-    const titleSnapshots = await getAdminDb()
-      .collection("titles")
-      .where("householdId", "==", householdId)
-      .limit(250)
-      .get();
-
-    const titleIds = titleSnapshots.docs.map((doc) => doc.id);
-
-    const statusSnapshots = await Promise.all(
-      titleIds.map((titleId) => getAdminDb().collection("titleStatuses").doc(titleId).get()),
+    const records = await listTitleViewModels(householdId, uid);
+    const filtered = filterTitleViewModels(records, normalizeFilter(request.nextUrl.searchParams));
+    const sorted = sortTitleViewModels(
+      filtered,
+      normalizeSort(request.nextUrl.searchParams.get("sort")),
     );
-
-    const statusMap = new Map(statusSnapshots.map((snapshot) => [snapshot.id, snapshot]));
-
-    const records = titleSnapshots.docs.map((titleSnapshot) =>
-      mapTitleRecord(titleSnapshot, statusMap.get(titleSnapshot.id)),
-    );
-
-    const filtered = filterRecords(records, request.nextUrl.searchParams);
-    const sorted = sortRecords(filtered, request.nextUrl.searchParams.get("sort"));
 
     return NextResponse.json({ records: sorted });
   } catch (error) {
