@@ -14,11 +14,11 @@ import {
 export const metadata: Metadata = {
   title: "FilmPickle",
   description:
-    "FilmPickle is a playful, polished movie and show tracker for solo queues, shared households, and easier watch-night decisions.",
+    "FilmPickle is a playful movie and show tracker for personal queues, couples, roommates, and shared households.",
   openGraph: {
-    title: "FilmPickle | Movie and show tracking for households",
+    title: "FilmPickle | Movie and show tracking for solo and shared use",
     description:
-      "Save movies and shows fast, keep household picks sorted, and make picking what to watch feel delightfully easy.",
+      "Save movies and shows fast, track what you want to watch and what you watched, and use it by yourself or with your household.",
     type: "website",
   },
 };
@@ -26,20 +26,20 @@ export const metadata: Metadata = {
 const promiseCards = [
   {
     kicker: "Capture",
-    title: "Save the recommendation before it disappears.",
-    body: "FilmPickle makes it easy to grab a movie or show the moment it sounds good, before it gets lost in the scroll.",
+    title: "Catch the recommendation before it vanishes into the abyss.",
+    body: "Save a movie or show the second it sounds promising, before it gets buried in a text thread, notes app, or your own unreliable memory.",
     icon: SearchIcon,
   },
   {
     kicker: "Align",
-    title: "Keep personal picks and shared picks straight.",
-    body: "See what is just for you, what belongs to the household, and where the overlap actually is without text-thread archaeology.",
+    title: "Keep your picks and the household picks from becoming one big blob.",
+    body: "See what is just for you, what is shared, and what overlap actually exists without doing group-text archaeology.",
     icon: UsersIcon,
   },
   {
     kicker: "Decide",
-    title: "Turn a messy maybe-list into a real tonight list.",
-    body: "When it is time to press play, the right titles are already surfaced so choosing something feels quick instead of draining.",
+    title: "Make deciding what to watch feel less like a tiny administrative crisis.",
+    body: "FilmPickle keeps the queue cleaner and the shared context clearer, so picking something feels lighter when it actually matters.",
     icon: SparkIcon,
   },
 ] as const;
@@ -48,17 +48,17 @@ const steps = [
   {
     number: "01",
     title: "Save titles as they come in",
-    body: "Add movies and shows the second someone mentions them, while the recommendation still has momentum.",
+    body: "Add movies and shows while the recommendation still feels fresh and before you forget why it sounded good.",
   },
   {
     number: "02",
     title: "Keep the queue clean",
-    body: "Use a visual library and clear status so the watchlist stays organized instead of turning into a dumping ground.",
+    body: "Use a visual library and clear statuses so the watchlist stays usable instead of quietly turning into a dumping ground.",
   },
   {
     number: "03",
-    title: "Open the shortlist and pick",
-    body: "When it is time to watch, you already know what is viable for tonight and what has real household momentum.",
+    title: "Open the app and pick from a cleaner queue",
+    body: "When it is time to watch, you are not starting from a chaotic heap of forgotten recommendations and half-remembered maybes.",
   },
 ] as const;
 
@@ -78,7 +78,7 @@ const watchModes = [
     blurb:
       "Perfect for couples, roommates, or any two-person setup where overlap matters and shared promises are easy to forget.",
     points: [
-      "Shared shortlist",
+      "Shared watchlist",
       "Better overlap visibility",
       "Less back-and-forth",
     ],
@@ -89,8 +89,8 @@ const watchModes = [
       "A calmer system for multiple tastes, multiple queues, and one shared place to decide what is worth watching together.",
     points: [
       "Member-aware context",
-      "Shared momentum",
-      "Cleaner watch-night decisions",
+      "Shared watch tracking",
+      "Cleaner watch decisions",
     ],
   },
 ] as const;
@@ -98,17 +98,17 @@ const watchModes = [
 const heroBenefits = [
   {
     title: "Save fast",
-    body: "Capture recommendations while they are still fresh.",
+    body: "Grab recommendations while they are still fresh.",
     icon: SearchIcon,
   },
   {
     title: "See overlap",
-    body: "Keep household picks clear without the group-text mess.",
+    body: "Keep shared interest clear without the group-text mess.",
     icon: UsersIcon,
   },
   {
     title: "Choose tonight",
-    body: "Turn a vague maybe-list into a real shortlist.",
+    body: "Keep the queue tidy enough that picking something gets easier.",
     icon: SparkIcon,
   },
 ] as const;
@@ -118,35 +118,21 @@ export default function MarketingHomePage() {
     <div className="space-y-10 pb-10 md:space-y-14">
       <section className="marketing-section grid gap-8 pt-2 lg:grid-cols-[1.05fr_0.95fr] lg:items-center">
         <div className="space-y-6">
-          <div className="flex flex-wrap gap-2">
-            <span className="marketing-pill text-xs font-semibold tracking-[0.2em] uppercase">
-              <PickleIcon className="h-4 w-4 text-[rgb(32,94,51)]" />
-              FilmPickle
-            </span>
-            <span className="marketing-pill text-sm">
-              For solo queues and shared households
-            </span>
-          </div>
-
           <div className="space-y-5">
-            <p className="app-kicker">
-              A smarter watchlist for real movie nights
-            </p>
-            <h1 className="font-display max-w-3xl text-4xl leading-[0.98] font-semibold text-balance text-[rgb(23,35,18)] sm:text-5xl md:text-6xl lg:text-7xl">
-              Your household&apos;s watchlist, finally handled.
+            <h1 className="font-display max-w-3xl text-3xl leading-[1.01] font-semibold text-balance text-[rgb(23,35,18)] sm:text-4xl md:text-5xl lg:text-6xl">
+              Your movie &amp; show tracker. Use yourself, as a couple, or even a household.
             </h1>
             <p className="max-w-2xl text-base leading-7 text-[rgb(69,84,53)] sm:text-lg sm:leading-8 md:text-xl">
-              FilmPickle keeps recommendations, personal queues, and shared
-              picks in one polished, poster-first space, so deciding what to
-              watch stops feeling like work.
+              Save titles fast, track what you want to watch and what you watched,
+              and keep shared watch decisions from turning back into chaos.
             </p>
           </div>
 
           <HomeCtaRow />
 
           <p className="max-w-2xl text-sm leading-7 text-[rgb(87,101,66)] md:text-base">
-            No spreadsheets. No lost texts. No re-running the same conversation
-            about what everyone was in the mood for.
+            No spreadsheets. No lost texts. No opening five apps just to remember
+            what sounded good three days ago.
           </p>
 
           <div className="grid gap-3 sm:grid-cols-3">
@@ -171,166 +157,108 @@ export default function MarketingHomePage() {
           <div className="marketing-floating-delayed absolute top-20 -right-4 hidden h-14 w-14 rounded-full bg-[linear-gradient(145deg,rgba(244,188,70,0.8),rgba(255,255,255,0.2))] lg:block" />
 
           <div className="marketing-hero-card marketing-shine p-5 sm:p-6">
-            <div className="rounded-[30px] border border-[rgb(58,104,63,0.1)] bg-[rgba(255,255,255,0.68)] shadow-[0_22px_44px_rgba(84,90,42,0.08)]">
-              <div className="flex flex-col gap-3 border-b border-[rgb(58,104,63,0.08)] px-4 py-3 sm:flex-row sm:items-center sm:justify-between sm:px-5">
+            <div className="overflow-hidden rounded-[30px] border border-[rgb(58,104,63,0.1)] bg-[rgba(255,255,255,0.74)] shadow-[0_22px_44px_rgba(84,90,42,0.08)]">
+              <div className="flex items-center justify-between border-b border-[rgb(58,104,63,0.08)] px-4 py-3 sm:px-5">
                 <div className="flex items-center gap-3">
                   <div className="flex items-center gap-1.5">
                     <span className="h-2.5 w-2.5 rounded-full bg-[rgba(39,102,57,0.85)]" />
                     <span className="h-2.5 w-2.5 rounded-full bg-[rgba(244,188,70,0.9)]" />
                     <span className="h-2.5 w-2.5 rounded-full bg-[rgba(228,232,209,0.95)]" />
                   </div>
-                  <div>
-                    <p className="app-kicker">Household board</p>
-                    <p className="text-sm font-medium text-[rgb(69,84,53)]">
-                      Friday night picks
-                    </p>
-                  </div>
+                  <p className="app-kicker">Household dashboard preview</p>
                 </div>
                 <span className="marketing-pill w-fit shrink-0 text-xs font-semibold">
-                  2 members synced
+                  2 members live
                 </span>
               </div>
 
-              <div className="grid gap-4 p-4 sm:p-5 xl:grid-cols-[1.05fr_0.95fr]">
-                <div className="rounded-[28px] bg-[linear-gradient(160deg,rgba(36,67,52,0.96),rgba(18,36,27,0.94))] p-5 text-[rgb(245,252,236)] shadow-[0_18px_36px_rgba(25,80,47,0.18)]">
-                  <p className="text-xs font-semibold tracking-[0.18em] text-[rgba(245,252,236,0.66)] uppercase">
-                    Shared shortlist
-                  </p>
-                  <h2 className="mt-3 max-w-sm text-2xl leading-tight font-semibold sm:text-3xl">
-                    Three strong picks for tonight.
-                  </h2>
-                  <p className="mt-3 max-w-sm text-sm leading-6 text-[rgba(245,252,236,0.8)]">
-                    Already filtered down from the bigger watchlist into titles
-                    the household is actually likely to say yes to.
-                  </p>
+              <div className="mx-auto max-w-[620px] p-4 sm:p-5">
+                <div className="grid items-start gap-3 md:grid-cols-[1.08fr_0.92fr]">
+                  <div className="rounded-[24px] bg-[linear-gradient(160deg,rgba(30,59,45,0.96),rgba(20,39,30,0.94))] p-4 text-[rgb(243,250,236)]">
+                    <p className="text-xs font-semibold tracking-[0.17em] text-[rgba(243,250,236,0.68)] uppercase">
+                      Shared picks
+                    </p>
+                    <h2 className="mt-1 text-[1.65rem] leading-tight font-semibold">
+                      Pick faster tonight.
+                    </h2>
+                    <p className="mt-2 max-w-sm text-sm leading-6 text-[rgba(243,250,236,0.82)]">
+                      One clean board for what sounds good now.
+                    </p>
 
-                  <div className="mt-6 grid grid-cols-2 gap-3 sm:grid-cols-3">
-                    {[
-                      {
-                        title: "Severance",
-                        tag: "Both saved",
-                        tone: "bg-[linear-gradient(180deg,rgba(24,46,34,0.96),rgba(40,71,55,0.92))]",
-                      },
-                      {
-                        title: "Paddington in Peru",
-                        tag: "Front-runner",
-                        tone: "bg-[linear-gradient(180deg,rgba(244,188,70,0.96),rgba(233,157,60,0.9))]",
-                      },
-                      {
-                        title: "Dune: Part Two",
-                        tag: "Queued",
-                        tone: "bg-[linear-gradient(180deg,rgba(94,125,96,0.92),rgba(58,84,62,0.92))]",
-                      },
-                    ].map((item, index) => (
-                      <div
-                        key={item.title}
-                        className={`space-y-3 ${
-                          index === 2 ? "col-span-2 sm:col-span-1" : ""
-                        }`}
-                      >
-                        <div
-                          className={`aspect-[0.74] rounded-[20px] ${item.tone} shadow-[inset_0_1px_0_rgba(255,255,255,0.16)]`}
-                        />
-                        <div>
-                          <p className="text-sm leading-5 font-semibold">
-                            {item.title}
-                          </p>
-                          <p className="mt-2 inline-flex rounded-full bg-[rgba(255,255,255,0.14)] px-2.5 py-1 text-[11px] font-semibold text-[rgba(245,252,236,0.88)]">
-                            {item.tag}
-                          </p>
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-
-                <div className="space-y-4">
-                  <div className="rounded-[26px] border border-[rgb(58,104,63,0.1)] bg-[linear-gradient(180deg,rgba(255,251,242,0.92),rgba(255,255,255,0.76))] p-4">
-                    <div className="flex items-center justify-between">
-                      <div>
-                        <p className="app-kicker">Household pulse</p>
-                        <p className="mt-2 text-xl leading-tight font-semibold text-[rgb(23,35,18)] sm:text-2xl">
-                          Everyone is pointed at the same few options.
+                    <div className="mt-4 flex gap-2.5">
+                      <article className="min-w-0 flex-1 rounded-[14px] border border-white/16 bg-[rgba(18,36,27,0.56)] p-2">
+                        <div className="h-16 rounded-[10px] bg-[radial-gradient(circle_at_15%_15%,rgba(222,237,224,0.34),transparent_58%),linear-gradient(150deg,rgba(26,61,43,0.95),rgba(19,43,32,0.93))]" />
+                        <p className="mt-2 truncate text-xs font-semibold text-[rgba(244,251,237,0.95)]">
+                          Severance
                         </p>
-                      </div>
-                      <UsersIcon className="h-5 w-5 shrink-0 text-[rgb(36,103,58)]" />
-                    </div>
+                        <p className="text-[11px] text-[rgba(244,251,237,0.72)]">
+                          Shared watchlist
+                        </p>
+                      </article>
 
-                    <div className="mt-5 space-y-3">
-                      {[
-                        ["Alex", "3 shared picks"],
-                        ["Jordan", "2 rewatches queued"],
-                        ["Household", "1 clear front-runner"],
-                      ].map(([name, detail]) => (
-                        <div
-                          key={name}
-                          className="flex items-center justify-between rounded-2xl bg-[rgba(255,255,255,0.74)] px-3 py-2.5"
-                        >
-                          <div className="flex items-center gap-3">
-                            <span className="flex h-8 w-8 items-center justify-center rounded-full bg-[rgba(39,102,57,0.12)] text-xs font-semibold text-[rgb(30,88,48)]">
-                              {name.slice(0, 1)}
-                            </span>
-                            <span className="font-medium text-[rgb(28,40,22)]">
+                      <article className="min-w-0 flex-1 rounded-[14px] border border-white/16 bg-[rgba(18,36,27,0.56)] p-2">
+                        <div className="h-16 rounded-[10px] bg-[radial-gradient(circle_at_15%_15%,rgba(255,238,194,0.36),transparent_58%),linear-gradient(150deg,rgba(241,188,85,0.95),rgba(223,160,61,0.93))]" />
+                        <p className="mt-2 truncate text-xs font-semibold text-[rgba(244,251,237,0.95)]">
+                          Paddington in Peru
+                        </p>
+                        <p className="text-[11px] text-[rgba(244,251,237,0.72)]">
+                          Watched together
+                        </p>
+                      </article>
+
+                      <article className="min-w-0 flex-1 rounded-[14px] border border-white/16 bg-[rgba(18,36,27,0.56)] p-2">
+                        <div className="h-16 rounded-[10px] bg-[radial-gradient(circle_at_15%_15%,rgba(220,236,217,0.3),transparent_58%),linear-gradient(150deg,rgba(103,132,107,0.95),rgba(74,100,80,0.93))]" />
+                        <p className="mt-2 truncate text-xs font-semibold text-[rgba(244,251,237,0.95)]">
+                          Dune: Part Two
+                        </p>
+                        <p className="text-[11px] text-[rgba(244,251,237,0.72)]">
+                          Saved
+                        </p>
+                      </article>
+                    </div>
+                  </div>
+
+                  <div className="space-y-3">
+                    <div className="rounded-[24px] border border-[rgb(58,104,63,0.1)] bg-[linear-gradient(180deg,rgba(255,251,242,0.95),rgba(255,255,255,0.8))] p-4">
+                      <p className="app-kicker">Household pulse</p>
+                      <p className="mt-1 text-xl leading-tight font-semibold text-[rgb(23,35,18)]">
+                        Who wants what
+                      </p>
+                      <div className="mt-3 space-y-2.5">
+                        {[
+                          ["Alex", "Wants 3"],
+                          ["Jordan", "Watched 2"],
+                          ["You", "Saved 4"],
+                        ].map(([name, detail]) => (
+                          <div
+                            key={name}
+                            className="flex items-center justify-between rounded-xl bg-[rgba(255,255,255,0.82)] px-3 py-2"
+                          >
+                            <span className="text-sm font-semibold text-[rgb(36,52,30)]">
                               {name}
                             </span>
-                          </div>
-                          <span className="text-xs font-semibold text-[rgb(84,95,60)]">
-                            {detail}
-                          </span>
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-
-                  <div className="grid gap-3 sm:grid-cols-2">
-                    <PageCard className="rounded-[24px] p-4">
-                      <p className="app-kicker">Library</p>
-                      <p className="mt-2 text-3xl font-semibold text-[rgb(23,35,18)]">
-                        34
-                      </p>
-                      <p className="mt-1 text-sm text-[rgb(69,84,53)]">
-                        titles parked
-                      </p>
-                    </PageCard>
-                    <PageCard className="rounded-[24px] p-4">
-                      <p className="app-kicker">Tonight</p>
-                      <p className="mt-2 text-3xl font-semibold text-[rgb(23,35,18)]">
-                        1
-                      </p>
-                      <p className="mt-1 text-sm text-[rgb(69,84,53)]">
-                        clear front-runner
-                      </p>
-                    </PageCard>
-                    <div className="rounded-[24px] border border-[rgb(58,104,63,0.1)] bg-[rgba(255,255,255,0.72)] p-4 sm:col-span-2">
-                      <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-                        <div className="flex items-center gap-3">
-                          <span className="flex h-10 w-10 items-center justify-center rounded-2xl bg-[rgba(39,102,57,0.12)] text-[rgb(30,88,48)]">
-                            <SearchIcon className="h-4 w-4" />
-                          </span>
-                          <div>
-                            <p className="text-sm font-semibold text-[rgb(23,35,18)]">
-                              Quick add
-                            </p>
-                            <p className="text-xs text-[rgb(92,104,68)]">
-                              Save the next recommendation instantly
-                            </p>
-                          </div>
-                        </div>
-                        <span className="w-fit rounded-full bg-[rgba(219,241,158,0.8)] px-3 py-1 text-xs font-semibold text-[rgb(33,78,42)]">
-                          Instant save
-                        </span>
-                      </div>
-                      <div className="mt-4 flex flex-wrap gap-2">
-                        {["The Pitt", "Only Murders", "Dune: Part Two"].map(
-                          (title) => (
-                            <span
-                              key={title}
-                              className="rounded-full border border-[rgb(58,104,63,0.08)] bg-[rgba(255,255,255,0.8)] px-3 py-1.5 text-sm font-medium text-[rgb(28,40,22)]"
-                            >
-                              {title}
+                            <span className="text-xs font-semibold text-[rgb(84,95,60)]">
+                              {detail}
                             </span>
-                          ),
-                        )}
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+
+                    <div className="grid grid-cols-2 gap-3">
+                      <div className="rounded-[20px] border border-[rgb(58,104,63,0.08)] bg-[rgba(255,255,255,0.88)] p-3.5">
+                        <p className="app-kicker">Library</p>
+                        <p className="mt-1 text-3xl font-semibold text-[rgb(23,35,18)]">
+                          34
+                        </p>
+                        <p className="text-xs text-[rgb(69,84,53)]">titles</p>
+                      </div>
+                      <div className="rounded-[20px] border border-[rgb(58,104,63,0.08)] bg-[rgba(255,255,255,0.88)] p-3.5">
+                        <p className="app-kicker">Tonight</p>
+                        <p className="mt-1 text-3xl font-semibold text-[rgb(23,35,18)]">
+                          6
+                        </p>
+                        <p className="text-xs text-[rgb(69,84,53)]">ready</p>
                       </div>
                     </div>
                   </div>
@@ -350,7 +278,7 @@ export default function MarketingHomePage() {
           <p className="max-w-2xl text-base leading-7 text-[rgb(69,84,53)] md:text-lg">
             Most watchlists are fine at collecting titles and bad at helping you
             do anything useful with them. FilmPickle is designed to stay tidy,
-            readable, and actually helpful when it is time to choose.
+            readable, and genuinely helpful when you come back later wondering what is actually worth watching.
           </p>
         </div>
 
@@ -384,8 +312,8 @@ export default function MarketingHomePage() {
           </h2>
           <p className="mt-4 max-w-md text-base leading-7 text-[rgb(69,84,53)]">
             FilmPickle is at its best when it disappears into the routine: save
-            what sounds good, keep the queue readable, and open a shortlist when
-            it is time to watch.
+            what sounds good, keep the queue readable, and come back to a watchlist
+            that still makes sense later when your brain has fully moved on.
           </p>
           <Link
             href="/features"
@@ -470,8 +398,8 @@ export default function MarketingHomePage() {
               </h2>
               <p className="max-w-2xl text-base leading-7 text-[rgb(69,84,53)]">
                 Save your first few titles in minutes, then bring in your
-                partner, roommate, or household whenever shared decisions start
-                to matter.
+                partner, roommate, or household whenever shared tracking starts
+                to matter a little more.
               </p>
             </div>
             <div className="flex flex-col gap-3">

@@ -9,7 +9,9 @@ import { PublicAuthCta } from "@/components/marketing/public-auth-cta";
 const navLinks = [
   { href: "/", label: "Home" },
   { href: "/features", label: "Features" },
-  { href: "/donate", label: "Donate" },
+  { href: "/how-it-works", label: "How it works" },
+  { href: "/faq", label: "FAQ" },
+  { href: "/support", label: "Support" },
 ] as const;
 
 export function PublicHeader() {
@@ -36,7 +38,7 @@ export function PublicHeader() {
                 FilmPickle
               </span>
               <span className="hidden truncate text-sm text-[rgb(87,101,66)] sm:block">
-                Movie and show tracking for solo queues and shared households
+                Get out of the what-to-watch pickle.
               </span>
             </span>
           </Link>

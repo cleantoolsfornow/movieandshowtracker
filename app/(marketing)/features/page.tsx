@@ -14,11 +14,11 @@ import {
 export const metadata: Metadata = {
   title: "Features",
   description:
-    "See how FilmPickle handles fast title capture, visual browsing, household tracking, and easier watch-night decisions.",
+    "See how FilmPickle handles fast title capture, visual browsing, personal tracking, and shared household use.",
   openGraph: {
     title: "Features | FilmPickle",
     description:
-      "Explore FilmPickle's fast capture, household-aware tracking, poster-first browsing, and decision-friendly watchlist tools.",
+      "Explore FilmPickle's fast capture, household-aware tracking, poster-first browsing, and current feature set.",
     type: "website",
   },
 };
@@ -33,31 +33,31 @@ const featureBlocks = [
   {
     kicker: "Browse",
     title: "Use a visual library instead of a sad little list.",
-    body: "Poster-first browsing makes the queue easier to revisit, easier to scan, and much easier to actually use.",
+    body: "Poster-first browsing makes the queue easier to revisit, easier to scan, and much more likely to stay useful over time.",
     icon: LibraryIcon,
   },
   {
     kicker: "Track",
     title: "Keep statuses clear without creating more admin.",
-    body: "FilmPickle helps you remember what was saved, what is promising, and what already got watched without turning the app into chores.",
+    body: "Keep track of what was saved, what you still want to watch, and what already got watched without making the app feel like homework.",
     icon: ShieldIcon,
   },
   {
     kicker: "Share",
     title: "See who is into what across the household.",
-    body: "Track overlap, shared picks, and household momentum so watch night starts with context instead of confusion.",
+    body: "Track personal and shared state side by side so households get better context without flattening everyone into one shared opinion blob.",
     icon: UsersIcon,
   },
   {
     kicker: "Adapt",
     title: "Start solo now and grow into shared use later.",
-    body: "The product works just as well for a private watchlist as it does for a couple, roommate setup, or larger household.",
+    body: "FilmPickle works just as well as a personal tracker as it does for a couple, roommate setup, or larger household.",
     icon: PickleIcon,
   },
   {
     kicker: "Decide",
-    title: "Make tonight's choice without re-opening the whole debate.",
-    body: "When it is finally time to pick something, the strongest options are already easier to spot and easier to agree on.",
+    title: "Keep the queue tidy enough that choosing something gets easier.",
+    body: "FilmPickle is built to reduce mess and make shared watch decisions feel lighter, even before deeper picker tools arrive.",
     icon: SparkIcon,
   },
 ] as const;
@@ -75,16 +75,16 @@ const groupedBenefits = [
     title: "For organizing",
     items: [
       "Poster-first browsing",
-      "Clear status and progress context",
+      "Clear status context",
       "Less clutter than notes, texts, or spreadsheets",
     ],
   },
   {
     title: "For choosing",
     items: [
-      "Household-aware watch decisions",
+      "Household-aware watch context",
       "Better overlap visibility",
-      "A clearer shortlist for tonight",
+      "A cleaner place to decide from",
     ],
   },
 ] as const;
@@ -98,17 +98,33 @@ const watchModes = [
   {
     name: "Two people",
     body: "Perfect for couples or roommates who want a cleaner shared shortlist and less back-and-forth every time it is time to watch.",
-    bullets: ["Shared picks", "Overlap visibility", "Less rehashing"],
+    bullets: ["Shared watchlist", "Overlap visibility", "Less rehashing"],
   },
   {
     name: "Household",
     body: "A better setup for multiple tastes, multiple members, and one place to sort out what actually has group momentum.",
     bullets: [
       "Member-aware context",
-      "Household shortlist",
+      "Shared tracking",
       "Cleaner decisions",
     ],
   },
+] as const;
+
+const availableNow = [
+  "Search for movies and TV shows and save them quickly",
+  "Track personal want-to-watch and watched status",
+  "Add personal ratings and notes",
+  "Use a shared household watchlist",
+  "Record watched-together household events",
+  "Browse a poster-first library built for solo and shared use",
+] as const;
+
+const plannedNext = [
+  "Deeper TV season and episode progress",
+  "Richer continue-watching support",
+  "Stronger watch-night decision tools",
+  "Better household management options",
 ] as const;
 
 export default function FeaturesPage() {
@@ -127,14 +143,14 @@ export default function FeaturesPage() {
           </div>
 
           <div className="space-y-4">
-            <p className="app-kicker">What you actually get</p>
+            <p className="app-kicker">Get out of the what-to-watch pickle.</p>
             <h1 className="max-w-3xl text-4xl leading-[1] font-semibold text-balance text-[rgb(23,35,18)] sm:text-5xl md:text-6xl">
               The tools that make FilmPickle feel fast, tidy, and useful.
             </h1>
             <p className="max-w-2xl text-base leading-7 text-[rgb(69,84,53)] sm:text-lg sm:leading-8">
               Every feature is there to support the same outcome: capture the
-              titles you care about, keep the queue readable, and make watch
-              decisions easier when they actually matter.
+              titles you care about, keep the queue readable, and make your
+              personal or shared tracking easier to keep up with.
             </p>
           </div>
         </div>
@@ -147,7 +163,7 @@ export default function FeaturesPage() {
                 Core promise
               </p>
               <p className="mt-3 text-2xl font-semibold">
-                Save quickly. Stay organized. Choose faster.
+                Save quickly. Stay organized. Stay sane about what to watch.
               </p>
             </div>
 
@@ -177,6 +193,46 @@ export default function FeaturesPage() {
                 </div>
               ))}
             </div>
+          </div>
+        </PageCard>
+      </section>
+
+      <section className="marketing-section grid gap-4 lg:grid-cols-2">
+        <PageCard elevated className="rounded-[32px] p-6 md:p-7">
+          <p className="app-kicker">Available now</p>
+          <h2 className="mt-3 text-3xl font-semibold text-[rgb(23,35,18)] sm:text-4xl">
+            What FilmPickle does today
+          </h2>
+          <div className="mt-5 space-y-2">
+            {availableNow.map((item) => (
+              <div
+                key={item}
+                className="rounded-2xl bg-[rgba(255,255,255,0.7)] px-3 py-2.5 text-sm font-medium text-[rgb(42,58,33)]"
+              >
+                {item}
+              </div>
+            ))}
+          </div>
+        </PageCard>
+
+        <PageCard elevated className="rounded-[32px] p-6 md:p-7">
+          <p className="app-kicker">Planned next</p>
+          <h2 className="mt-3 text-3xl font-semibold text-[rgb(23,35,18)] sm:text-4xl">
+            Where the product is headed
+          </h2>
+          <p className="mt-4 text-base leading-7 text-[rgb(69,84,53)]">
+            FilmPickle already covers the core tracking loop. The next layer is
+            deeper TV progress, stronger decision support, and better shared-use tools.
+          </p>
+          <div className="mt-5 space-y-2">
+            {plannedNext.map((item) => (
+              <div
+                key={item}
+                className="rounded-2xl bg-[rgba(255,255,255,0.7)] px-3 py-2.5 text-sm font-medium text-[rgb(42,58,33)]"
+              >
+                {item}
+              </div>
+            ))}
           </div>
         </PageCard>
       </section>
@@ -258,7 +314,7 @@ export default function FeaturesPage() {
         <PageCard elevated className="rounded-[36px] p-7 md:p-9">
           <div className="grid gap-6 lg:grid-cols-[1fr_auto] lg:items-center">
             <div className="space-y-4">
-              <p className="app-kicker">Start tracking</p>
+              <p className="app-kicker">A slightly less picklish watch life</p>
               <h2 className="max-w-3xl text-3xl leading-tight font-semibold text-[rgb(23,35,18)] sm:text-4xl md:text-5xl">
                 Build your queue now, then let FilmPickle make the next decision
                 easier.

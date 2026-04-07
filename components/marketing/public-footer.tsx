@@ -5,8 +5,11 @@ import { PickleIcon } from "@/components/marketing/inline-icons";
 const footerLinks = [
   { href: "/", label: "Home" },
   { href: "/features", label: "Features" },
-  { href: "/donate", label: "Donate" },
+  { href: "/how-it-works", label: "How it works" },
+  { href: "/faq", label: "FAQ" },
+  { href: "/support", label: "Support" },
   { href: "/sign-in", label: "Sign in" },
+  { href: "/donate", label: "Donate" },
 ] as const;
 
 export function PublicFooter() {
