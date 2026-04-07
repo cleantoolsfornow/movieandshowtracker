@@ -8,14 +8,14 @@ import { LoadingSkeleton } from "@/components/common/loading-skeleton";
 import { useHousehold } from "@/components/household/household-context";
 import { PosterCard } from "@/components/library/poster-card";
 import { listTitles } from "@/lib/tracker/client-api";
-import type { TitleRecord } from "@/lib/tracker/types";
+import type { TitleViewModel } from "@/lib/tracker/types";
 
 function Section({
   title,
   records,
 }: {
   title: string;
-  records: TitleRecord[];
+  records: TitleViewModel[];
 }) {
   if (records.length === 0) {
     return null;
@@ -26,7 +26,7 @@ function Section({
       <h2 className="text-lg font-semibold text-slate-900">{title}</h2>
       <div className="grid grid-cols-2 gap-3 sm:grid-cols-4 lg:grid-cols-6">
         {records.slice(0, 6).map((record) => (
-          <PosterCard key={record.title.id} record={record} />
+          <PosterCard key={record.id} record={record} />
         ))}
       </div>
     </section>
@@ -34,8 +34,8 @@ function Section({
 }
 
 export default function HomePage() {
-  const { personLabels } = useHousehold();
-  const [records, setRecords] = useState<TitleRecord[]>([]);
+  const { isSoloHousehold } = useHousehold();
+  const [records, setRecords] = useState<TitleViewModel[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
@@ -47,7 +47,7 @@ export default function HomePage() {
       setError(null);
 
       try {
-        const next = await listTitles({ sort: "updated" });
+        const next = await listTitles({ sort: "recently_updated" });
         if (!cancelled) {
           setRecords(next);
         }
@@ -70,20 +70,20 @@ export default function HomePage() {
   }, []);
 
   const recentlyAdded = useMemo(() => records.slice(0, 8), [records]);
+  const myWatchlist = useMemo(
+    () => records.filter((record) => record.currentUser.wantsToWatch),
+    [records],
+  );
+  const recentlyWatchedByMe = useMemo(
+    () => records.filter((record) => record.currentUser.watched),
+    [records],
+  );
+  const householdWatchlist = useMemo(
+    () => records.filter((record) => record.household.wantsToWatch),
+    [records],
+  );
   const watchedTogether = useMemo(
-    () => records.filter((record) => record.status.watchedBy.together),
-    [records],
-  );
-  const ourWatchlist = useMemo(
-    () => records.filter((record) => record.status.wantToWatchBy.together),
-    [records],
-  );
-  const memberOneWatchlist = useMemo(
-    () => records.filter((record) => record.status.wantToWatchBy.memberOne),
-    [records],
-  );
-  const memberTwoWatchlist = useMemo(
-    () => records.filter((record) => record.status.wantToWatchBy.memberTwo),
+    () => records.filter((record) => record.household.watchedTogether),
     [records],
   );
 
@@ -91,7 +91,9 @@ export default function HomePage() {
     <div className="space-y-5">
       <section className="rounded-xl border border-slate-200 bg-white p-4 shadow-sm">
         <h1 className="text-2xl font-semibold text-slate-900">Home</h1>
-        <p className="mt-1 text-sm text-slate-600">Quick overview and shortcuts.</p>
+        <p className="mt-1 text-sm text-slate-600">
+          Quick overview and shortcuts.
+        </p>
         <div className="mt-3 flex gap-2">
           <Link
             href="/search"
@@ -109,7 +111,9 @@ export default function HomePage() {
       </section>
 
       {error ? (
-        <p className="rounded-lg border border-red-200 bg-red-50 p-3 text-sm text-red-700">{error}</p>
+        <p className="rounded-lg border border-red-200 bg-red-50 p-3 text-sm text-red-700">
+          {error}
+        </p>
       ) : null}
 
       {isLoading ? (
@@ -127,11 +131,18 @@ export default function HomePage() {
         />
       ) : null}
 
+      {!isSoloHousehold ? (
+        <>
+          <Section title="Household watchlist" records={householdWatchlist} />
+          <Section
+            title="Recently watched together"
+            records={watchedTogether}
+          />
+        </>
+      ) : null}
+      <Section title="My watchlist" records={myWatchlist} />
+      <Section title="Recently watched" records={recentlyWatchedByMe} />
       <Section title="Recently added" records={recentlyAdded} />
-      <Section title="Recently watched together" records={watchedTogether} />
-      <Section title="Our watchlist" records={ourWatchlist} />
-      <Section title={`${personLabels.memberOne} watchlist`} records={memberOneWatchlist} />
-      <Section title={`${personLabels.memberTwo} watchlist`} records={memberTwoWatchlist} />
     </div>
   );
 }

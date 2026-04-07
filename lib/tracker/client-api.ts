@@ -1,8 +1,9 @@
 import { getCurrentIdToken } from "@/lib/auth/auth-client";
 import type {
-  StatusPatch,
+  AddTitleRequest,
+  PatchTitleAction,
   TmdbSearchResult,
-  TitleRecord,
+  TitleViewModel,
 } from "@/lib/tracker/types";
 
 type ApiError = { error?: string };
@@ -39,47 +40,61 @@ export async function searchTmdb(query: string): Promise<TmdbSearchResult[]> {
   return data.results;
 }
 
-export async function addTitle(input: {
-  tmdbId: number;
-  mediaType: "movie" | "tv";
-  title: string;
-  overview: string;
-  posterPath: string | null;
-  backdropPath: string | null;
-  releaseDate: string | null;
-  releaseYear: number | null;
-  voteAverage: number | null;
-  genres?: string[];
-  statusPatch?: StatusPatch;
-}): Promise<TitleRecord> {
-  const data = await authedFetch<{ record: TitleRecord }>("/api/titles/add", {
-    method: "POST",
-    body: JSON.stringify(input),
-  });
+export type AddTitleClientRequest = AddTitleRequest & {
+  name?: string;
+  title?: string;
+  overview?: string;
+  posterPath?: string | null;
+  backdropPath?: string | null;
+  releaseDate?: string | null;
+  firstAirDate?: string | null;
+  genres?: Array<string | { id: number; name: string }>;
+  runtime?: number;
+  numberOfSeasons?: number;
+  voteAverage?: number | null;
+};
+
+export async function addTitle(
+  input: AddTitleClientRequest,
+): Promise<TitleViewModel> {
+  const data = await authedFetch<{ record: TitleViewModel }>(
+    "/api/titles/add",
+    {
+      method: "POST",
+      body: JSON.stringify(input),
+    },
+  );
   return data.record;
 }
 
 export async function listTitles(filters?: {
   mediaType?: "movie" | "tv" | "all";
-  watchedBy?: "memberOne" | "memberTwo" | "together" | "all";
-  wantBy?: "memberOne" | "memberTwo" | "together" | "all";
-  sort?: "updated" | "release" | "alpha";
-}): Promise<TitleRecord[]> {
+  filter?:
+    | "my_wants_to_watch"
+    | "my_watched"
+    | "household_wants_to_watch"
+    | "watched_together"
+    | "all_members_watched"
+    | "watched_by_anyone"
+    | "not_watched_by_me";
+  sort?:
+    | "recently_added"
+    | "recently_updated"
+    | "alphabetical"
+    | "release_date";
+}): Promise<TitleViewModel[]> {
   const params = new URLSearchParams();
   if (filters?.mediaType) {
     params.set("mediaType", filters.mediaType);
   }
-  if (filters?.watchedBy) {
-    params.set("watchedBy", filters.watchedBy);
-  }
-  if (filters?.wantBy) {
-    params.set("wantBy", filters.wantBy);
+  if (filters?.filter) {
+    params.set("filter", filters.filter);
   }
   if (filters?.sort) {
     params.set("sort", filters.sort);
   }
 
-  const data = await authedFetch<{ records: TitleRecord[] }>(
+  const data = await authedFetch<{ records: TitleViewModel[] }>(
     `/api/titles/list${params.size ? `?${params.toString()}` : ""}`,
     { method: "GET" },
   );
@@ -87,28 +102,36 @@ export async function listTitles(filters?: {
   return data.records;
 }
 
-export async function getTitleById(titleId: string): Promise<TitleRecord> {
-  const data = await authedFetch<{ record: TitleRecord }>(`/api/titles/${titleId}`, {
-    method: "GET",
-  });
+export async function getTitleById(titleId: string): Promise<TitleViewModel> {
+  const data = await authedFetch<{ record: TitleViewModel }>(
+    `/api/titles/${titleId}`,
+    {
+      method: "GET",
+    },
+  );
 
   return data.record;
 }
 
 export async function patchTitleStatus(
   titleId: string,
-  patch: StatusPatch,
-): Promise<TitleRecord> {
-  const data = await authedFetch<{ record: TitleRecord }>(`/api/titles/${titleId}`, {
-    method: "PATCH",
-    body: JSON.stringify(patch),
-  });
+  patch: PatchTitleAction,
+): Promise<TitleViewModel> {
+  const data = await authedFetch<{ record: TitleViewModel }>(
+    `/api/titles/${titleId}`,
+    {
+      method: "PATCH",
+      body: JSON.stringify(patch),
+    },
+  );
 
   return data.record;
 }
 
-export async function refreshTitleMetadata(titleId: string): Promise<TitleRecord> {
-  const data = await authedFetch<{ record: TitleRecord }>(
+export async function refreshTitleMetadata(
+  titleId: string,
+): Promise<TitleViewModel> {
+  const data = await authedFetch<{ record: TitleViewModel }>(
     `/api/titles/${titleId}/refresh`,
     {
       method: "POST",
@@ -132,9 +155,12 @@ export type HouseholdSummary = {
 };
 
 export async function getHouseholdSummary(): Promise<HouseholdSummary> {
-  const data = await authedFetch<{ household: HouseholdSummary }>("/api/households/me", {
-    method: "GET",
-  });
+  const data = await authedFetch<{ household: HouseholdSummary }>(
+    "/api/households/me",
+    {
+      method: "GET",
+    },
+  );
 
   return data.household;
 }

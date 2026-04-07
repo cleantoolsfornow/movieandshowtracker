@@ -6,9 +6,9 @@ import { addTitle } from "@/lib/tracker/client-api";
 import { useHousehold } from "@/components/household/household-context";
 import { buildPosterUrl } from "@/lib/tracker/shared";
 import type {
-  StatusPatch,
+  AddTitleAction,
   TmdbSearchResult,
-  TitleRecord,
+  TitleViewModel,
 } from "@/lib/tracker/types";
 
 export function SearchResultCard({
@@ -16,32 +16,56 @@ export function SearchResultCard({
   onAdded,
 }: {
   item: TmdbSearchResult;
-  onAdded?: (record: TitleRecord) => void;
+  onAdded?: (record: TitleViewModel) => void;
 }) {
-  const { personLabels } = useHousehold();
+  const { household } = useHousehold();
   const [isSaving, setIsSaving] = useState(false);
   const [expanded, setExpanded] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  const posterUrl = buildPosterUrl(item.posterPath);
+  const isSoloHousehold = (household?.members?.length ?? 1) <= 1;
+  const titleName = item.name ?? item.title ?? "Untitled";
+  const dateLabel = item.releaseDate ?? item.firstAirDate ?? null;
+  const yearLabel = dateLabel ? new Date(dateLabel).getUTCFullYear() : null;
+  const posterUrl = buildPosterUrl(item.posterPath ?? null);
   const actions = [
-    { label: `Watched by ${personLabels.memberOne}`, patch: { watchedBy: { memberOne: true } } },
-    { label: `Watched by ${personLabels.memberTwo}`, patch: { watchedBy: { memberTwo: true } } },
-    { label: "Watched together", patch: { watchedBy: { together: true } } },
-    { label: `Want: ${personLabels.memberOne}`, patch: { wantToWatchBy: { memberOne: true } } },
-    { label: `Want: ${personLabels.memberTwo}`, patch: { wantToWatchBy: { memberTwo: true } } },
-    { label: "Want together", patch: { wantToWatchBy: { together: true } } },
+    { label: "Add title only", action: "add_title_only" as const },
+    {
+      label: "Add to my watchlist",
+      action: "mark_user_wants_to_watch" as const,
+    },
+    { label: "Mark as watched", action: "mark_user_watched" as const },
+    {
+      label: "Add to household watchlist",
+      action: "mark_household_wants_to_watch" as const,
+    },
+    ...(!isSoloHousehold
+      ? ([
+          {
+            label: "Mark watched together",
+            action: "mark_watched_together" as const,
+          },
+        ] as const)
+      : []),
   ] as const;
 
-  async function handleAdd(statusPatch: StatusPatch) {
+  async function handleAdd(action: AddTitleAction) {
     setIsSaving(true);
     setError(null);
 
     try {
       const record = await addTitle({
-        ...item,
-        voteAverage: item.voteAverage,
-        statusPatch,
+        tmdbId: item.tmdbId,
+        mediaType: item.mediaType,
+        action,
+        name: titleName,
+        title: titleName,
+        overview: item.overview,
+        posterPath: item.posterPath ?? null,
+        backdropPath: item.backdropPath ?? null,
+        releaseDate: item.releaseDate ?? null,
+        firstAirDate: item.firstAirDate ?? null,
+        voteAverage: item.voteAverage ?? null,
       });
       onAdded?.(record);
       setExpanded(false);
@@ -58,19 +82,27 @@ export function SearchResultCard({
         <div className="h-24 w-16 shrink-0 overflow-hidden rounded bg-slate-200">
           {posterUrl ? (
             // eslint-disable-next-line @next/next/no-img-element
-            <img src={posterUrl} alt={item.title} className="h-full w-full object-cover" />
+            <img
+              src={posterUrl}
+              alt={titleName}
+              className="h-full w-full object-cover"
+            />
           ) : null}
         </div>
         <div className="min-w-0 flex-1">
-          <h3 className="line-clamp-1 text-sm font-semibold text-slate-900">{item.title}</h3>
+          <h3 className="line-clamp-1 text-sm font-semibold text-slate-900">
+            {titleName}
+          </h3>
           <p className="text-xs text-slate-500">
-            {item.mediaType.toUpperCase()} · {item.releaseYear ?? "-"}
+            {item.mediaType.toUpperCase()} · {yearLabel ?? "-"}
           </p>
-          <p className="mt-1 line-clamp-2 text-xs text-slate-600">{item.overview}</p>
+          <p className="mt-1 line-clamp-2 text-xs text-slate-600">
+            {item.overview ?? ""}
+          </p>
           <div className="mt-2 flex gap-2">
             <button
               type="button"
-              onClick={() => void handleAdd({})}
+              onClick={() => void handleAdd("add_title_only")}
               disabled={isSaving}
               className="rounded-md bg-slate-900 px-3 py-1 text-xs font-medium text-white hover:bg-slate-700 disabled:opacity-60"
             >
@@ -94,7 +126,7 @@ export function SearchResultCard({
             <button
               key={action.label}
               type="button"
-              onClick={() => void handleAdd(action.patch)}
+              onClick={() => void handleAdd(action.action)}
               disabled={isSaving}
               className="rounded-md border border-slate-300 px-2 py-1 text-left text-xs text-slate-700 hover:bg-slate-100"
             >

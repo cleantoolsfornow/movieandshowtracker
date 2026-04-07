@@ -10,6 +10,7 @@ vi.mock("@/lib/firebase/admin", () => ({
 }));
 
 import {
+  assertUserHasHouseholdMembership,
   assertUserIsInHousehold,
   getTitleViewModelById,
   listTitleViewModels,
@@ -32,7 +33,10 @@ function createFakeDb(state: DbState) {
     docGets: {} as Record<string, number>,
   };
 
-  const createQuery = (name: string, filters: Array<[string, unknown]> = []) => ({
+  const createQuery = (
+    name: string,
+    filters: Array<[string, unknown]> = [],
+  ) => ({
     where(field: string, op: string, value: unknown) {
       if (op !== "==") {
         throw new Error("Only == supported in fake query.");
@@ -43,7 +47,10 @@ function createFakeDb(state: DbState) {
       metrics.queryGets[name] = (metrics.queryGets[name] ?? 0) + 1;
       const docs = Object.entries(state[name] ?? {})
         .filter(([, doc]) =>
-          filters.every(([field, value]) => (doc as Record<string, unknown>)[field] === value),
+          filters.every(
+            ([field, value]) =>
+              (doc as Record<string, unknown>)[field] === value,
+          ),
         )
         .map(([id, doc]) => createSnapshot(id, doc));
       return { docs };
@@ -189,7 +196,21 @@ describe("tracker server read path", () => {
   });
 
   it("validates both acting and target users are in the same household", async () => {
-    await expect(assertUserIsInHousehold("u1", "u2", "h1")).resolves.toBeUndefined();
-    await expect(assertUserIsInHousehold("u1", "u3", "h1")).rejects.toThrow("Forbidden.");
+    await expect(
+      assertUserHasHouseholdMembership("u1", "h1"),
+    ).resolves.toBeUndefined();
+    await expect(
+      assertUserIsInHousehold("u1", "u2", "h1"),
+    ).resolves.toBeUndefined();
+    await expect(assertUserIsInHousehold("u1", "u3", "h1")).rejects.toThrow(
+      "Forbidden.",
+    );
+  });
+
+  it("rejects title reads when the acting user is not a current household member", async () => {
+    await expect(listTitleViewModels("h1", "u3")).rejects.toThrow("Forbidden.");
+    await expect(getTitleViewModelById("h1", "t1", "u3")).rejects.toThrow(
+      "Forbidden.",
+    );
   });
 });

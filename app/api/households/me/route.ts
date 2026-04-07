@@ -22,15 +22,20 @@ export async function GET(request: NextRequest) {
     const householdSnapshot = await householdRef.get();
 
     if (!householdSnapshot.exists) {
-      return NextResponse.json({ error: "Household not found." }, { status: 404 });
+      return NextResponse.json(
+        { error: "Household not found." },
+        { status: 404 },
+      );
     }
 
-    const memberIds = ((householdSnapshot.get("memberIds") as string[] | undefined) ?? []).filter(
-      (value): value is string => typeof value === "string",
-    );
+    const memberIds = (
+      (householdSnapshot.get("memberIds") as string[] | undefined) ?? []
+    ).filter((value): value is string => typeof value === "string");
 
     const userSnapshots = await Promise.all(
-      memberIds.map((memberId) => getAdminDb().collection("users").doc(memberId).get()),
+      memberIds.map((memberId) =>
+        getAdminDb().collection("users").doc(memberId).get(),
+      ),
     );
 
     const members: MemberSummary[] = userSnapshots
@@ -38,8 +43,10 @@ export async function GET(request: NextRequest) {
       .map((snapshot) => ({
         uid: snapshot.id,
         email: (snapshot.get("email") as string | null | undefined) ?? null,
-        displayName: (snapshot.get("displayName") as string | null | undefined) ?? null,
-        photoURL: (snapshot.get("photoURL") as string | null | undefined) ?? null,
+        displayName:
+          (snapshot.get("displayName") as string | null | undefined) ?? null,
+        photoURL:
+          (snapshot.get("photoURL") as string | null | undefined) ?? null,
         avatarDataUrl:
           (snapshot.get("avatarDataUrl") as string | null | undefined) ?? null,
       }));
@@ -54,7 +61,8 @@ export async function GET(request: NextRequest) {
       },
     });
   } catch (error) {
-    const message = error instanceof Error ? error.message : "Failed to load household.";
+    const message =
+      error instanceof Error ? error.message : "Failed to load household.";
     const status =
       message === "Missing auth token."
         ? 401

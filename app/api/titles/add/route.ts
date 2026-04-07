@@ -5,151 +5,226 @@ import { z } from "zod";
 import { requireUidFromRequest } from "@/lib/auth/server-auth";
 import { getAdminDb } from "@/lib/firebase/admin";
 import { logServerError } from "@/lib/server/logger";
+import { createTitleKey, createTitleUserStatusId } from "@/lib/tracker/shared";
 import {
-  createTitleKey,
-  defaultStatusFlags,
-  mergeStatusPatch,
-} from "@/lib/tracker/shared";
-import { getHouseholdIdForUid, getTitleRecordById } from "@/lib/tracker/server";
-import type { MediaType } from "@/lib/tracker/types";
+  assertUserHasHouseholdMembership,
+  assertUserIsInHousehold,
+  getHouseholdIdForUid,
+  getTitleViewModelById,
+} from "@/lib/tracker/server";
+
+const addActionSchema = z.enum([
+  "add_title_only",
+  "mark_user_wants_to_watch",
+  "mark_user_watched",
+  "mark_household_wants_to_watch",
+  "mark_watched_together",
+]);
 
 const addTitleSchema = z.object({
   tmdbId: z.number().int().positive(),
   mediaType: z.enum(["movie", "tv"]),
-  title: z.string().min(1),
-  overview: z.string().optional().default(""),
-  posterPath: z.string().nullable().optional().default(null),
-  backdropPath: z.string().nullable().optional().default(null),
-  releaseDate: z.string().nullable().optional().default(null),
-  releaseYear: z.number().nullable().optional().default(null),
-  genres: z.array(z.string()).optional().default([]),
-  voteAverage: z.number().nullable().optional().default(null),
-  statusPatch: z
-    .object({
-      watchedBy: z
-        .object({
-          memberOne: z.boolean().optional(),
-          memberTwo: z.boolean().optional(),
-          together: z.boolean().optional(),
-        })
-        .optional(),
-      wantToWatchBy: z
-        .object({
-          memberOne: z.boolean().optional(),
-          memberTwo: z.boolean().optional(),
-          together: z.boolean().optional(),
-        })
-        .optional(),
-    })
-    .optional()
-    .default({}),
+  action: addActionSchema,
+  targetUserId: z.string().min(1).optional(),
+  name: z.string().min(1).optional(),
+  title: z.string().min(1).optional(),
+  overview: z.string().optional(),
+  posterPath: z.string().nullable().optional(),
+  backdropPath: z.string().nullable().optional(),
+  releaseDate: z.string().nullable().optional(),
+  firstAirDate: z.string().nullable().optional(),
+  genres: z
+    .array(
+      z.union([
+        z.string().min(1),
+        z.object({
+          id: z.number().int(),
+          name: z.string().min(1),
+        }),
+      ]),
+    )
+    .optional(),
+  runtime: z.number().int().positive().optional(),
+  numberOfSeasons: z.number().int().positive().optional(),
+  voteAverage: z.number().optional(),
 });
+
+function normalizeGenres(
+  genres: Array<string | { id: number; name: string }> | undefined,
+) {
+  if (!genres?.length) {
+    return undefined;
+  }
+
+  return genres.map((genre) =>
+    typeof genre === "string" ? { id: -1, name: genre } : genre,
+  );
+}
+
+function compactObject<T extends Record<string, unknown>>(value: T) {
+  const next: Record<string, unknown> = {};
+  for (const [key, item] of Object.entries(value)) {
+    if (item !== undefined) {
+      next[key] = item;
+    }
+  }
+  return next;
+}
 
 export async function POST(request: NextRequest) {
   try {
     const uid = await requireUidFromRequest(request);
     const householdId = await getHouseholdIdForUid(uid);
-
     const parsed = addTitleSchema.parse(await request.json());
     const titleId = createTitleKey(
       householdId,
-      parsed.mediaType as MediaType,
+      parsed.mediaType,
       parsed.tmdbId,
     );
+    const targetUserId = parsed.targetUserId ?? uid;
+
+    await assertUserHasHouseholdMembership(uid, householdId);
+
+    if (targetUserId !== uid) {
+      await assertUserIsInHousehold(uid, targetUserId, householdId);
+    }
+
+    const titleFields = compactObject({
+      householdId,
+      tmdbId: parsed.tmdbId,
+      mediaType: parsed.mediaType,
+      name: parsed.name ?? parsed.title,
+      overview: parsed.overview,
+      posterPath: parsed.posterPath ?? undefined,
+      backdropPath: parsed.backdropPath ?? undefined,
+      releaseDate: parsed.releaseDate ?? undefined,
+      firstAirDate: parsed.firstAirDate ?? undefined,
+      genres: normalizeGenres(parsed.genres),
+      runtime: parsed.runtime,
+      numberOfSeasons: parsed.numberOfSeasons,
+      voteAverage: parsed.voteAverage,
+    });
 
     const adminDb = getAdminDb();
+
     await adminDb.runTransaction(async (transaction) => {
       const titleRef = adminDb.collection("titles").doc(titleId);
-      const statusRef = adminDb.collection("titleStatuses").doc(titleId);
-      const [titleSnapshot, statusSnapshot] = await Promise.all([
-        transaction.get(titleRef),
-        transaction.get(statusRef),
-      ]);
+      const titleSnapshot = await transaction.get(titleRef);
       const now = FieldValue.serverTimestamp();
+      const existingName =
+        (titleSnapshot.get("name") as string | undefined) ??
+        (titleSnapshot.get("title") as string | undefined);
+      const titleName = parsed.name ?? parsed.title ?? existingName;
 
       if (!titleSnapshot.exists) {
+        if (!titleName) {
+          throw new Error("Title metadata requires a name for new titles.");
+        }
         transaction.set(titleRef, {
-          householdId,
-          tmdbId: parsed.tmdbId,
-          mediaType: parsed.mediaType,
-          title: parsed.title,
-          overview: parsed.overview,
-          posterPath: parsed.posterPath,
-          backdropPath: parsed.backdropPath,
-          releaseDate: parsed.releaseDate,
-          releaseYear: parsed.releaseYear,
-          genres: parsed.genres,
-          tmdbVoteAverage: parsed.voteAverage,
+          id: titleId,
+          ...titleFields,
+          name: titleName,
           createdAt: now,
+          createdBy: uid,
           updatedAt: now,
         });
       } else {
+        const titleHouseholdId = titleSnapshot.get("householdId") as
+          | string
+          | undefined;
+        if (titleHouseholdId !== householdId) {
+          throw new Error("Forbidden.");
+        }
+
         transaction.set(
           titleRef,
-          {
-            title: parsed.title,
-            overview: parsed.overview,
-            posterPath: parsed.posterPath,
-            backdropPath: parsed.backdropPath,
-            releaseDate: parsed.releaseDate,
-            releaseYear: parsed.releaseYear,
-            genres: parsed.genres,
-            tmdbVoteAverage: parsed.voteAverage,
+          compactObject({
+            ...titleFields,
+            name: titleName,
             updatedAt: now,
-          },
+          }),
           { merge: true },
         );
       }
 
-      const existingWatched = statusSnapshot.exists
-        ? ((statusSnapshot.get("watchedBy") as Record<string, boolean> | undefined) ??
-          defaultStatusFlags())
-        : defaultStatusFlags();
-      const existingWant = statusSnapshot.exists
-        ? ((statusSnapshot.get("wantToWatchBy") as
-            | Record<string, boolean>
-            | undefined) ?? defaultStatusFlags())
-        : defaultStatusFlags();
-
-      const merged = mergeStatusPatch(
-        {
-          watchedBy: {
-            memberOne: Boolean(existingWatched.memberOne),
-            memberTwo: Boolean(existingWatched.memberTwo),
-            together: Boolean(existingWatched.together),
-          },
-          wantToWatchBy: {
-            memberOne: Boolean(existingWant.memberOne),
-            memberTwo: Boolean(existingWant.memberTwo),
-            together: Boolean(existingWant.together),
-          },
-        },
-        parsed.statusPatch,
-      );
-
-      transaction.set(
-        statusRef,
-        {
-          titleId,
+      if (
+        parsed.action === "mark_user_wants_to_watch" ||
+        parsed.action === "mark_user_watched"
+      ) {
+        const statusId = createTitleUserStatusId(
           householdId,
-          watchedBy: merged.watchedBy,
-          wantToWatchBy: merged.wantToWatchBy,
-          updatedAt: now,
-        },
-        { merge: true },
-      );
+          titleId,
+          targetUserId,
+        );
+        const userStatusRef = adminDb
+          .collection("titleUserStatuses")
+          .doc(statusId);
+        const userStatusSnapshot = await transaction.get(userStatusRef);
+
+        transaction.set(
+          userStatusRef,
+          compactObject({
+            id: statusId,
+            householdId,
+            titleId,
+            userId: targetUserId,
+            wantsToWatch:
+              parsed.action === "mark_user_wants_to_watch" ? true : undefined,
+            watched: parsed.action === "mark_user_watched" ? true : undefined,
+            updatedAt: now,
+            updatedBy: uid,
+            createdAt: userStatusSnapshot.exists ? undefined : now,
+          }),
+          { merge: true },
+        );
+      }
+
+      if (
+        parsed.action === "mark_household_wants_to_watch" ||
+        parsed.action === "mark_watched_together"
+      ) {
+        const householdStatusRef = adminDb
+          .collection("titleHouseholdStatuses")
+          .doc(titleId);
+        const householdStatusSnapshot = await transaction.get(householdStatusRef);
+
+        transaction.set(
+          householdStatusRef,
+          compactObject({
+            titleId,
+            householdId,
+            householdWantsToWatch:
+              parsed.action === "mark_household_wants_to_watch"
+                ? true
+                : undefined,
+            watchedTogether:
+              parsed.action === "mark_watched_together" ? true : undefined,
+            updatedAt: now,
+            updatedBy: uid,
+            createdAt: householdStatusSnapshot.exists ? undefined : now,
+          }),
+          { merge: true },
+        );
+      }
     });
 
-    const record = await getTitleRecordById(householdId, titleId);
+    const record = await getTitleViewModelById(householdId, titleId, uid);
+    if (!record) {
+      throw new Error("Title not found.");
+    }
+
     return NextResponse.json({ record, titleId });
   } catch (error) {
-    const message = error instanceof Error ? error.message : "Failed to save title.";
+    const message =
+      error instanceof Error ? error.message : "Failed to save title.";
     const status =
       message === "Missing auth token."
         ? 401
-        : message.includes("household")
-          ? 400
-          : 500;
+        : message === "Forbidden."
+          ? 403
+          : message.includes("household") || message.includes("name")
+            ? 400
+            : 500;
     logServerError("api.titles.add", error, { status });
 
     return NextResponse.json(

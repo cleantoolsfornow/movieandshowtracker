@@ -71,11 +71,14 @@ Each slice includes:
 
 1. Initialize Next.js TypeScript app with Tailwind.
 2. Add dependencies:
+
 - `firebase`
 - optional data cache lib (`@tanstack/react-query`)
 - schema validation (`zod`)
 - class utilities (`clsx`, `tailwind-merge`)
+
 3. Add lint/format/test setup:
+
 - ESLint
 - Prettier
 - Vitest + Testing Library
@@ -157,6 +160,7 @@ Implement rules for:
 1. `users`: user can read/write only own doc.
 2. `households`: allow read/update only if `request.auth.uid` in `memberIds`.
 3. `titles` and `titleStatuses`:
+
 - read/write only when `resource.data.householdId` matches signed-in user household membership
 - enforce immutable ownership fields where needed (`householdId`, `tmdbId`, `mediaType`).
 
@@ -177,8 +181,10 @@ Create composite indexes for library queries:
 1. Firebase app initialization utilities.
 2. Auth provider wrapper and session listener.
 3. `/sign-in` page:
+
 - Google sign-in button
 - Email/password sign-up and sign-in
+
 4. Route guard middleware/layout redirect logic.
 
 ### Done criteria
@@ -197,8 +203,10 @@ Create composite indexes for library queries:
 
 1. Create user doc on first sign-in.
 2. `/onboarding` flow:
+
 - Create household (first user)
 - Join household by invite code/link (second user)
+
 3. Persist `householdId` on user profile.
 4. Add invite token generation and validation logic.
 
@@ -218,13 +226,18 @@ Create composite indexes for library queries:
 
 1. `/search` page with debounced input.
 2. Server route `/api/tmdb/search`:
+
 - Query TMDb for movie and TV
 - Normalize response fields for UI
+
 3. Search result cards (poster, title, year, type, overview).
 4. Tap result opens action sheet:
+
 - Watched by Matt/Jessica/Together
 - Want Matt/Jessica/Together
+
 5. Save flow:
+
 - Upsert `titles/{titleKey}`
 - Upsert `titleStatuses/{titleKey}` with selected state(s)
 
@@ -244,8 +257,10 @@ Create composite indexes for library queries:
 
 1. Reusable `StatusChipGroup` component with explicit labels.
 2. Action handlers for toggles:
+
 - `watchedBy.matt | jessica | together`
 - `wantToWatchBy.matt | jessica | together`
+
 3. Optimistic UI updates with rollback on failure.
 4. Status summary badges for cards/list rows.
 
@@ -264,14 +279,19 @@ Create composite indexes for library queries:
 ### Build
 
 1. `/library` unified browsing screen:
+
 - Poster grid default
 - Optional compact list mode
 - Filters: all, type, watched states, want states
 - Sorting: recently added/updated, release date, alpha
+
 2. `/title/[id]` detail page:
+
 - Full metadata and all status sections
 - Same action controls as search action sheet
+
 3. `/home` dashboard:
+
 - Recently added
 - Recently watched together
 - Our watchlist
@@ -292,13 +312,17 @@ Create composite indexes for library queries:
 ### Build
 
 1. `/settings` page:
+
 - signed-in account info
 - household name/members
 - invite controls
 - sign out
+
 2. Empty states and loading/skeleton states.
 3. Shared-action delight:
+
 - subtle success animation on "watched together"
+
 4. Responsive refinements for mobile + desktop.
 5. Accessibility pass (keyboard + labels + color contrast).
 
@@ -361,6 +385,7 @@ Before release candidate:
 2. Error boundaries added for top-level app segments.
 3. Structured logging for failed search/add/status operations.
 4. Basic performance checks:
+
 - Search latency acceptable
 - Library render smooth for expected data volume
 
@@ -382,12 +407,19 @@ Before release candidate:
 ## 12. Risks & Mitigations
 
 1. Risk: Firestore query/index mismatch causing slow/failed filters.
+
 - Mitigation: lock query patterns early; add indexes in Phase 3-4.
+
 2. Risk: Duplicate title race conditions on concurrent adds.
+
 - Mitigation: deterministic document ids + transactional upsert.
+
 3. Risk: Auth/onboarding state complexity.
+
 - Mitigation: single source-of-truth user profile fetch and route guards.
+
 4. Risk: TMDb rate limits/network failures.
+
 - Mitigation: debounce search, cache responses briefly, graceful empty/error states.
 
 ## 13. Definition of Done (v1)

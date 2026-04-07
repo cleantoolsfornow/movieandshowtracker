@@ -10,7 +10,10 @@ import {
   signOutUser,
   updateCurrentUserDisplayName,
 } from "@/lib/auth/auth-client";
-import { updateUserAvatarDataUrl, updateUserDisplayName } from "@/lib/firestore/users";
+import {
+  updateUserAvatarDataUrl,
+  updateUserDisplayName,
+} from "@/lib/firestore/users";
 import { compressAvatarToDataUrl } from "@/lib/profile/avatar";
 
 export default function SettingsPage() {
@@ -59,9 +62,7 @@ export default function SettingsPage() {
     }
   }
 
-  async function handleAvatarSelected(
-    event: ChangeEvent<HTMLInputElement>,
-  ) {
+  async function handleAvatarSelected(event: ChangeEvent<HTMLInputElement>) {
     if (!user) {
       setError("You must be signed in.");
       return;
@@ -99,7 +100,9 @@ export default function SettingsPage() {
     <div className="space-y-4">
       <section className="rounded-xl border border-slate-200 bg-white p-4 shadow-sm">
         <h1 className="text-2xl font-semibold text-slate-900">Settings</h1>
-        <p className="mt-1 text-sm text-slate-600">Account and household details.</p>
+        <p className="mt-1 text-sm text-slate-600">
+          Account and household details.
+        </p>
       </section>
 
       <section className="rounded-xl border border-slate-200 bg-white p-4 shadow-sm">
@@ -142,7 +145,10 @@ export default function SettingsPage() {
           </div>
         </div>
         <div className="mt-4 space-y-2">
-          <label htmlFor="display-name" className="block text-sm text-slate-700">
+          <label
+            htmlFor="display-name"
+            className="block text-sm text-slate-700"
+          >
             Display name
           </label>
           <input
@@ -176,7 +182,9 @@ export default function SettingsPage() {
       </section>
 
       {error ? (
-        <p className="rounded-lg border border-red-200 bg-red-50 p-3 text-sm text-red-700">{error}</p>
+        <p className="rounded-lg border border-red-200 bg-red-50 p-3 text-sm text-red-700">
+          {error}
+        </p>
       ) : null}
       {success ? (
         <p className="rounded-lg border border-emerald-200 bg-emerald-50 p-3 text-sm text-emerald-700">
@@ -191,14 +199,19 @@ export default function SettingsPage() {
       ) : null}
 
       {!isLoadingHousehold && !household ? (
-        <EmptyStateCard title="No household" description="Complete onboarding first." />
+        <EmptyStateCard
+          title="No household"
+          description="Complete onboarding first."
+        />
       ) : null}
 
       {household ? (
         <section className="rounded-xl border border-slate-200 bg-white p-4 shadow-sm">
           <h2 className="text-lg font-semibold text-slate-900">Household</h2>
           <p className="mt-2 text-sm text-slate-600">Name: {household.name}</p>
-          <p className="mt-1 text-sm text-slate-600">Invite code: {household.inviteCode}</p>
+          <p className="mt-1 text-sm text-slate-600">
+            Invite code: {household.inviteCode}
+          </p>
           <h3 className="mt-4 text-sm font-semibold text-slate-800">Members</h3>
           <ul className="mt-2 space-y-1 text-sm text-slate-600">
             {household.members.map((member) => (

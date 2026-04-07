@@ -1,8 +1,14 @@
-import { fireEvent, render, screen, waitFor, within } from "@testing-library/react";
+import {
+  fireEvent,
+  render,
+  screen,
+  waitFor,
+  within,
+} from "@testing-library/react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
 import { TitleStatusEditor } from "@/components/status/title-status-editor";
-import type { TitleRecord } from "@/lib/tracker/types";
+import type { TitleViewModel } from "@/lib/tracker/types";
 
 const patchTitleStatusMock = vi.fn();
 
@@ -10,46 +16,44 @@ vi.mock("@/lib/tracker/client-api", () => ({
   patchTitleStatus: (...args: unknown[]) => patchTitleStatusMock(...args),
 }));
 
-vi.mock("@/components/household/household-context", () => ({
-  useHousehold: () => ({
-    personLabels: {
-      memberOne: "Member 1",
-      memberTwo: "Member 2",
-      together: "Together",
-    },
-  }),
-}));
-
-function buildRecord(): TitleRecord {
+function buildRecord(): TitleViewModel {
   return {
-    title: {
-      id: "household-1_movie_550",
-      householdId: "household-1",
-      tmdbId: 550,
-      mediaType: "movie",
-      title: "Fight Club",
-      overview: "desc",
-      posterPath: null,
-      backdropPath: null,
-      releaseDate: "1999-10-15",
-      releaseYear: 1999,
-      genres: [],
-      tmdbVoteAverage: 8.4,
+    id: "household-1_movie_550",
+    householdId: "household-1",
+    tmdbId: 550,
+    mediaType: "movie",
+    name: "Fight Club",
+    overview: "desc",
+    household: {
+      wantsToWatch: false,
+      watchedTogether: false,
+      allMembersWatched: false,
+      someMembersWatched: false,
+      watchedCount: 0,
+      wantsToWatchCount: 0,
+      memberCount: 2,
     },
-    status: {
-      titleId: "household-1_movie_550",
-      householdId: "household-1",
-      watchedBy: {
-        memberOne: false,
-        memberTwo: false,
-        together: false,
+    members: [
+      {
+        userId: "u1",
+        displayName: "You",
+        wantsToWatch: false,
+        watched: false,
       },
-      wantToWatchBy: {
-        memberOne: false,
-        memberTwo: false,
-        together: false,
+      {
+        userId: "u2",
+        displayName: "Casey",
+        wantsToWatch: false,
+        watched: false,
       },
+    ],
+    currentUser: {
+      userId: "u1",
+      wantsToWatch: false,
+      watched: false,
     },
+    createdAt: "2026-01-01T00:00:00.000Z",
+    updatedAt: "2026-01-01T00:00:00.000Z",
   };
 }
 
@@ -58,28 +62,82 @@ describe("TitleStatusEditor", () => {
     patchTitleStatusMock.mockReset();
   });
 
-  it("rolls back optimistic toggle when status update fails", async () => {
+  it("rolls back optimistic member toggle when update fails", async () => {
     patchTitleStatusMock.mockRejectedValue(new Error("Network failed."));
 
     render(<TitleStatusEditor record={buildRecord()} />);
 
-    const watchedHeading = screen.getByRole("heading", { name: "Watched" });
-    const watchedSection = watchedHeading.closest("section");
+    const watchedHeadings = screen.getAllByRole("heading", { name: "Watched" });
+    const watchedSection =
+      watchedHeadings[watchedHeadings.length - 1]?.closest("section");
     if (!watchedSection) {
       throw new Error("Watched section should exist");
     }
 
-    const memberOneButton = within(watchedSection).getByRole("button", {
-      name: "Member 1",
+    const youButton = within(watchedSection).getByRole("button", {
+      name: "You",
     });
-    expect(memberOneButton).toHaveAttribute("aria-pressed", "false");
+    expect(youButton).toHaveAttribute("aria-pressed", "false");
 
-    fireEvent.click(memberOneButton);
-    expect(memberOneButton).toHaveAttribute("aria-pressed", "true");
+    fireEvent.click(youButton);
+    expect(youButton).toHaveAttribute("aria-pressed", "true");
 
     await waitFor(() => {
       expect(screen.getByRole("alert")).toHaveTextContent("Network failed.");
-      expect(memberOneButton).toHaveAttribute("aria-pressed", "false");
+      expect(youButton).toHaveAttribute("aria-pressed", "false");
+    });
+  });
+
+  it("sends cross-user watched action from member controls", async () => {
+    patchTitleStatusMock.mockResolvedValue(buildRecord());
+
+    render(<TitleStatusEditor record={buildRecord()} />);
+
+    const watchedHeadings = screen.getAllByRole("heading", { name: "Watched" });
+    const membersWatchedSection =
+      watchedHeadings[watchedHeadings.length - 1]?.closest("section");
+    if (!membersWatchedSection) {
+      throw new Error("Members watched section should exist");
+    }
+
+    const caseyButton = within(membersWatchedSection).getByRole("button", {
+      name: "Casey",
+    });
+    fireEvent.click(caseyButton);
+
+    await waitFor(() => {
+      expect(patchTitleStatusMock).toHaveBeenCalledWith(
+        "household-1_movie_550",
+        expect.objectContaining({
+          action: "set_user_watched",
+          userId: "u2",
+          value: true,
+        }),
+      );
+    });
+  });
+
+  it("restores rating and notes inputs after a failed save", async () => {
+    patchTitleStatusMock.mockRejectedValue(new Error("Network failed."));
+
+    render(<TitleStatusEditor record={buildRecord()} />);
+
+    const ratingInput = screen.getByLabelText("My rating");
+    const notesInput = screen.getByLabelText("My notes");
+
+    fireEvent.change(ratingInput, { target: { value: "8.5" } });
+    fireEvent.blur(ratingInput);
+
+    await waitFor(() => {
+      expect(screen.getByRole("alert")).toHaveTextContent("Network failed.");
+      expect(ratingInput).toHaveValue(null);
+    });
+
+    fireEvent.change(notesInput, { target: { value: "Great movie" } });
+    fireEvent.blur(notesInput);
+
+    await waitFor(() => {
+      expect(notesInput).toHaveValue("");
     });
   });
 });

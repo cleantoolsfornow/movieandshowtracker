@@ -10,6 +10,8 @@
     "lint": "eslint .",
     "test": "vitest run",
     "test:watch": "vitest",
+    "migrate:title-statuses": "node scripts/backfill-title-statuses.mjs",
+    "cleanup:legacy-title-statuses": "node scripts/delete-legacy-title-statuses.mjs",
     "format": "prettier --write .",
     "format:check": "prettier --check ."
   },

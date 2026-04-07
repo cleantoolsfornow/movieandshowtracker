@@ -15,23 +15,25 @@ The current implementation works for a narrow `memberOne / memberTwo / together`
 ## Problem Summary
 
 ### Current issue
+
 The current tracking model uses placeholder household member slots:
 
 ```ts
 watchedBy: {
-  memberOne: boolean
-  memberTwo: boolean
-  together: boolean
+  memberOne: boolean;
+  memberTwo: boolean;
+  together: boolean;
 }
 
 wantToWatchBy: {
-  memberOne: boolean
-  memberTwo: boolean
-  together: boolean
+  memberOne: boolean;
+  memberTwo: boolean;
+  together: boolean;
 }
 ```
 
 ### Why this is a problem
+
 - Assumes exactly two tracked people in the UI model
 - Makes solo usage feel awkward
 - Couples user identity to field names instead of real user IDs
@@ -40,6 +42,7 @@ wantToWatchBy: {
 - Forces the UI to guess names from household member ordering
 
 ### What we want instead
+
 The system should support two separate layers:
 
 1. **Per-user title state**
@@ -52,6 +55,7 @@ The system should support two separate layers:
    - the household watched this together
 
 Additionally, the app should derive summary states such as:
+
 - all household members watched
 - some household members watched
 - multiple members want to watch
@@ -61,6 +65,7 @@ Additionally, the app should derive summary states such as:
 ## Product Goals
 
 ### Required goals
+
 1. A user can sign in and create or join a household.
 2. A household with only one member must be fully supported.
 3. Each user can independently track:
@@ -73,6 +78,7 @@ Additionally, the app should derive summary states such as:
 6. The data model must not depend on `memberOne`, `memberTwo`, or fixed member slots.
 
 ### Non-goals for this refactor
+
 - Complex household permission roles
 - Public social features
 - Generalized organization/team features
@@ -85,30 +91,36 @@ Additionally, the app should derive summary states such as:
 These decisions are now locked for the refactor and should be treated as implementation constraints, not open design questions.
 
 ### 1. Migration
+
 - Do not build a complex migration.
 - If backfill is needed, map old `memberOne/memberTwo` to the current `household.memberIds[0]` and `household.memberIds[1]` as best effort only.
 - Ambiguous historical records can be skipped and logged.
 
 ### 2. Canonical UI response
+
 - Keep normalized Firestore storage.
 - Add a single canonical UI-facing `TitleViewModel` / resolved title shape used by both list and detail endpoints.
 - Screens should not consume raw normalized Firestore docs directly.
 
 ### 3. Cross-user editing
+
 - Allow household members to update each other’s personal watched / wants-to-watch status within the same household.
 - Search quick actions should default to current-user actions plus household-level actions.
 - Full per-member editing controls should live primarily on the title detail page.
 
 ### 4. Household size behavior
+
 - Optimize UX for 1-2 members.
 - Support 3+ members in the data model without changing the model again.
 - For 3+ member households, cards should show aggregate summaries such as watched count / wants-to-watch count instead of full per-member chips.
 
 ### 5. Derived rules
+
 - Derived fields such as `allMembersWatched` must use current household membership.
 - `watchedTogether` remains an explicit separate flag and must never be inferred.
 
 ### 6. Query strategy
+
 - Refactor `GET /api/titles/list` to bulk-fetch household-scoped `titles`, `titleUserStatuses`, `titleHouseholdStatuses`, and members, then group in memory by `titleId`.
 - Do not keep the current one-status-fetch-per-title pattern.
 
@@ -117,34 +129,43 @@ These decisions are now locked for the refactor and should be treated as impleme
 ## Core Mental Model
 
 ### Household
+
 A household is the shared container for users and their media data.
 
 A household may contain:
+
 - 1 user
 - 2 users
 - potentially more users later
 
 ### Titles
+
 A title is a movie or TV show saved into a household’s library.
 
 ### User title state
+
 Each user has their own relationship with a title.
 
 Examples:
+
 - Matt watched Dune
 - Jessica wants to watch Dune
 
 ### Household title state
+
 The household also has a shared relationship with a title.
 
 Examples:
+
 - the household wants to watch Dune
 - the household watched Dune together
 
 ### Derived household summaries
+
 Some household-level states should not be stored as primary truth. They should be derived.
 
 Examples:
+
 - all household members watched Dune
 - some household members watched Dune
 
@@ -155,19 +176,23 @@ Examples:
 ### Account states
 
 #### 1. Unauthenticated visitor
+
 - Can view sign-in page only
 - Protected routes redirect to sign-in
 
 #### 2. Authenticated user without household
+
 - Sent to onboarding
 - Can create a household
 - Can join a household with invite code or link
 
 #### 3. Authenticated user with household
+
 - Can access app
 - All data is scoped to household
 
 ### Important rule
+
 A household with one user is valid and should feel like a first-class use case, not an edge case.
 
 ---
@@ -236,6 +261,7 @@ users/{uid} {
 ```
 
 ### Notes
+
 - A user may belong to at most one household
 - `householdId` is nullable until onboarding is complete
 
@@ -256,6 +282,7 @@ households/{householdId} {
 ```
 
 ### Notes
+
 - `memberIds` is the source of truth for membership
 - No UI/API logic should depend on the order of `memberIds`
 - No “memberOne/memberTwo” assumptions
@@ -267,6 +294,7 @@ households/{householdId} {
 Each saved title exists once per household.
 
 ### ID strategy
+
 Continue using deterministic IDs:
 
 ```txt
@@ -301,6 +329,7 @@ titles/{titleId} {
 ```
 
 ### Notes
+
 - Title metadata is cached when the title is added
 - Titles should not be duplicated within the same household
 
@@ -311,6 +340,7 @@ titles/{titleId} {
 Each document represents one user’s relationship to one title inside one household.
 
 ### ID strategy
+
 Use a deterministic composite key:
 
 ```txt
@@ -340,6 +370,7 @@ titleUserStatuses/{statusId} {
 ```
 
 ### Notes
+
 - This is the primary truth for individual user tracking
 - This fully replaces `memberOne/memberTwo`
 
@@ -367,6 +398,7 @@ titleHouseholdStatuses/{titleId} {
 ```
 
 ### Notes
+
 - `householdWantsToWatch` is explicit
 - `watchedTogether` is explicit and should not be inferred from all members watched
 - This document may be created lazily only when needed
@@ -379,36 +411,43 @@ The following are **derived values**, not primary stored truth:
 
 ```ts
 {
-  memberCount: number
-  watchedCount: number
-  wantsToWatchCount: number
+  memberCount: number;
+  watchedCount: number;
+  wantsToWatchCount: number;
 
-  allMembersWatched: boolean
-  someMembersWatched: boolean
-  noMembersWatched: boolean
+  allMembersWatched: boolean;
+  someMembersWatched: boolean;
+  noMembersWatched: boolean;
 
-  someMembersWantToWatch: boolean
-  multipleMembersWantToWatch: boolean
+  someMembersWantToWatch: boolean;
+  multipleMembersWantToWatch: boolean;
 }
 ```
 
 ### Derivation rules
 
 #### allMembersWatched
+
 True when:
+
 - household member count > 0
 - every current household member has `watched = true`
 
 #### someMembersWatched
+
 True when:
+
 - at least one member has `watched = true`
 - but not all members
 
 #### multipleMembersWantToWatch
+
 True when:
+
 - two or more members have `wantsToWatch = true`
 
 ### Important distinction
+
 These are different concepts:
 
 - **all members watched** = everyone has seen it individually at some point
@@ -446,56 +485,56 @@ All UI-facing title endpoints should return the same canonical `TitleViewModel` 
 
 ```ts
 type TitleViewModel = {
-  id: string
-  householdId: string
-  tmdbId: number
-  mediaType: 'movie' | 'tv'
-  name: string
-  overview?: string
-  posterPath?: string
-  backdropPath?: string
-  releaseDate?: string
-  firstAirDate?: string
-  genres?: { id: number; name: string }[]
-  runtime?: number
-  numberOfSeasons?: number
-  voteAverage?: number
+  id: string;
+  householdId: string;
+  tmdbId: number;
+  mediaType: "movie" | "tv";
+  name: string;
+  overview?: string;
+  posterPath?: string;
+  backdropPath?: string;
+  releaseDate?: string;
+  firstAirDate?: string;
+  genres?: { id: number; name: string }[];
+  runtime?: number;
+  numberOfSeasons?: number;
+  voteAverage?: number;
 
   household: {
-    wantsToWatch: boolean
-    watchedTogether: boolean
-    watchedTogetherAt?: string
-    allMembersWatched: boolean
-    someMembersWatched: boolean
-    watchedCount: number
-    wantsToWatchCount: number
-    memberCount: number
-  }
+    wantsToWatch: boolean;
+    watchedTogether: boolean;
+    watchedTogetherAt?: string;
+    allMembersWatched: boolean;
+    someMembersWatched: boolean;
+    watchedCount: number;
+    wantsToWatchCount: number;
+    memberCount: number;
+  };
 
   members: Array<{
-    userId: string
-    displayName?: string
-    photoURL?: string
-    avatarDataUrl?: string
-    wantsToWatch: boolean
-    watched: boolean
-    watchedAt?: string
-    rating?: number
-    notes?: string
-  }>
+    userId: string;
+    displayName?: string;
+    photoURL?: string;
+    avatarDataUrl?: string;
+    wantsToWatch: boolean;
+    watched: boolean;
+    watchedAt?: string;
+    rating?: number;
+    notes?: string;
+  }>;
 
   currentUser: {
-    userId: string
-    wantsToWatch: boolean
-    watched: boolean
-    watchedAt?: string
-    rating?: number
-    notes?: string
-  }
+    userId: string;
+    wantsToWatch: boolean;
+    watched: boolean;
+    watchedAt?: string;
+    rating?: number;
+    notes?: string;
+  };
 
-  createdAt: string
-  updatedAt: string
-}
+  createdAt: string;
+  updatedAt: string;
+};
 ```
 
 - Firestore storage remains normalized.
@@ -507,13 +546,17 @@ type TitleViewModel = {
 ## Keep / update these endpoints
 
 ### POST /api/households/create
+
 Creates a household and assigns current user to it.
 
 ### POST /api/households/join
+
 Joins current user to an existing household using invite code.
 
 ### GET /api/households/me
+
 Returns:
+
 - household metadata
 - member summaries
 - invite code
@@ -544,6 +587,7 @@ Suggested response:
 ## Search flow
 
 ### GET /api/tmdb/search?q=...
+
 No major conceptual change.
 
 Search returns movie and TV results from TMDb.
@@ -553,12 +597,15 @@ Search returns movie and TV results from TMDb.
 ## Add flow
 
 ### POST /api/titles/add
+
 This endpoint needs to be reworked.
 
 ### Returns
+
 `TitleViewModel`
 
 ### Responsibilities
+
 1. Validate current user and household membership
 2. Create title in `titles/{titleId}` if missing
 3. Optionally create/update that user’s `titleUserStatuses` doc depending on action
@@ -566,14 +613,15 @@ This endpoint needs to be reworked.
 5. Return the canonical `TitleViewModel` needed by the UI
 
 ### Supported action types
+
 Suggested server action types:
 
 ```ts
-'mark_user_wants_to_watch'
-'mark_user_watched'
-'mark_household_wants_to_watch'
-'mark_watched_together'
-'add_title_only'
+"mark_user_wants_to_watch";
+"mark_user_watched";
+"mark_household_wants_to_watch";
+"mark_watched_together";
+"add_title_only";
 ```
 
 ### Example payload
@@ -588,6 +636,7 @@ Suggested server action types:
 ```
 
 ### Notes
+
 - `targetUserId` should default to current user unless explicitly provided and allowed by UI
 - Do not use `memberOne/memberTwo/together`
 
@@ -596,11 +645,13 @@ Suggested server action types:
 ## Title detail endpoints
 
 ### GET /api/titles/[titleId]
+
 Returns `TitleViewModel`.
 
 This endpoint should not introduce a separate detail-only response schema.
 
 Return a canonical resolved shape assembled from normalized storage, combining:
+
 - title metadata
 - household members
 - per-user statuses
@@ -612,18 +663,20 @@ The server should build a canonical UI-facing `TitleViewModel` from normalized s
 ---
 
 ### PATCH /api/titles/[titleId]
+
 This endpoint should become action-based instead of toggling fields tied to fixed member slots.
 
 ### Supported operations
+
 Suggested actions:
 
 ```ts
-set_user_wants_to_watch
-set_user_watched
-set_household_wants_to_watch
-set_watched_together
-set_user_rating
-set_user_notes
+set_user_wants_to_watch;
+set_user_watched;
+set_household_wants_to_watch;
+set_watched_together;
+set_user_rating;
+set_user_notes;
 ```
 
 ### Example payloads
@@ -661,6 +714,7 @@ set_user_notes
 ```
 
 ### Notes
+
 - UI should not directly PATCH raw Firestore-shaped fields
 - Use explicit action semantics
 - The server should return the same canonical `TitleViewModel` shape after mutations so screens can stay consistent
@@ -668,11 +722,13 @@ set_user_notes
 ---
 
 ### GET /api/titles/list
+
 Returns `TitleViewModel[]`.
 
 This endpoint should return household-scoped titles using the same canonical `TitleViewModel` shape as title detail, and support filter/sort using normalized + derived data.
 
 ### Query strategy
+
 - Bulk-fetch household-scoped `titles`
 - Bulk-fetch household-scoped `titleUserStatuses`
 - Bulk-fetch household-scoped `titleHouseholdStatuses`
@@ -681,6 +737,7 @@ This endpoint should return household-scoped titles using the same canonical `Ti
 - Do not fetch one status document per title
 
 ### Recommended filters
+
 - mediaType = movie | tv
 - my_wants_to_watch
 - my_watched
@@ -691,6 +748,7 @@ This endpoint should return household-scoped titles using the same canonical `Ti
 - not_watched_by_me
 
 ### Recommended sort
+
 - recently_added
 - recently_updated
 - alphabetical
@@ -699,9 +757,11 @@ This endpoint should return household-scoped titles using the same canonical `Ti
 ---
 
 ### POST /api/titles/[titleId]/refresh
+
 Keep this endpoint.
 
 Responsibility:
+
 - re-fetch TMDb metadata
 - update `titles/{titleId}`
 - do not alter user or household tracking state
@@ -711,6 +771,7 @@ Responsibility:
 ## UI Refactor Requirements
 
 ## Core UI principle
+
 The UI should render member names dynamically from household member data.
 
 Do not hardcode `memberOne` or `memberTwo` labels anywhere.
@@ -720,20 +781,26 @@ Do not hardcode `memberOne` or `memberTwo` labels anywhere.
 ## Search / Add UI
 
 ### Current problem
+
 Quick actions likely map to fixed member slots.
 
 ### New behavior
+
 When a user adds a title from search results, show action choices based on current household context.
 
 #### For solo households
+
 Show:
+
 - Add to my watchlist
 - Mark as watched
 - Add to household watchlist
 - Add title only
 
 #### For multi-user households
+
 Show:
+
 - Add to my watchlist
 - Mark as watched
 - Add to household watchlist
@@ -743,9 +810,11 @@ Show:
 Default quick actions should stay focused on the signed-in user plus household-level actions.
 
 Optional advanced action menu:
+
 - choose another member to mark watched/wants-to-watch
 
 ### Important note
+
 Do not force the user to pick a target member for the common search flow.
 
 ---
@@ -753,13 +822,17 @@ Do not force the user to pick a target member for the common search flow.
 ## Home page
 
 ### For solo households
+
 Show sections like:
+
 - My watchlist
 - Recently watched
 - Recently added
 
 ### For multi-user households
+
 Show sections like:
+
 - Household watchlist
 - Recently watched together
 - My watchlist
@@ -767,6 +840,7 @@ Show sections like:
 - Recently added
 
 Optional future sections:
+
 - Jessica’s watchlist
 - Matt’s watchlist
 
@@ -775,10 +849,13 @@ Optional future sections:
 ## Library page
 
 ### Goal
+
 A unified library that can be filtered using normalized states.
 
 ### Filters
+
 For all households:
+
 - All
 - Movies
 - TV Shows
@@ -788,11 +865,13 @@ For all households:
 - Watched together
 
 For multi-user households only:
+
 - Watched by [member name]
 - Wants to watch: [member name]
 - All members watched
 
 ### Important note
+
 Filters should be generated dynamically from household member data.
 
 For 3+ member households, prefer aggregate filters and summary labels over rendering a chip for every member on every card.
@@ -802,12 +881,15 @@ For 3+ member households, prefer aggregate filters and summary labels over rende
 ## Title detail page
 
 ### Current issue
+
 The page likely expects `memberOne/memberTwo/together` booleans.
 
 ### New structure
+
 The page should render 3 clear sections:
 
 #### 1. Metadata
+
 - poster
 - backdrop
 - title
@@ -817,12 +899,15 @@ The page should render 3 clear sections:
 - genres
 
 #### 2. Household state
+
 - In household watchlist: yes/no
 - Watched together: yes/no
 - All household members watched: yes/no
 
 #### 3. Member state
+
 For each member:
+
 - wants to watch: yes/no
 - watched: yes/no
 - watchedAt if present
@@ -861,6 +946,7 @@ Household
 ```
 
 ### Important UX note
+
 Hide or downplay `watchedTogether` for solo households.
 For 3+ member households, this page remains the primary place for full per-member editing controls.
 
@@ -869,11 +955,13 @@ For 3+ member households, this page remains the primary place for full per-membe
 ## Settings page
 
 ### Keep
+
 - display name/avatar update
 - sign out
 - household details
 
 ### Add / improve
+
 - clear household member list
 - invite code / invite link presentation
 - clarify that one-person households are supported
@@ -887,17 +975,18 @@ This can be implemented in the API layer first.
 ### Pseudocode
 
 ```ts
-const memberCount = household.memberIds.length
-const watchedCount = userStatuses.filter(s => s.watched).length
-const wantsToWatchCount = userStatuses.filter(s => s.wantsToWatch).length
+const memberCount = household.memberIds.length;
+const watchedCount = userStatuses.filter((s) => s.watched).length;
+const wantsToWatchCount = userStatuses.filter((s) => s.wantsToWatch).length;
 
-const allMembersWatched = memberCount > 0 && watchedCount === memberCount
-const someMembersWatched = watchedCount > 0 && watchedCount < memberCount
-const noMembersWatched = watchedCount === 0
-const multipleMembersWantToWatch = wantsToWatchCount >= 2
+const allMembersWatched = memberCount > 0 && watchedCount === memberCount;
+const someMembersWatched = watchedCount > 0 && watchedCount < memberCount;
+const noMembersWatched = watchedCount === 0;
+const multipleMembersWantToWatch = wantsToWatchCount >= 2;
 ```
 
 ### Important note
+
 Derived fields should use **current** household membership, not historic membership.
 
 ---
@@ -913,6 +1002,7 @@ Rules must ensure:
 5. If you allow editing another user’s status from the UI, rules and server endpoints must explicitly govern that behavior.
 
 ### Recommendation
+
 For now, allow status changes only through server routes that validate household membership and payload rules.
 
 ---
@@ -922,6 +1012,7 @@ For now, allow status changes only through server routes that validate household
 Proceed in this order.
 
 ### 1. Data model / types
+
 1. Add normalized server-side model types for:
    - `Title`
    - `TitleUserStatus`
@@ -943,6 +1034,7 @@ Proceed in this order.
 6. Add deterministic helpers for `titleUserStatuses/{householdId}_{titleId}_{userId}`.
 
 ### 2. API contracts
+
 1. Update `POST /api/titles/add` to accept explicit action semantics:
    - `add_title_only`
    - `mark_user_wants_to_watch`
@@ -956,6 +1048,7 @@ Proceed in this order.
 6. Define list filters in terms of current-user, household, and derived-state concepts rather than positional member slots.
 
 ### 3. Server logic
+
 1. Build reusable server helpers to load household membership and validate that requested `userId` targets belong to the same household.
 2. Implement shared read-path assembly:
    - load title docs
@@ -974,6 +1067,7 @@ Proceed in this order.
 6. Remove the current per-title status fetch pattern and remove all server assumptions about member ordering except inside best-effort migration logic.
 
 ### 4. Migration approach
+
 1. Do not build a complex migration framework.
 2. Stop writing new data to legacy `titleStatuses`.
 3. If existing data needs to be preserved, run a one-time best-effort backfill:
@@ -986,6 +1080,7 @@ Proceed in this order.
 6. After the new UI and routes are live, remove fallback reads from `titleStatuses` rather than carrying dual-read logic long-term.
 
 ### 5. UI refactor sequence
+
 1. Replace household context APIs that expose `personLabels.memberOne/memberTwo` with dynamic member data plus helpers for:
    - current user
    - other members
@@ -1004,6 +1099,7 @@ Proceed in this order.
 6. Refactor library filters last to consume the new list contract and generate member-specific filters dynamically where appropriate.
 
 ### 6. Acceptance checklist
+
 - No shared tracker type or UI component depends on `memberOne`, `memberTwo`, or `together`.
 - Normalized Firestore storage is used for writes.
 - Both list and detail endpoints return the same canonical `TitleViewModel` shape.
@@ -1038,13 +1134,16 @@ Proceed in this order.
 ## Implementation Guidance for Codex
 
 ### High priority
+
 - Prioritize correctness of the normalized model
 - Keep the UX low-friction
 - Default actions to current user where appropriate
 - Dynamically render member names from real user records
 
 ### Important product distinction
+
 Do not treat these as equivalent:
+
 - all members watched
 - watched together
 - household wants to watch
@@ -1052,6 +1151,7 @@ Do not treat these as equivalent:
 They are separate concepts and should remain separate in both data and UI.
 
 ### Refactor mandate
+
 The app must no longer be shaped around a fixed two-member household, even if the initial UI experience is optimized for one or two users.
 
 ---
@@ -1062,6 +1162,7 @@ The app must no longer be shaped around a fixed two-member household, even if th
 Refactor the current media tracker app from a fixed `memberOne / memberTwo / together` title status model into a normalized household-aware model.
 
 Requirements:
+
 - Keep the current auth and onboarding flow: signed-in users with no household go to onboarding, where they can create or join a household.
 - A one-person household must be fully supported.
 - A household may contain multiple users.

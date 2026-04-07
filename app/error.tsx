@@ -17,7 +17,9 @@ export default function GlobalError({
     <html lang="en">
       <body className="bg-slate-100">
         <main className="mx-auto flex min-h-screen w-full max-w-xl flex-col items-center justify-center gap-4 px-4 text-center">
-          <h1 className="text-2xl font-semibold text-slate-900">Something went wrong</h1>
+          <h1 className="text-2xl font-semibold text-slate-900">
+            Something went wrong
+          </h1>
           <p className="text-sm text-slate-600">
             An unexpected error occurred. You can retry this action.
           </p>

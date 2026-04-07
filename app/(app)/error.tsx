@@ -15,8 +15,12 @@ export default function AppError({
 
   return (
     <div className="rounded-xl border border-red-200 bg-red-50 p-6">
-      <h2 className="text-lg font-semibold text-red-900">This page failed to load</h2>
-      <p className="mt-2 text-sm text-red-700">Please retry or return to Home.</p>
+      <h2 className="text-lg font-semibold text-red-900">
+        This page failed to load
+      </h2>
+      <p className="mt-2 text-sm text-red-700">
+        Please retry or return to Home.
+      </p>
       <button
         type="button"
         onClick={() => reset()}

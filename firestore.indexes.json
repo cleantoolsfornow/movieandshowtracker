@@ -18,11 +18,11 @@
       ]
     },
     {
-      "collectionGroup": "titleStatuses",
+      "collectionGroup": "titleUserStatuses",
       "queryScope": "COLLECTION",
       "fields": [
         { "fieldPath": "householdId", "order": "ASCENDING" },
-        { "fieldPath": "updatedAt", "order": "DESCENDING" }
+        { "fieldPath": "titleId", "order": "ASCENDING" }
       ]
     }
   ],

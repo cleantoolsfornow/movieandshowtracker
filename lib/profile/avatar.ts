@@ -73,7 +73,9 @@ export async function compressAvatarToDataUrl(file: File): Promise<string> {
   });
 
   if (dataUrl.length > MAX_AVATAR_DATA_URL_LENGTH) {
-    throw new Error("Avatar is too large after compression. Try a smaller image.");
+    throw new Error(
+      "Avatar is too large after compression. Try a smaller image.",
+    );
   }
 
   return dataUrl;

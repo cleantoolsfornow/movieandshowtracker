@@ -1,24 +1,21 @@
 import Link from "next/link";
 
-import { useHousehold } from "@/components/household/household-context";
 import { buildPosterUrl } from "@/lib/tracker/shared";
-import type { TitleRecord } from "@/lib/tracker/types";
+import type { TitleViewModel, TitleViewModelMember } from "@/lib/tracker/types";
 
-function SummaryBadge({
-  label,
-  active,
-  avatarUrl,
-}: {
-  label: string;
-  active: boolean;
-  avatarUrl?: string | null;
-}) {
-  const initial = label.trim().slice(0, 1).toUpperCase() || "?";
+function MemberBadge({ member }: { member: TitleViewModelMember }) {
+  const label = member.displayName?.trim() || member.userId;
+  const avatarUrl = member.avatarDataUrl ?? member.photoURL ?? null;
+  const initial = label.slice(0, 1).toUpperCase() || "?";
+
   return (
     <span
       className={`inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-xs ${
-        active ? "bg-emerald-100 text-emerald-700" : "bg-slate-200 text-slate-500"
+        member.watched
+          ? "bg-emerald-100 text-emerald-700"
+          : "bg-slate-200 text-slate-500"
       }`}
+      title={`${label}: ${member.watched ? "watched" : "not watched"}`}
     >
       {avatarUrl ? (
         // eslint-disable-next-line @next/next/no-img-element
@@ -41,13 +38,19 @@ function SummaryBadge({
   );
 }
 
-export function PosterCard({ record }: { record: TitleRecord }) {
-  const { personLabels, personAvatars } = useHousehold();
-  const posterUrl = buildPosterUrl(record.title.posterPath);
+export function PosterCard({ record }: { record: TitleViewModel }) {
+  const posterUrl = buildPosterUrl(record.posterPath ?? null);
+  const memberCount = record.household.memberCount;
+  const showMemberBadges = memberCount <= 2;
+  const year = record.releaseDate
+    ? new Date(record.releaseDate).getUTCFullYear()
+    : record.firstAirDate
+      ? new Date(record.firstAirDate).getUTCFullYear()
+      : null;
 
   return (
     <Link
-      href={`/title/${record.title.id}`}
+      href={`/title/${record.id}`}
       className="group overflow-hidden rounded-xl border border-slate-200 bg-white shadow-sm transition hover:-translate-y-0.5 hover:shadow-md"
     >
       <div className="aspect-[2/3] bg-slate-200">
@@ -55,7 +58,7 @@ export function PosterCard({ record }: { record: TitleRecord }) {
           // eslint-disable-next-line @next/next/no-img-element
           <img
             src={posterUrl}
-            alt={record.title.title}
+            alt={record.name}
             className="h-full w-full object-cover"
           />
         ) : (
@@ -65,25 +68,32 @@ export function PosterCard({ record }: { record: TitleRecord }) {
         )}
       </div>
       <div className="space-y-2 p-3">
-        <p className="line-clamp-1 text-sm font-semibold text-slate-900">{record.title.title}</p>
+        <p className="line-clamp-1 text-sm font-semibold text-slate-900">
+          {record.name}
+        </p>
         <p className="text-xs text-slate-500">
-          {record.title.mediaType.toUpperCase()} · {record.title.releaseYear ?? "-"}
+          {record.mediaType.toUpperCase()} · {year ?? "-"}
         </p>
         <div className="flex flex-wrap gap-1">
-          <SummaryBadge
-            label={`${personLabels.memberOne} watched`}
-            active={record.status.watchedBy.memberOne}
-            avatarUrl={personAvatars.memberOne}
-          />
-          <SummaryBadge
-            label={`${personLabels.memberTwo} watched`}
-            active={record.status.watchedBy.memberTwo}
-            avatarUrl={personAvatars.memberTwo}
-          />
-          <SummaryBadge
-            label="Together"
-            active={record.status.watchedBy.together}
-          />
+          {showMemberBadges ? (
+            record.members.map((member) => (
+              <MemberBadge key={member.userId} member={member} />
+            ))
+          ) : (
+            <>
+              <span className="rounded-full bg-slate-200 px-2 py-0.5 text-xs text-slate-700">
+                Watched: {record.household.watchedCount}/{memberCount}
+              </span>
+              <span className="rounded-full bg-slate-200 px-2 py-0.5 text-xs text-slate-700">
+                Wants: {record.household.wantsToWatchCount}/{memberCount}
+              </span>
+            </>
+          )}
+          {record.household.watchedTogether ? (
+            <span className="rounded-full bg-emerald-100 px-2 py-0.5 text-xs text-emerald-700">
+              Watched together
+            </span>
+          ) : null}
         </div>
       </div>
     </Link>

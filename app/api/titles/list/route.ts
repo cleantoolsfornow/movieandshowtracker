@@ -12,12 +12,6 @@ import type { MediaType } from "@/lib/tracker/types";
 
 function normalizeSort(sortBy: string | null) {
   switch (sortBy) {
-    case "alpha":
-      return "alphabetical" as const;
-    case "release":
-      return "release_date" as const;
-    case "updated":
-      return "recently_updated" as const;
     case "recently_added":
       return "recently_added" as const;
     case "recently_updated":
@@ -42,23 +36,13 @@ function normalizeFilter(searchParams: URLSearchParams): {
 } {
   const mediaTypeParam = searchParams.get("mediaType");
   const mediaType: MediaType | "all" | undefined =
-    mediaTypeParam === "movie" || mediaTypeParam === "tv" || mediaTypeParam === "all"
+    mediaTypeParam === "movie" ||
+    mediaTypeParam === "tv" ||
+    mediaTypeParam === "all"
       ? mediaTypeParam
       : undefined;
 
-  const legacyWatchedBy = searchParams.get("watchedBy");
-  const legacyWantBy = searchParams.get("wantBy");
   const filterParam = searchParams.get("filter");
-
-  if (legacyWatchedBy === "together") {
-    return { mediaType, filter: "watched_together" };
-  }
-  if (legacyWatchedBy === "all") {
-    return { mediaType, filter: "watched_by_anyone" };
-  }
-  if (legacyWantBy === "all") {
-    return { mediaType, filter: "household_wants_to_watch" };
-  }
 
   const filter =
     filterParam === "my_wants_to_watch" ||
@@ -80,7 +64,10 @@ export async function GET(request: NextRequest) {
     const householdId = await getHouseholdIdForUid(uid);
 
     const records = await listTitleViewModels(householdId, uid);
-    const filtered = filterTitleViewModels(records, normalizeFilter(request.nextUrl.searchParams));
+    const filtered = filterTitleViewModels(
+      records,
+      normalizeFilter(request.nextUrl.searchParams),
+    );
     const sorted = sortTitleViewModels(
       filtered,
       normalizeSort(request.nextUrl.searchParams.get("sort")),
@@ -88,7 +75,8 @@ export async function GET(request: NextRequest) {
 
     return NextResponse.json({ records: sorted });
   } catch (error) {
-    const message = error instanceof Error ? error.message : "Failed to load titles.";
+    const message =
+      error instanceof Error ? error.message : "Failed to load titles.";
     const status = message === "Missing auth token." ? 401 : 500;
     logServerError("api.titles.list", error, { status });
     return NextResponse.json(

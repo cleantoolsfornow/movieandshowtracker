@@ -99,4 +99,3 @@ UI status model is "memberOne/memberTwo/together".
 Labels come from the first two household members returned.
 So the household document supports multiple memberIds, but the tracking UI is effectively built for 2 named people + together.
 ```
-

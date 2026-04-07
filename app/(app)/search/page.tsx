@@ -56,7 +56,9 @@ export default function SearchPage() {
       </section>
 
       {error ? (
-        <p className="rounded-lg border border-red-200 bg-red-50 p-3 text-sm text-red-700">{error}</p>
+        <p className="rounded-lg border border-red-200 bg-red-50 p-3 text-sm text-red-700">
+          {error}
+        </p>
       ) : null}
 
       {isLoading ? (
@@ -75,7 +77,10 @@ export default function SearchPage() {
 
       <section className="grid gap-3 md:grid-cols-2">
         {results.map((result) => (
-          <SearchResultCard key={`${result.mediaType}_${result.tmdbId}`} item={result} />
+          <SearchResultCard
+            key={`${result.mediaType}_${result.tmdbId}`}
+            item={result}
+          />
         ))}
       </section>
     </div>

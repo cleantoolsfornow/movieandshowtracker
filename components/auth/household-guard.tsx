@@ -5,18 +5,16 @@ import { usePathname, useRouter } from "next/navigation";
 
 import { useAuth } from "@/components/auth/auth-provider";
 
-export function HouseholdGuard({
-  children,
-}: {
-  children: React.ReactNode;
-}) {
+export function HouseholdGuard({ children }: { children: React.ReactNode }) {
   const { isLoading, user, profile } = useAuth();
   const router = useRouter();
   const pathname = usePathname();
 
   useEffect(() => {
     if (!isLoading && !user) {
-      router.replace(`/sign-in?next=${encodeURIComponent(pathname || "/home")}`);
+      router.replace(
+        `/sign-in?next=${encodeURIComponent(pathname || "/home")}`,
+      );
       return;
     }
 

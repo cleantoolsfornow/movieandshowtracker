@@ -29,9 +29,9 @@ const AuthContext = createContext<AuthContextValue | undefined>(undefined);
 
 export function AuthProvider({ children }: PropsWithChildren) {
   const [user, setUser] = useState<User | null>(null);
-  const [profileState, setProfileState] = useState<UserProfile | null | undefined>(
-    undefined,
-  );
+  const [profileState, setProfileState] = useState<
+    UserProfile | null | undefined
+  >(undefined);
   const [isLoadingAuth, setIsLoadingAuth] = useState(true);
 
   useEffect(() => {

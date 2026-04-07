@@ -239,6 +239,3 @@ If you discover a significant ambiguity or a decision with non-obvious consequen
 ```
 
 If you want, I can also give you a shorter “copy/paste checklist version” with just one-line prompts for each phase.
-
-
-

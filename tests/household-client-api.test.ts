@@ -21,9 +21,12 @@ describe("household client api", () => {
   it("sends auth header for create", async () => {
     const fetchMock = vi.mocked(fetch);
     fetchMock.mockResolvedValue(
-      new Response(JSON.stringify({ householdId: "h1", inviteCode: "ABCD1234EFGH" }), {
-        status: 200,
-      }),
+      new Response(
+        JSON.stringify({ householdId: "h1", inviteCode: "ABCD1234EFGH" }),
+        {
+          status: 200,
+        },
+      ),
     );
 
     const result = await createHouseholdViaApi("Our Home");

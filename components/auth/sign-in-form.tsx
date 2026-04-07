@@ -8,7 +8,10 @@ import {
   signInWithGoogle,
   signUpWithEmail,
 } from "@/lib/auth/auth-client";
-import { getAuthErrorMessage, getPostSignInPath } from "@/lib/auth/auth-helpers";
+import {
+  getAuthErrorMessage,
+  getPostSignInPath,
+} from "@/lib/auth/auth-helpers";
 
 type Mode = "sign-in" | "sign-up";
 
@@ -95,7 +98,9 @@ export function SignInForm() {
         <button
           type="button"
           className={`rounded-md px-3 py-2 ${
-            mode === "sign-in" ? "bg-white text-slate-900 shadow-sm" : "text-slate-600"
+            mode === "sign-in"
+              ? "bg-white text-slate-900 shadow-sm"
+              : "text-slate-600"
           }`}
           onClick={() => setMode("sign-in")}
         >
@@ -104,7 +109,9 @@ export function SignInForm() {
         <button
           type="button"
           className={`rounded-md px-3 py-2 ${
-            mode === "sign-up" ? "bg-white text-slate-900 shadow-sm" : "text-slate-600"
+            mode === "sign-up"
+              ? "bg-white text-slate-900 shadow-sm"
+              : "text-slate-600"
           }`}
           onClick={() => setMode("sign-up")}
         >
@@ -115,7 +122,10 @@ export function SignInForm() {
       <form onSubmit={handleEmailSubmit} className="space-y-3">
         {mode === "sign-up" ? (
           <>
-            <label className="block text-sm text-slate-700" htmlFor="display-name">
+            <label
+              className="block text-sm text-slate-700"
+              htmlFor="display-name"
+            >
               Name
             </label>
             <input
@@ -155,7 +165,9 @@ export function SignInForm() {
           id="password"
           name="password"
           type="password"
-          autoComplete={mode === "sign-up" ? "new-password" : "current-password"}
+          autoComplete={
+            mode === "sign-up" ? "new-password" : "current-password"
+          }
           required
           minLength={6}
           className="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm text-slate-900"

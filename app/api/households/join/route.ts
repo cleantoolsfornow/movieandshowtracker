@@ -3,7 +3,10 @@ import { FieldValue } from "firebase-admin/firestore";
 
 import { requireUidFromRequest } from "@/lib/auth/server-auth";
 import { getAdminDb } from "@/lib/firebase/admin";
-import { isValidInviteCode, normalizeInviteCode } from "@/lib/households/invite";
+import {
+  isValidInviteCode,
+  normalizeInviteCode,
+} from "@/lib/households/invite";
 import { logServerError } from "@/lib/server/logger";
 
 export async function POST(request: NextRequest) {
@@ -27,14 +30,19 @@ export async function POST(request: NextRequest) {
       .get();
 
     if (householdByCode.empty) {
-      return NextResponse.json({ error: "Invite code not found." }, { status: 404 });
+      return NextResponse.json(
+        { error: "Invite code not found." },
+        { status: 404 },
+      );
     }
 
     const householdDoc = householdByCode.docs[0];
 
     const result = await adminDb.runTransaction(async (transaction) => {
       const userRef = adminDb.collection("users").doc(uid);
-      const householdRef = adminDb.collection("households").doc(householdDoc.id);
+      const householdRef = adminDb
+        .collection("households")
+        .doc(householdDoc.id);
 
       const [userSnapshot, householdSnapshot] = await Promise.all([
         transaction.get(userRef),
@@ -46,7 +54,8 @@ export async function POST(request: NextRequest) {
       }
 
       const currentHouseholdId = userSnapshot.exists
-        ? ((userSnapshot.get("householdId") as string | null | undefined) ?? null)
+        ? ((userSnapshot.get("householdId") as string | null | undefined) ??
+          null)
         : null;
 
       if (currentHouseholdId && currentHouseholdId !== householdRef.id) {
@@ -95,7 +104,8 @@ export async function POST(request: NextRequest) {
       inviteCode,
     });
   } catch (error) {
-    const message = error instanceof Error ? error.message : "Failed to join household.";
+    const message =
+      error instanceof Error ? error.message : "Failed to join household.";
     const status = message === "Missing auth token." ? 401 : 500;
     logServerError("api.households.join", error, { status });
     return NextResponse.json(

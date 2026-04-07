@@ -43,7 +43,11 @@ service cloud.firestore {
       allow read, write: if false;
     }
 
-    match /titleStatuses/{titleId} {
+    match /titleUserStatuses/{statusId} {
+      allow read, write: if false;
+    }
+
+    match /titleHouseholdStatuses/{titleId} {
       allow read, write: if false;
     }
   }

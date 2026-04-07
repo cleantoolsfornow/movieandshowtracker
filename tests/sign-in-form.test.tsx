@@ -41,7 +41,9 @@ describe("SignInForm", () => {
   it("renders auth controls", () => {
     render(<SignInForm />);
 
-    expect(screen.getByRole("button", { name: "Continue with Google" })).toBeInTheDocument();
+    expect(
+      screen.getByRole("button", { name: "Continue with Google" }),
+    ).toBeInTheDocument();
     expect(screen.getByLabelText("Email")).toBeInTheDocument();
     expect(screen.getByLabelText("Password")).toBeInTheDocument();
   });
@@ -49,7 +51,9 @@ describe("SignInForm", () => {
   it("calls google sign in when google button is clicked", async () => {
     render(<SignInForm />);
 
-    fireEvent.click(screen.getByRole("button", { name: "Continue with Google" }));
+    fireEvent.click(
+      screen.getByRole("button", { name: "Continue with Google" }),
+    );
 
     await waitFor(() => {
       expect(signInWithGoogleMock).toHaveBeenCalledTimes(1);
@@ -75,7 +79,10 @@ describe("SignInForm", () => {
     fireEvent.click(within(form).getByRole("button", { name: "Sign in" }));
 
     await waitFor(() => {
-      expect(signInWithEmailMock).toHaveBeenCalledWith("test@example.com", "secret123");
+      expect(signInWithEmailMock).toHaveBeenCalledWith(
+        "test@example.com",
+        "secret123",
+      );
       expect(pushMock).toHaveBeenCalledWith("/home");
     });
   });
@@ -99,7 +106,9 @@ describe("SignInForm", () => {
       throw new Error("Sign-up form should exist");
     }
 
-    fireEvent.click(within(form).getByRole("button", { name: "Create account" }));
+    fireEvent.click(
+      within(form).getByRole("button", { name: "Create account" }),
+    );
 
     await waitFor(() => {
       expect(signUpWithEmailMock).toHaveBeenCalledWith(

@@ -97,7 +97,8 @@ export async function POST(request: NextRequest) {
 
     return NextResponse.json(result);
   } catch (error) {
-    const message = error instanceof Error ? error.message : "Failed to create household.";
+    const message =
+      error instanceof Error ? error.message : "Failed to create household.";
     const status = message === "Missing auth token." ? 401 : 500;
     logServerError("api.households.create", error, { status });
     return NextResponse.json(

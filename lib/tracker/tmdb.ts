@@ -1,4 +1,10 @@
-import type { TmdbSearchResult } from "@/lib/tracker/types";
+import type { TmdbSearchResult, TitleGenre } from "@/lib/tracker/types";
+
+export type TmdbDetailResult = Omit<TmdbSearchResult, "mediaType"> & {
+  genres?: TitleGenre[];
+  runtime?: number;
+  numberOfSeasons?: number;
+};
 
 export function normalizeTmdbMultiResult(
   item: Record<string, unknown>,
@@ -8,84 +14,114 @@ export function normalizeTmdbMultiResult(
     return null;
   }
 
-  const title =
+  const name =
     mediaType === "movie"
       ? (item.title as string | undefined)
       : (item.name as string | undefined);
 
-  if (!title || typeof item.id !== "number") {
+  if (!name || typeof item.id !== "number") {
     return null;
   }
 
-  const releaseDate =
-    mediaType === "movie"
-      ? ((item.release_date as string | undefined) ?? null)
-      : ((item.first_air_date as string | undefined) ?? null);
-
-  const releaseYear = releaseDate ? Number(releaseDate.slice(0, 4)) : null;
+  const releaseDate = (item.release_date as string | undefined) ?? undefined;
+  const firstAirDate = (item.first_air_date as string | undefined) ?? undefined;
 
   return {
     tmdbId: item.id,
     mediaType,
-    title,
+    name,
+    title: name,
     overview: (item.overview as string | undefined) ?? "",
-    posterPath: (item.poster_path as string | undefined) ?? null,
-    backdropPath: (item.backdrop_path as string | undefined) ?? null,
+    posterPath: (item.poster_path as string | undefined) ?? undefined,
+    backdropPath: (item.backdrop_path as string | undefined) ?? undefined,
     releaseDate,
-    releaseYear: Number.isNaN(releaseYear) ? null : releaseYear,
+    firstAirDate,
     voteAverage:
       typeof item.vote_average === "number"
         ? Number(item.vote_average.toFixed(1))
-        : null,
+        : undefined,
   };
 }
 
 export function normalizeTmdbDetailResult(
   mediaType: "movie" | "tv",
   item: Record<string, unknown>,
-): Omit<TmdbSearchResult, "mediaType"> & { genres: string[] } | null {
+): TmdbDetailResult | null {
   if (typeof item.id !== "number") {
     return null;
   }
 
-  const title =
+  const name =
     mediaType === "movie"
       ? (item.title as string | undefined)
       : (item.name as string | undefined);
 
-  if (!title) {
+  if (!name) {
     return null;
   }
 
-  const releaseDate =
-    mediaType === "movie"
-      ? ((item.release_date as string | undefined) ?? null)
-      : ((item.first_air_date as string | undefined) ?? null);
-
-  const releaseYear = releaseDate ? Number(releaseDate.slice(0, 4)) : null;
+  const releaseDate = (item.release_date as string | undefined) ?? undefined;
+  const firstAirDate = (item.first_air_date as string | undefined) ?? undefined;
 
   const genres = Array.isArray(item.genres)
     ? item.genres
         .map((genre) =>
           typeof genre === "object" && genre !== null
-            ? (genre as { name?: unknown }).name
+            ? {
+                id:
+                  typeof (genre as { id?: unknown }).id === "number"
+                    ? (genre as { id: number }).id
+                    : null,
+                name:
+                  typeof (genre as { name?: unknown }).name === "string"
+                    ? (genre as { name: string }).name
+                    : null,
+              }
             : null,
         )
-        .filter((name): name is string => typeof name === "string" && name.length > 0)
+        .filter(
+          (
+            genre,
+          ): genre is {
+            id: number;
+            name: string;
+          } => Boolean(genre && genre.id !== null && genre.name),
+        )
     : [];
+
+  const runtime =
+    mediaType === "movie"
+      ? typeof item.runtime === "number" && Number.isFinite(item.runtime)
+        ? item.runtime
+        : undefined
+      : Array.isArray(item.episode_run_time)
+        ? item.episode_run_time.find(
+            (value): value is number =>
+              typeof value === "number" && Number.isFinite(value) && value > 0,
+          )
+        : undefined;
+
+  const numberOfSeasons =
+    typeof item.number_of_seasons === "number" &&
+    Number.isFinite(item.number_of_seasons)
+      ? item.number_of_seasons
+      : undefined;
 
   return {
     tmdbId: item.id,
-    title,
+    name,
+    title: name,
     overview: (item.overview as string | undefined) ?? "",
-    posterPath: (item.poster_path as string | undefined) ?? null,
-    backdropPath: (item.backdrop_path as string | undefined) ?? null,
+    posterPath: (item.poster_path as string | undefined) ?? undefined,
+    backdropPath: (item.backdrop_path as string | undefined) ?? undefined,
     releaseDate,
-    releaseYear: Number.isNaN(releaseYear) ? null : releaseYear,
+    firstAirDate,
     voteAverage:
       typeof item.vote_average === "number"
         ? Number(item.vote_average.toFixed(1))
-        : null,
-    genres,
+        : undefined,
+    genres: genres.length ? genres : undefined,
+    runtime,
+    numberOfSeasons,
   };
 }

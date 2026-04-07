@@ -9,11 +9,11 @@ import { LoadingSkeleton } from "@/components/common/loading-skeleton";
 import { TitleStatusEditor } from "@/components/status/title-status-editor";
 import { getTitleById, refreshTitleMetadata } from "@/lib/tracker/client-api";
 import { buildPosterUrl } from "@/lib/tracker/shared";
-import type { TitleRecord } from "@/lib/tracker/types";
+import type { TitleViewModel } from "@/lib/tracker/types";
 
 export default function TitleDetailPage() {
   const { id } = useParams<{ id: string }>();
-  const [record, setRecord] = useState<TitleRecord | null>(null);
+  const [record, setRecord] = useState<TitleViewModel | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [isRefreshingMetadata, setIsRefreshingMetadata] = useState(false);
   const [refreshMessage, setRefreshMessage] = useState<string | null>(null);
@@ -33,7 +33,9 @@ export default function TitleDetailPage() {
         }
       } catch (err) {
         if (!cancelled) {
-          setError(err instanceof Error ? err.message : "Failed to load title.");
+          setError(
+            err instanceof Error ? err.message : "Failed to load title.",
+          );
         }
       } finally {
         if (!cancelled) {
@@ -73,7 +75,13 @@ export default function TitleDetailPage() {
     );
   }
 
-  const posterUrl = buildPosterUrl(record.title.posterPath, "w500");
+  const posterUrl = buildPosterUrl(record.posterPath ?? null, "w500");
+  const titleYear = record.releaseDate
+    ? new Date(record.releaseDate).getUTCFullYear()
+    : record.firstAirDate
+      ? new Date(record.firstAirDate).getUTCFullYear()
+      : null;
+  const isSoloHousehold = record.household.memberCount <= 1;
 
   async function handleRefreshMetadata() {
     if (!record) {
@@ -85,11 +93,13 @@ export default function TitleDetailPage() {
     setError(null);
 
     try {
-      const next = await refreshTitleMetadata(record.title.id);
+      const next = await refreshTitleMetadata(record.id);
       setRecord(next);
       setRefreshMessage("Metadata refreshed.");
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Failed to refresh metadata.");
+      setError(
+        err instanceof Error ? err.message : "Failed to refresh metadata.",
+      );
     } finally {
       setIsRefreshingMetadata(false);
     }
@@ -97,7 +107,10 @@ export default function TitleDetailPage() {
 
   return (
     <div className="space-y-4">
-      <Link href="/library" className="text-sm text-slate-600 hover:text-slate-900">
+      <Link
+        href="/library"
+        className="text-sm text-slate-600 hover:text-slate-900"
+      >
         ← Back to library
       </Link>
 
@@ -107,25 +120,27 @@ export default function TitleDetailPage() {
             // eslint-disable-next-line @next/next/no-img-element
             <img
               src={posterUrl}
-              alt={record.title.title}
+              alt={record.name}
               className="h-full w-full object-cover"
             />
           ) : null}
         </div>
         <div className="space-y-3">
-          <h1 className="text-3xl font-semibold text-slate-900">{record.title.title}</h1>
+          <h1 className="text-3xl font-semibold text-slate-900">
+            {record.name}
+          </h1>
           <p className="text-sm text-slate-500">
-            {record.title.mediaType.toUpperCase()} · {record.title.releaseYear ?? "-"}
+            {record.mediaType.toUpperCase()} · {titleYear ?? "-"}
           </p>
-          <p className="text-sm leading-6 text-slate-700">{record.title.overview}</p>
-          {record.title.genres.length > 0 ? (
+          <p className="text-sm leading-6 text-slate-700">{record.overview}</p>
+          {record.genres && record.genres.length > 0 ? (
             <div className="flex flex-wrap gap-2">
-              {record.title.genres.map((genre) => (
+              {record.genres.map((genre) => (
                 <span
-                  key={genre}
+                  key={`${genre.id}-${genre.name}`}
                   className="rounded-full bg-slate-200 px-2 py-1 text-xs text-slate-600"
                 >
-                  {genre}
+                  {genre.name}
                 </span>
               ))}
             </div>
@@ -154,12 +169,37 @@ export default function TitleDetailPage() {
               disabled={isRefreshingMetadata}
               className="text-xs text-slate-500 underline decoration-slate-300 underline-offset-2 hover:text-slate-700 disabled:opacity-60"
             >
-              {isRefreshingMetadata ? "Refreshing metadata..." : "Refresh metadata"}
+              {isRefreshingMetadata
+                ? "Refreshing metadata..."
+                : "Refresh metadata"}
             </button>
             {refreshMessage ? (
               <p className="mt-1 text-xs text-emerald-700">{refreshMessage}</p>
             ) : null}
           </div>
+        </div>
+      </section>
+
+      <section className="rounded-xl border border-slate-200 bg-white p-4 shadow-sm">
+        <h2 className="text-sm font-semibold tracking-wide text-slate-500 uppercase">
+          Household Summary
+        </h2>
+        <div className="mt-2 grid gap-2 text-sm text-slate-700 md:grid-cols-3">
+          <p>
+            Household watchlist: {record.household.wantsToWatch ? "Yes" : "No"}
+          </p>
+          <p>
+            Watched together:{" "}
+            {isSoloHousehold
+              ? "Hidden for solo household"
+              : record.household.watchedTogether
+                ? "Yes"
+                : "No"}
+          </p>
+          <p>
+            All members watched:{" "}
+            {record.household.allMembersWatched ? "Yes" : "No"}
+          </p>
         </div>
       </section>
 

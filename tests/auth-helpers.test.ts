@@ -1,6 +1,9 @@
 import { describe, expect, it } from "vitest";
 
-import { getAuthErrorMessage, getPostSignInPath } from "@/lib/auth/auth-helpers";
+import {
+  getAuthErrorMessage,
+  getPostSignInPath,
+} from "@/lib/auth/auth-helpers";
 
 describe("getPostSignInPath", () => {
   it("returns home for empty values", () => {
@@ -20,7 +23,9 @@ describe("getPostSignInPath", () => {
 describe("getAuthErrorMessage", () => {
   it("maps known firebase errors", () => {
     expect(
-      getAuthErrorMessage(new Error("Firebase: Error (auth/invalid-credential).")),
+      getAuthErrorMessage(
+        new Error("Firebase: Error (auth/invalid-credential)."),
+      ),
     ).toBe("Email or password is incorrect.");
   });
 

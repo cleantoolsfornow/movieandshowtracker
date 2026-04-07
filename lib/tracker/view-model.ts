@@ -54,9 +54,15 @@ export function buildTitleViewModel({
   }
 
   const household = normalizeHouseholdStatus(householdStatus);
-  const membersView = mapMembersToTitleViewModelMembers(members, userStatusesByUserId);
+  const membersView = mapMembersToTitleViewModelMembers(
+    members,
+    userStatusesByUserId,
+  );
   const derived = computeDerivedSummary(members, userStatusesByUserId);
-  const currentUser = extractCurrentUserMemberStatus(currentUserId, membersView);
+  const currentUser = extractCurrentUserMemberStatus(
+    currentUserId,
+    membersView,
+  );
 
   return {
     id: title.id,

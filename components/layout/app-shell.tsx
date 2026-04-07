@@ -15,7 +15,8 @@ const NAV_ITEMS = [
 export function AppShell({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
   const { user, profile } = useAuth();
-  const avatarUrl = profile?.avatarDataUrl ?? profile?.photoURL ?? user?.photoURL ?? null;
+  const avatarUrl =
+    profile?.avatarDataUrl ?? profile?.photoURL ?? user?.photoURL ?? null;
   const avatarFallback =
     (profile?.displayName ?? user?.displayName ?? user?.email ?? "P")
       .trim()
@@ -26,12 +27,16 @@ export function AppShell({ children }: { children: React.ReactNode }) {
     <div className="min-h-screen bg-gradient-to-b from-slate-100 to-slate-200">
       <header className="sticky top-0 z-20 border-b border-slate-200 bg-white/95 backdrop-blur">
         <div className="mx-auto flex w-full max-w-6xl items-center justify-between px-4 py-3">
-          <Link href="/home" className="text-sm font-bold tracking-wide text-slate-900">
+          <Link
+            href="/home"
+            className="text-sm font-bold tracking-wide text-slate-900"
+          >
             Shared Movie & TV Tracker
           </Link>
           <nav className="flex items-center gap-1">
             {NAV_ITEMS.map((item) => {
-              const active = pathname === item.href || pathname.startsWith(`${item.href}/`);
+              const active =
+                pathname === item.href || pathname.startsWith(`${item.href}/`);
               return (
                 <Link
                   key={item.href}

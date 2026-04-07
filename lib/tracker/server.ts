@@ -40,7 +40,11 @@ function asTimestampLike(value: unknown): TimestampLike {
   if (!value) {
     return undefined;
   }
-  if (typeof value === "string" || value instanceof Date || value instanceof Timestamp) {
+  if (
+    typeof value === "string" ||
+    value instanceof Date ||
+    value instanceof Timestamp
+  ) {
     return value;
   }
   if (typeof value === "object" && value !== null && "toDate" in value) {
@@ -49,7 +53,9 @@ function asTimestampLike(value: unknown): TimestampLike {
   return undefined;
 }
 
-function mapGenres(value: unknown): Array<{ id: number; name: string }> | undefined {
+function mapGenres(
+  value: unknown,
+): Array<{ id: number; name: string }> | undefined {
   if (!Array.isArray(value)) {
     return undefined;
   }
@@ -75,7 +81,9 @@ function mapGenres(value: unknown): Array<{ id: number; name: string }> | undefi
   return normalized.length ? normalized : undefined;
 }
 
-function mapTitleDocument(snapshot: FirebaseFirestore.DocumentSnapshot): TitleDocument {
+function mapTitleDocument(
+  snapshot: FirebaseFirestore.DocumentSnapshot,
+): TitleDocument {
   const data = (snapshot.data() ?? {}) as Record<string, unknown>;
   const mediaType = asString(data.mediaType);
   const name = asString(data.name) ?? asString(data.title) ?? "";
@@ -140,10 +148,14 @@ function mapTitleHouseholdStatusDocument(
   };
 }
 
-function mapHouseholdDocument(snapshot: FirebaseFirestore.DocumentSnapshot): HouseholdDocument {
+function mapHouseholdDocument(
+  snapshot: FirebaseFirestore.DocumentSnapshot,
+): HouseholdDocument {
   const data = (snapshot.data() ?? {}) as Record<string, unknown>;
   const rawMemberIds = Array.isArray(data.memberIds) ? data.memberIds : [];
-  const memberIds = rawMemberIds.filter((value): value is string => typeof value === "string");
+  const memberIds = rawMemberIds.filter(
+    (value): value is string => typeof value === "string",
+  );
 
   return {
     id: snapshot.id,
@@ -153,7 +165,9 @@ function mapHouseholdDocument(snapshot: FirebaseFirestore.DocumentSnapshot): Hou
   };
 }
 
-function mapMemberProfile(snapshot: FirebaseFirestore.DocumentSnapshot): HouseholdMemberProfile {
+function mapMemberProfile(
+  snapshot: FirebaseFirestore.DocumentSnapshot,
+): HouseholdMemberProfile {
   const data = (snapshot.data() ?? {}) as Record<string, unknown>;
 
   return {
@@ -202,12 +216,29 @@ export async function getHouseholdIdForUid(uid: string): Promise<string> {
 export async function getHouseholdById(
   householdId: string,
 ): Promise<HouseholdDocument | null> {
-  const snapshot = await getAdminDb().collection("households").doc(householdId).get();
+  const snapshot = await getAdminDb()
+    .collection("households")
+    .doc(householdId)
+    .get();
   if (!snapshot.exists) {
     return null;
   }
 
   return mapHouseholdDocument(snapshot);
+}
+
+export async function assertUserHasHouseholdMembership(
+  uid: string,
+  householdId: string,
+): Promise<void> {
+  const household = await getHouseholdById(householdId);
+  if (!household) {
+    throw new Error("Household not found.");
+  }
+
+  if (!household.memberIds.includes(uid)) {
+    throw new Error("Forbidden.");
+  }
 }
 
 export async function listHouseholdMembers(
@@ -219,10 +250,14 @@ export async function listHouseholdMembers(
   }
 
   const userSnapshots = await Promise.all(
-    household.memberIds.map((memberId) => getAdminDb().collection("users").doc(memberId).get()),
+    household.memberIds.map((memberId) =>
+      getAdminDb().collection("users").doc(memberId).get(),
+    ),
   );
 
-  return userSnapshots.filter((snapshot) => snapshot.exists).map(mapMemberProfile);
+  return userSnapshots
+    .filter((snapshot) => snapshot.exists)
+    .map(mapMemberProfile);
 }
 
 export async function listTitlesByHousehold(
@@ -263,14 +298,8 @@ export async function assertUserIsInHousehold(
   targetUserId: string,
   householdId: string,
 ): Promise<void> {
-  const household = await getHouseholdById(householdId);
-  if (!household) {
-    throw new Error("Household not found.");
-  }
-
-  if (!household.memberIds.includes(actingUserId) || !household.memberIds.includes(targetUserId)) {
-    throw new Error("Forbidden.");
-  }
+  await assertUserHasHouseholdMembership(actingUserId, householdId);
+  await assertUserHasHouseholdMembership(targetUserId, householdId);
 }
 
 export async function getTitleViewModelById(
@@ -278,7 +307,12 @@ export async function getTitleViewModelById(
   titleId: string,
   currentUserId: string,
 ): Promise<TitleViewModel | null> {
-  const titleSnapshot = await getAdminDb().collection("titles").doc(titleId).get();
+  await assertUserHasHouseholdMembership(currentUserId, householdId);
+
+  const titleSnapshot = await getAdminDb()
+    .collection("titles")
+    .doc(titleId)
+    .get();
   if (!titleSnapshot.exists) {
     return null;
   }
@@ -288,17 +322,20 @@ export async function getTitleViewModelById(
     throw new Error("Forbidden.");
   }
 
-  const [members, titleUserStatusSnapshots, titleHouseholdStatusSnapshot] = await Promise.all([
-    listHouseholdMembers(householdId),
-    getAdminDb()
-      .collection("titleUserStatuses")
-      .where("householdId", "==", householdId)
-      .where("titleId", "==", titleId)
-      .get(),
-    getAdminDb().collection("titleHouseholdStatuses").doc(titleId).get(),
-  ]);
+  const [members, titleUserStatusSnapshots, titleHouseholdStatusSnapshot] =
+    await Promise.all([
+      listHouseholdMembers(householdId),
+      getAdminDb()
+        .collection("titleUserStatuses")
+        .where("householdId", "==", householdId)
+        .where("titleId", "==", titleId)
+        .get(),
+      getAdminDb().collection("titleHouseholdStatuses").doc(titleId).get(),
+    ]);
 
-  const userStatuses = titleUserStatusSnapshots.docs.map(mapTitleUserStatusDocument);
+  const userStatuses = titleUserStatusSnapshots.docs.map(
+    mapTitleUserStatusDocument,
+  );
   const householdStatus =
     titleHouseholdStatusSnapshot.exists &&
     titleHouseholdStatusSnapshot.get("householdId") === householdId
@@ -318,6 +355,8 @@ export async function listTitleViewModels(
   householdId: string,
   currentUserId: string,
 ): Promise<TitleViewModel[]> {
+  await assertUserHasHouseholdMembership(currentUserId, householdId);
+
   const [members, titles, userStatuses, householdStatuses] = await Promise.all([
     listHouseholdMembers(householdId),
     listTitlesByHousehold(householdId),
@@ -326,7 +365,8 @@ export async function listTitleViewModels(
   ]);
 
   const userStatusesByTitleId = groupUserStatusesByTitleId(userStatuses);
-  const householdStatusesByTitleId = groupHouseholdStatusesByTitleId(householdStatuses);
+  const householdStatusesByTitleId =
+    groupHouseholdStatusesByTitleId(householdStatuses);
 
   return titles.map((title) =>
     buildTitleViewModel({
@@ -354,7 +394,11 @@ export function filterTitleViewModels(
   },
 ): TitleViewModel[] {
   return records.filter((record) => {
-    if (options.mediaType && options.mediaType !== "all" && record.mediaType !== options.mediaType) {
+    if (
+      options.mediaType &&
+      options.mediaType !== "all" &&
+      record.mediaType !== options.mediaType
+    ) {
       return false;
     }
 
@@ -381,7 +425,12 @@ export function filterTitleViewModels(
 
 export function sortTitleViewModels(
   records: TitleViewModel[],
-  sortBy: "recently_added" | "recently_updated" | "alphabetical" | "release_date" | null,
+  sortBy:
+    | "recently_added"
+    | "recently_updated"
+    | "alphabetical"
+    | "release_date"
+    | null,
 ): TitleViewModel[] {
   const copied = [...records];
 
@@ -390,7 +439,11 @@ export function sortTitleViewModels(
       copied.sort((a, b) => a.name.localeCompare(b.name));
       break;
     case "release_date":
-      copied.sort((a, b) => (b.releaseDate ?? "").localeCompare(a.releaseDate ?? ""));
+      copied.sort((a, b) =>
+        (b.releaseDate ?? b.firstAirDate ?? "").localeCompare(
+          a.releaseDate ?? a.firstAirDate ?? "",
+        ),
+      );
       break;
     case "recently_added":
       copied.sort((a, b) => b.createdAt.localeCompare(a.createdAt));

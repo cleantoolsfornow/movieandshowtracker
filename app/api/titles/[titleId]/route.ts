@@ -1,30 +1,73 @@
 import { NextRequest, NextResponse } from "next/server";
+import { FieldValue } from "firebase-admin/firestore";
 import { z } from "zod";
 
 import { requireUidFromRequest } from "@/lib/auth/server-auth";
+import { getAdminDb } from "@/lib/firebase/admin";
 import { logServerError } from "@/lib/server/logger";
+import { createTitleUserStatusId } from "@/lib/tracker/shared";
 import {
-  applyStatusPatch,
+  assertUserHasHouseholdMembership,
+  assertUserIsInHousehold,
   getHouseholdIdForUid,
-  getTitleRecordById,
+  getTitleViewModelById,
 } from "@/lib/tracker/server";
 
-const patchSchema = z.object({
-  watchedBy: z
-    .object({
-      memberOne: z.boolean().optional(),
-      memberTwo: z.boolean().optional(),
-      together: z.boolean().optional(),
-    })
-    .optional(),
-  wantToWatchBy: z
-    .object({
-      memberOne: z.boolean().optional(),
-      memberTwo: z.boolean().optional(),
-      together: z.boolean().optional(),
-    })
-    .optional(),
-});
+const patchSchema = z.discriminatedUnion("action", [
+  z.object({
+    action: z.literal("set_user_wants_to_watch"),
+    userId: z.string().min(1),
+    value: z.boolean(),
+  }),
+  z.object({
+    action: z.literal("set_user_watched"),
+    userId: z.string().min(1),
+    value: z.boolean(),
+    watchedAt: z.string().optional(),
+  }),
+  z.object({
+    action: z.literal("set_household_wants_to_watch"),
+    value: z.boolean(),
+  }),
+  z.object({
+    action: z.literal("set_watched_together"),
+    value: z.boolean(),
+    watchedTogetherAt: z.string().optional(),
+  }),
+  z.object({
+    action: z.literal("set_user_rating"),
+    userId: z.string().min(1),
+    value: z.number().optional(),
+  }),
+  z.object({
+    action: z.literal("set_user_notes"),
+    userId: z.string().min(1),
+    value: z.string().optional(),
+  }),
+]);
+
+function compactObject<T extends Record<string, unknown>>(value: T) {
+  const next: Record<string, unknown> = {};
+  for (const [key, item] of Object.entries(value)) {
+    if (item !== undefined) {
+      next[key] = item;
+    }
+  }
+  return next;
+}
+
+function getPatchErrorStatus(message: string) {
+  if (message === "Missing auth token.") {
+    return 401;
+  }
+  if (message === "Forbidden.") {
+    return 403;
+  }
+  if (message === "Title not found.") {
+    return 404;
+  }
+  return 500;
+}
 
 export async function GET(
   request: NextRequest,
@@ -34,27 +77,21 @@ export async function GET(
     const uid = await requireUidFromRequest(request);
     const householdId = await getHouseholdIdForUid(uid);
     const { titleId } = await context.params;
+    await assertUserHasHouseholdMembership(uid, householdId);
 
-    const record = await getTitleRecordById(householdId, titleId);
+    const record = await getTitleViewModelById(householdId, titleId, uid);
     if (!record) {
       return NextResponse.json({ error: "Title not found." }, { status: 404 });
     }
 
     return NextResponse.json({ record });
   } catch (error) {
-    const message = error instanceof Error ? error.message : "Failed to load title.";
-    const status =
-      message === "Missing auth token."
-        ? 401
-        : message === "Forbidden."
-          ? 403
-          : 500;
+    const message =
+      error instanceof Error ? error.message : "Failed to load title.";
+    const status = getPatchErrorStatus(message);
     logServerError("api.titles.get", error, { status });
     return NextResponse.json(
-      {
-        error:
-          status === 500 ? "Failed to load title." : message,
-      },
+      { error: status === 500 ? "Failed to load title." : message },
       { status },
     );
   }
@@ -68,28 +105,159 @@ export async function PATCH(
     const uid = await requireUidFromRequest(request);
     const householdId = await getHouseholdIdForUid(uid);
     const { titleId } = await context.params;
-
     const patch = patchSchema.parse(await request.json());
-    const record = await applyStatusPatch(householdId, titleId, patch);
+    const adminDb = getAdminDb();
+
+    await assertUserHasHouseholdMembership(uid, householdId);
+
+    if (
+      patch.action === "set_user_wants_to_watch" ||
+      patch.action === "set_user_watched"
+    ) {
+      await assertUserIsInHousehold(uid, patch.userId, householdId);
+    }
+    if (
+      (patch.action === "set_user_rating" ||
+        patch.action === "set_user_notes") &&
+      patch.userId !== uid
+    ) {
+      throw new Error("Forbidden.");
+    }
+
+    await adminDb.runTransaction(async (transaction) => {
+      const titleRef = adminDb.collection("titles").doc(titleId);
+      const titleSnapshot = await transaction.get(titleRef);
+      if (!titleSnapshot.exists) {
+        throw new Error("Title not found.");
+      }
+
+      const titleHouseholdId = titleSnapshot.get("householdId") as
+        | string
+        | undefined;
+      if (titleHouseholdId !== householdId) {
+        throw new Error("Forbidden.");
+      }
+
+      const now = FieldValue.serverTimestamp();
+
+      if (
+        patch.action === "set_user_wants_to_watch" ||
+        patch.action === "set_user_watched"
+      ) {
+        const statusId = createTitleUserStatusId(
+          householdId,
+          titleId,
+          patch.userId,
+        );
+        const userStatusRef = adminDb
+          .collection("titleUserStatuses")
+          .doc(statusId);
+        const userStatusSnapshot = await transaction.get(userStatusRef);
+
+        transaction.set(
+          userStatusRef,
+          compactObject({
+            id: statusId,
+            householdId,
+            titleId,
+            userId: patch.userId,
+            ...(patch.action === "set_user_wants_to_watch"
+              ? { wantsToWatch: patch.value }
+              : {
+                  watched: patch.value,
+                  watchedAt: patch.value
+                    ? patch.watchedAt
+                    : FieldValue.delete(),
+                }),
+            updatedAt: now,
+            updatedBy: uid,
+            createdAt: userStatusSnapshot.exists ? undefined : now,
+          }),
+          { merge: true },
+        );
+      } else if (
+        patch.action === "set_household_wants_to_watch" ||
+        patch.action === "set_watched_together"
+      ) {
+        const householdStatusRef = adminDb
+          .collection("titleHouseholdStatuses")
+          .doc(titleId);
+        const householdStatusSnapshot = await transaction.get(householdStatusRef);
+
+        transaction.set(
+          householdStatusRef,
+          compactObject({
+            titleId,
+            householdId,
+            ...(patch.action === "set_household_wants_to_watch"
+              ? { householdWantsToWatch: patch.value }
+              : {
+                  watchedTogether: patch.value,
+                  watchedTogetherAt: patch.value
+                    ? patch.watchedTogetherAt
+                    : FieldValue.delete(),
+                }),
+            updatedAt: now,
+            updatedBy: uid,
+            createdAt: householdStatusSnapshot.exists ? undefined : now,
+          }),
+          { merge: true },
+        );
+      } else if (
+        patch.action === "set_user_rating" ||
+        patch.action === "set_user_notes"
+      ) {
+        const statusId = createTitleUserStatusId(
+          householdId,
+          titleId,
+          patch.userId,
+        );
+        const userStatusRef = adminDb
+          .collection("titleUserStatuses")
+          .doc(statusId);
+        const userStatusSnapshot = await transaction.get(userStatusRef);
+
+        transaction.set(
+          userStatusRef,
+          compactObject({
+            id: statusId,
+            householdId,
+            titleId,
+            userId: patch.userId,
+            ...(patch.action === "set_user_rating"
+              ? { rating: patch.value ?? FieldValue.delete() }
+              : { notes: patch.value ?? FieldValue.delete() }),
+            updatedAt: now,
+            updatedBy: uid,
+            createdAt: userStatusSnapshot.exists ? undefined : now,
+          }),
+          { merge: true },
+        );
+      }
+
+      transaction.set(
+        titleRef,
+        {
+          updatedAt: now,
+        },
+        { merge: true },
+      );
+    });
+
+    const record = await getTitleViewModelById(householdId, titleId, uid);
+    if (!record) {
+      throw new Error("Title not found.");
+    }
 
     return NextResponse.json({ record });
   } catch (error) {
-    const message = error instanceof Error ? error.message : "Failed to update status.";
-    const status =
-      message === "Missing auth token."
-        ? 401
-        : message === "Forbidden."
-          ? 403
-          : message === "Title not found."
-            ? 404
-            : 500;
+    const message =
+      error instanceof Error ? error.message : "Failed to update status.";
+    const status = getPatchErrorStatus(message);
     logServerError("api.titles.patch", error, { status });
 
     return NextResponse.json(
-      {
-        error:
-          status === 500 ? "Failed to update status." : message,
-      },
+      { error: status === 500 ? "Failed to update status." : message },
       { status },
     );
   }
