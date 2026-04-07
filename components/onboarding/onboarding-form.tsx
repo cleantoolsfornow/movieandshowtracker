@@ -114,7 +114,7 @@ export function OnboardingForm() {
     try {
       clearCreatedHouseholdInviteCode();
       await joinHouseholdViaApi(inviteCode);
-      router.replace("/home");
+      router.replace("/dashboard");
     } catch (err) {
       setError(
         err instanceof Error ? err.message : "Failed to join household.",
@@ -270,10 +270,10 @@ export function OnboardingForm() {
                   size="sm"
                   onClick={() => {
                     clearCreatedHouseholdInviteCode();
-                    router.replace("/home");
+                    router.replace("/dashboard");
                   }}
                 >
-                  Continue to Home
+                  Continue to dashboard
                 </Button>
               </div>
             </div>

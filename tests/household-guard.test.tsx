@@ -8,7 +8,7 @@ const useAuthMock = vi.fn();
 
 vi.mock("next/navigation", () => ({
   useRouter: () => ({ replace: replaceMock }),
-  usePathname: () => "/home",
+  usePathname: () => "/dashboard",
 }));
 
 vi.mock("@/components/auth/auth-provider", () => ({
@@ -53,7 +53,7 @@ describe("HouseholdGuard", () => {
     );
 
     await waitFor(() => {
-      expect(replaceMock).toHaveBeenCalledWith("/sign-in?next=%2Fhome");
+      expect(replaceMock).toHaveBeenCalledWith("/sign-in?next=%2Fdashboard");
     });
   });
 

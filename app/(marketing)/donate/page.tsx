@@ -6,18 +6,19 @@ import { HomeCtaRow } from "@/components/marketing/home-cta-row";
 import {
   ArrowUpRightIcon,
   LibraryIcon,
+  PickleIcon,
   ShieldIcon,
   SparkIcon,
 } from "@/components/marketing/inline-icons";
 
 export const metadata: Metadata = {
-  title: "Support The Project",
+  title: "Support FilmPickle",
   description:
-    "Support Movie And Show Tracker on Ko-fi to help cover hosting and ongoing product improvements.",
+    "Support FilmPickle on Ko-fi to help fund hosting, maintenance, and continued product improvements.",
   openGraph: {
-    title: "Support The Project | Movie And Show Tracker",
+    title: "Support FilmPickle",
     description:
-      "Support Movie And Show Tracker on Ko-fi to help cover hosting and ongoing product improvements.",
+      "Back FilmPickle on Ko-fi and help keep the project healthy, maintained, and improving over time.",
     type: "website",
   },
 };
@@ -25,82 +26,119 @@ export const metadata: Metadata = {
 const supportReasons = [
   {
     title: "Hosting and infrastructure",
-    body: "Support helps cover the services that keep the app available and responsive.",
+    body: "Support helps cover the services that keep FilmPickle online, responsive, and dependable.",
     icon: LibraryIcon,
   },
   {
-    title: "Ongoing polish and upkeep",
-    body: "It helps fund continued improvements, bug fixes, and UX refinement over time.",
+    title: "Ongoing product polish",
+    body: "It creates room for better UI work, cleaner details, and continued refinement over time.",
     icon: SparkIcon,
   },
   {
-    title: "Keeping the project healthy",
-    body: "Contributions make it easier to sustainably maintain the tracker and keep momentum.",
+    title: "Sustainable maintenance",
+    body: "It helps keep the project healthy instead of letting a useful tool slowly drift out of shape.",
     icon: ShieldIcon,
   },
 ] as const;
 
 export default function DonatePage() {
   return (
-    <div className="space-y-12 pb-8 md:space-y-14">
-      <section className="marketing-section space-y-5 pt-2">
-        <p className="app-kicker">Support</p>
-        <h1 className="max-w-3xl text-balance text-4xl font-semibold leading-tight text-foreground md:text-5xl">
-          Thank you for helping this project keep growing.
-        </h1>
-        <p className="max-w-2xl text-base leading-7 text-text-muted md:text-lg">
-          Movie And Show Tracker is currently free to use. If it has been useful for you, support is
-          deeply appreciated and helps keep the work moving.
-        </p>
-      </section>
-
-      <section className="marketing-section">
-        <PageCard elevated className="relative overflow-hidden p-6 md:p-8">
-          <div className="pointer-events-none absolute -right-14 -top-14 h-44 w-44 rounded-full bg-accent/14 blur-2xl" />
-          <div className="pointer-events-none absolute -bottom-16 -left-10 h-44 w-44 rounded-full bg-shared-watch/14 blur-2xl" />
-          <div className="relative space-y-4">
-            <p className="app-kicker">Ko-fi</p>
-            <h2 className="text-2xl font-semibold text-foreground md:text-3xl">Support on Ko-fi</h2>
-            <p className="max-w-2xl text-sm leading-6 text-text-muted md:text-base">
-              If you want to contribute, this is the best place to do it. Every bit of support helps with upkeep, polish, and keeping the tracker healthy.
-            </p>
-            <Link
-              href="https://ko-fi.com/cleantoolsfornow"
-              target="_blank"
-              rel="noopener noreferrer"
-              className="inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-xl border border-accent bg-accent px-4 py-2.5 text-sm font-semibold text-accent-contrast transition hover:border-accent-strong hover:bg-accent-strong"
-              aria-label="Support on Ko-fi (opens in a new tab)"
-            >
-              <ArrowUpRightIcon className="h-4 w-4" />
-              Support on Ko-fi (opens in new tab)
-            </Link>
-            <p className="text-xs text-text-soft">External link: ko-fi.com/cleantoolsfornow</p>
+    <div className="space-y-10 pb-10 md:space-y-14">
+      <section className="marketing-section grid gap-6 pt-2 lg:grid-cols-[1fr_0.92fr] lg:items-center">
+        <div className="space-y-5">
+          <div className="flex flex-wrap gap-2">
+            <span className="marketing-pill text-xs font-semibold tracking-[0.2em] uppercase">
+              <PickleIcon className="h-4 w-4 text-[rgb(32,94,51)]" />
+              Support FilmPickle
+            </span>
+            <span className="marketing-pill text-sm">
+              Help keep the project moving
+            </span>
           </div>
+
+          <div className="space-y-4">
+            <p className="app-kicker">Support the project</p>
+            <h1 className="max-w-3xl text-5xl leading-[1] font-semibold text-balance text-[rgb(23,35,18)] md:text-6xl">
+              If FilmPickle has earned a place in your watch routine, you can
+              help keep it improving.
+            </h1>
+            <p className="max-w-2xl text-lg leading-8 text-[rgb(69,84,53)]">
+              Support is never expected, but it directly helps with the real
+              work behind the product: hosting, maintenance, and the time it
+              takes to keep refining the experience.
+            </p>
+          </div>
+        </div>
+
+        <PageCard elevated className="rounded-[34px] p-6 md:p-7">
+          <p className="app-kicker">Ko-fi</p>
+          <h2 className="mt-3 text-3xl font-semibold text-[rgb(23,35,18)] md:text-4xl">
+            Support the work behind the watchlist.
+          </h2>
+          <p className="mt-4 text-base leading-7 text-[rgb(69,84,53)]">
+            If you want to contribute, Ko-fi is the simplest way to do it. Every
+            bit of support helps keep FilmPickle stable, maintained, and moving
+            toward a better version of itself.
+          </p>
+          <Link
+            href="https://ko-fi.com/cleantoolsfornow"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="marketing-button-primary mt-6 inline-flex items-center justify-center gap-2 rounded-full border px-5 py-3 text-sm font-semibold transition"
+            aria-label="Support on Ko-fi (opens in a new tab)"
+          >
+            <ArrowUpRightIcon className="h-4 w-4" />
+            Support on Ko-fi
+          </Link>
+          <p className="mt-3 text-xs font-medium tracking-[0.18em] text-[rgb(94,107,67)] uppercase">
+            External link: ko-fi.com/cleantoolsfornow
+          </p>
         </PageCard>
       </section>
 
-      <section className="marketing-section grid gap-4 md:grid-cols-3">
-        {supportReasons.map((item) => (
-          <PageCard key={item.title} className="space-y-2 p-5">
-            <p className="text-accent">
-              <item.icon className="h-4 w-4" />
-            </p>
-            <h2 className="text-lg font-semibold text-foreground">{item.title}</h2>
-            <p className="text-sm leading-6 text-text-muted">{item.body}</p>
-          </PageCard>
-        ))}
+      <section className="marketing-section space-y-6">
+        <div className="max-w-3xl space-y-3">
+          <p className="app-kicker">What support helps with</p>
+          <h2 className="text-4xl font-semibold text-[rgb(23,35,18)] md:text-5xl">
+            The practical side of keeping a good product good.
+          </h2>
+        </div>
+
+        <div className="grid gap-4 md:grid-cols-3">
+          {supportReasons.map((item) => (
+            <PageCard key={item.title} elevated className="rounded-[30px] p-6">
+              <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-[rgba(39,102,57,0.1)] text-[rgb(30,88,48)]">
+                <item.icon className="h-5 w-5" />
+              </div>
+              <h2 className="mt-5 text-2xl font-semibold text-[rgb(23,35,18)]">
+                {item.title}
+              </h2>
+              <p className="mt-3 text-base leading-7 text-[rgb(69,84,53)]">
+                {item.body}
+              </p>
+            </PageCard>
+          ))}
+        </div>
       </section>
 
       <section className="marketing-section">
-        <PageCard elevated className="space-y-4 p-6 md:p-8">
-          <p className="app-kicker">Use The App</p>
-          <h2 className="max-w-2xl text-3xl font-semibold leading-tight text-foreground md:text-4xl">
-            Whether you donate or not, thanks for being here.
-          </h2>
-          <p className="max-w-2xl text-sm leading-6 text-text-muted md:text-base">
-            No donation is required. If you are ready to keep tracking, jump back in now.
-          </p>
-          <HomeCtaRow includeFeaturesLink />
+        <PageCard elevated className="rounded-[36px] p-7 md:p-9">
+          <div className="grid gap-6 lg:grid-cols-[1fr_auto] lg:items-center">
+            <div className="space-y-4">
+              <p className="app-kicker">Keep tracking</p>
+              <h2 className="max-w-3xl text-4xl leading-tight font-semibold text-[rgb(23,35,18)] md:text-5xl">
+                The easiest free way to support FilmPickle is simple: keep using
+                it.
+              </h2>
+              <p className="max-w-2xl text-base leading-7 text-[rgb(69,84,53)]">
+                If you are ready to jump back in, your next recommendation,
+                shared pick, or watch-night decision is already waiting.
+              </p>
+            </div>
+            <div className="flex flex-col gap-3">
+              <HomeCtaRow includeFeaturesLink />
+            </div>
+          </div>
         </PageCard>
       </section>
     </div>

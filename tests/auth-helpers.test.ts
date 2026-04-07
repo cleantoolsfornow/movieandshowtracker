@@ -6,13 +6,13 @@ import {
 } from "@/lib/auth/auth-helpers";
 
 describe("getPostSignInPath", () => {
-  it("returns home for empty values", () => {
-    expect(getPostSignInPath()).toBe("/home");
-    expect(getPostSignInPath(null)).toBe("/home");
+  it("returns dashboard for empty values", () => {
+    expect(getPostSignInPath()).toBe("/dashboard");
+    expect(getPostSignInPath(null)).toBe("/dashboard");
   });
 
-  it("returns home for unsafe absolute path", () => {
-    expect(getPostSignInPath("//evil.example")).toBe("/home");
+  it("returns dashboard for unsafe absolute path", () => {
+    expect(getPostSignInPath("//evil.example")).toBe("/dashboard");
   });
 
   it("returns provided safe path", () => {

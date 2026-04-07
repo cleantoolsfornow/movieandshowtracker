@@ -54,7 +54,7 @@ describe("Marketing CTAs", () => {
 
     expect(screen.getByRole("link", { name: "Open app" })).toHaveAttribute(
       "href",
-      "/home",
+      "/dashboard",
     );
   });
 

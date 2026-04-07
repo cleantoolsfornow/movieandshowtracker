@@ -3,16 +3,15 @@
 import Link from "next/link";
 
 import { useAuth } from "@/components/auth/auth-provider";
+import { ArrowRightIcon } from "@/components/marketing/inline-icons";
 import { cn } from "@/lib/ui/cn";
 
 const sharedButtonClass =
-  "inline-flex items-center justify-center whitespace-nowrap rounded-xl border px-3.5 py-2 text-sm font-medium transition";
+  "inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-full border px-4 py-2.5 text-sm font-semibold transition";
 
-const secondaryClass =
-  "border-border-strong/45 bg-surface text-text-muted hover:bg-surface-muted hover:text-foreground";
+const secondaryClass = "marketing-button-secondary";
 
-const primaryClass =
-  "border-accent bg-accent text-accent-contrast hover:border-accent-strong hover:bg-accent-strong";
+const primaryClass = "marketing-button-primary";
 
 type PublicAuthCtaProps = {
   className?: string;
@@ -20,12 +19,16 @@ type PublicAuthCtaProps = {
 
 export function PublicAuthCta({ className }: PublicAuthCtaProps) {
   const { user, profile } = useAuth();
-  const openAppHref = profile?.householdId ? "/home" : "/onboarding";
+  const openAppHref = profile?.householdId ? "/dashboard" : "/onboarding";
 
   if (user) {
     return (
-      <Link className={cn(sharedButtonClass, primaryClass, className)} href={openAppHref}>
+      <Link
+        className={cn(sharedButtonClass, primaryClass, className)}
+        href={openAppHref}
+      >
         Open app
+        <ArrowRightIcon className="h-4 w-4" />
       </Link>
     );
   }
@@ -40,6 +43,7 @@ export function PublicAuthCta({ className }: PublicAuthCtaProps) {
         href="/sign-in?mode=sign-up"
       >
         Create account
+        <ArrowRightIcon className="h-4 w-4" />
       </Link>
     </div>
   );

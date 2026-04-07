@@ -47,7 +47,7 @@ export default function OnboardingPage() {
       profile?.householdId &&
       !shouldStayOnCreatedHouseholdFlow
     ) {
-      router.replace("/home");
+      router.replace("/dashboard");
     }
   }, [
     hasCreatedInviteCode,

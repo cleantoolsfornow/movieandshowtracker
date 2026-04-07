@@ -1,7 +1,7 @@
 import { render, screen } from "@testing-library/react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
-import HomePage from "@/app/(app)/home/page";
+import DashboardPage from "@/components/home/dashboard-page";
 import type { TitleViewModel } from "@/lib/tracker/types";
 
 const useHouseholdMock = vi.fn();
@@ -72,7 +72,7 @@ describe("Home household copy", () => {
       isThreePlusHousehold: false,
     });
 
-    render(<HomePage />);
+    render(<DashboardPage />);
 
     expect(screen.getByText("Solo household")).toBeInTheDocument();
     expect(screen.getByText("My watchlist")).toBeInTheDocument();
@@ -116,7 +116,7 @@ describe("Home household copy", () => {
       isThreePlusHousehold: false,
     });
 
-    render(<HomePage />);
+    render(<DashboardPage />);
 
     expect(screen.getByText("Two-member household")).toBeInTheDocument();
     expect(screen.getAllByText("Both want to watch").length).toBeGreaterThan(0);
@@ -132,7 +132,7 @@ describe("Home household copy", () => {
       isThreePlusHousehold: true,
     });
 
-    render(<HomePage />);
+    render(<DashboardPage />);
 
     expect(screen.getByText("3+ member household")).toBeInTheDocument();
     expect(screen.getByText("All members watched")).toBeInTheDocument();

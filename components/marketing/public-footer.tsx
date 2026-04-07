@@ -1,5 +1,7 @@
 import Link from "next/link";
 
+import { PickleIcon } from "@/components/marketing/inline-icons";
+
 const footerLinks = [
   { href: "/", label: "Home" },
   { href: "/features", label: "Features" },
@@ -9,22 +11,31 @@ const footerLinks = [
 
 export function PublicFooter() {
   return (
-    <footer className="border-t border-border-subtle/80 bg-surface-strong/70">
-      <div className="mx-auto flex w-full max-w-6xl flex-col gap-3 px-4 py-6 sm:flex-row sm:items-center sm:justify-between">
-        <div className="space-y-1">
-          <p className="text-sm font-medium text-foreground">
-            Track movies and shows for yourself or your household.
-          </p>
-          <p className="text-xs text-text-soft">
-            Currently free to use. Built to make watch decisions easier, faster, and more fun.
-          </p>
+    <footer className="border-t border-[rgb(58,104,63,0.1)] bg-[rgba(255,249,240,0.78)]">
+      <div className="mx-auto flex w-full max-w-7xl flex-col gap-4 px-4 py-6 sm:px-5 md:flex-row md:items-center md:justify-between">
+        <div className="flex items-center gap-3">
+          <span className="flex h-9 w-9 items-center justify-center text-[rgb(31,87,51)]">
+            <PickleIcon className="h-7 w-7" />
+          </span>
+          <div>
+            <p className="text-base font-semibold text-[rgb(23,35,18)]">
+              FilmPickle
+            </p>
+            <p className="text-sm text-[rgb(87,101,66)]">
+              Track movies and shows, solo or with your household.
+            </p>
+          </div>
         </div>
-        <nav aria-label="Footer" className="flex flex-wrap items-center gap-3">
+
+        <nav
+          aria-label="Footer"
+          className="flex flex-wrap items-center gap-1.5"
+        >
           {footerLinks.map((link) => (
             <Link
               key={link.href}
               href={link.href}
-              className="text-sm text-text-muted hover:text-foreground"
+              className="rounded-full px-3 py-2 text-sm font-medium text-[rgb(69,84,53)] hover:bg-[rgba(255,255,255,0.58)] hover:text-[rgb(23,35,18)]"
             >
               {link.label}
             </Link>

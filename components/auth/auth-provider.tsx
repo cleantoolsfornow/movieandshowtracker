@@ -16,6 +16,7 @@ import {
   subscribeToUserProfile,
   type UserProfile,
 } from "@/lib/firestore/users";
+import { hasFirebaseClientConfig } from "@/lib/firebase/config";
 
 type AuthContextValue = {
   user: User | null;
@@ -28,21 +29,31 @@ type AuthContextValue = {
 const AuthContext = createContext<AuthContextValue | undefined>(undefined);
 
 export function AuthProvider({ children }: PropsWithChildren) {
+  const authAvailable = hasFirebaseClientConfig();
   const [user, setUser] = useState<User | null>(null);
   const [profileState, setProfileState] = useState<
     UserProfile | null | undefined
-  >(undefined);
-  const [isLoadingAuth, setIsLoadingAuth] = useState(true);
+  >(authAvailable ? undefined : null);
+  const [isLoadingAuth, setIsLoadingAuth] = useState(authAvailable);
 
   useEffect(() => {
-    const unsubscribe = subscribeToAuthState((authUser) => {
-      setUser(authUser);
-      setProfileState(authUser ? undefined : null);
-      setIsLoadingAuth(false);
-    });
+    if (!authAvailable) {
+      return;
+    }
 
-    return unsubscribe;
-  }, []);
+    try {
+      const unsubscribe = subscribeToAuthState((authUser) => {
+        setUser(authUser);
+        setProfileState(authUser ? undefined : null);
+        setIsLoadingAuth(false);
+      });
+
+      return unsubscribe;
+    } catch (error) {
+      console.warn("Firebase auth is unavailable in this environment.", error);
+      return;
+    }
+  }, [authAvailable]);
 
   useEffect(() => {
     if (!user) {

@@ -59,7 +59,7 @@ describe("SignInForm", () => {
 
     await waitFor(() => {
       expect(signInWithGoogleMock).toHaveBeenCalledTimes(1);
-      expect(pushMock).toHaveBeenCalledWith("/home");
+      expect(pushMock).toHaveBeenCalledWith("/dashboard");
     });
   });
 
@@ -85,7 +85,7 @@ describe("SignInForm", () => {
         "test@example.com",
         "secret123",
       );
-      expect(pushMock).toHaveBeenCalledWith("/home");
+      expect(pushMock).toHaveBeenCalledWith("/dashboard");
     });
   });
 
@@ -118,7 +118,7 @@ describe("SignInForm", () => {
         "secret123",
         "Alex",
       );
-      expect(pushMock).toHaveBeenCalledWith("/home");
+      expect(pushMock).toHaveBeenCalledWith("/dashboard");
     });
   });
 

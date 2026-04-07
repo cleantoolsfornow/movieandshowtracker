@@ -4,26 +4,26 @@
 
 ```txt
 /
-└─ redirects to /home
+└─ public marketing homepage
 
 /sign-in
 └─ if already signed in:
-   ├─ has householdId -> /home
+   ├─ has householdId -> /dashboard
    └─ no householdId  -> /onboarding
 
 /onboarding (signed-in only)
-├─ Create household  -> POST /api/households/create -> /home
-└─ Join household    -> POST /api/households/join   -> /home
+├─ Create household  -> POST /api/households/create -> /dashboard
+└─ Join household    -> POST /api/households/join   -> /dashboard
    (if not signed in -> /sign-in?next=/onboarding)
-   (if already in household -> /home)
+   (if already in household -> /dashboard)
 
 APP AREA (all wrapped by HouseholdGuard)
-(any /home, /search, /library, /title/[id], /settings)
+(any /dashboard, /search, /library, /title/[id], /settings)
 ├─ if not signed in -> /sign-in?next=<current path>
 ├─ if signed in but no householdId -> /onboarding
 └─ else allowed in
 
-/home
+/dashboard
 ├─ loads household-scoped titles (recent + watchlist sections)
 └─ links to /search and /library
 
@@ -57,7 +57,7 @@ APP AREA (all wrapped by HouseholdGuard)
    - can create household or join by invite code
 
 3) Authenticated user WITH household membership
-   - full app access (/home, /search, /library, /title/[id], /settings)
+   - full app access (/dashboard, /search, /library, /title/[id], /settings)
    - all title data is scoped to their householdId
 ```
 

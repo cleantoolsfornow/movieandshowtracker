@@ -1,9 +1,9 @@
 export function getPostSignInPath(nextPath?: string | null): string {
   if (!nextPath || !nextPath.startsWith("/")) {
-    return "/home";
+    return "/dashboard";
   }
 
-  return nextPath.startsWith("//") ? "/home" : nextPath;
+  return nextPath.startsWith("//") ? "/dashboard" : nextPath;
 }
 
 export function getAuthErrorMessage(error: unknown): string {

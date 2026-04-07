@@ -6,7 +6,7 @@ import { usePathname } from "next/navigation";
 import { useAuth } from "@/components/auth/auth-provider";
 
 const NAV_ITEMS = [
-  { href: "/home", label: "Home" },
+  { href: "/dashboard", label: "Dashboard" },
   { href: "/search", label: "Search" },
   { href: "/library", label: "Library" },
   { href: "/settings", label: "Profile" },
@@ -32,7 +32,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
       <header className="sticky top-0 z-20 border-b border-border-subtle/90 bg-surface-strong/90 backdrop-blur-xl">
         <div className="mx-auto flex w-full max-w-6xl flex-wrap items-center justify-between gap-3 px-4 py-3">
           <Link
-            href="/home"
+            href="/dashboard"
             className="min-w-0 text-sm font-bold tracking-[0.08em] text-foreground"
           >
             <span className="app-kicker block leading-none">Household</span>

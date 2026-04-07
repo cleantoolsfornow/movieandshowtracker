@@ -129,7 +129,6 @@ This page should be simple, sincere, and lightweight.
 Primary content:
 
 - why support helps
-- reassurance that the app is currently free to use
 - a prominent external button to Ko-fi
 - small copy about helping keep the project running
 

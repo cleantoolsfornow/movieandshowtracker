@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 
-import { FilmIcon } from "@/components/marketing/inline-icons";
+import { PickleIcon } from "@/components/marketing/inline-icons";
 import { PublicAuthCta } from "@/components/marketing/public-auth-cta";
 
 const navLinks = [
@@ -24,25 +24,27 @@ export function PublicHeader() {
   }
 
   return (
-    <header className="sticky top-0 z-20 border-b border-border-subtle/80 bg-surface-strong/90 backdrop-blur-xl">
-      <div className="mx-auto w-full max-w-6xl px-4 py-3">
-        <div className="flex items-center justify-between gap-3">
+    <header className="sticky top-0 z-30 border-b border-[rgb(58,104,63,0.1)] bg-[rgba(255,249,240,0.82)] backdrop-blur-xl">
+      <div className="mx-auto w-full max-w-7xl px-4 sm:px-5">
+        <div className="flex min-h-[76px] items-center gap-4">
           <Link href="/" className="inline-flex min-w-0 items-center gap-3">
-            <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-2xl border border-accent/20 bg-[linear-gradient(145deg,rgba(42,99,255,0.16),rgba(21,122,110,0.12))] text-accent shadow-soft">
-              <FilmIcon className="h-4 w-4" />
+            <span className="flex h-11 w-11 shrink-0 items-center justify-center text-[rgb(31,87,51)]">
+              <PickleIcon className="h-9 w-9" />
             </span>
             <span className="min-w-0">
-              <span className="app-kicker block leading-none">Movie And Show Tracker</span>
-              <span className="block truncate text-sm font-semibold text-foreground sm:text-base">
-                Solo picks. Shared watch nights. One beautiful tracker.
+              <span className="block truncate text-xl font-semibold text-[rgb(23,35,18)] sm:text-2xl">
+                FilmPickle
+              </span>
+              <span className="block truncate text-sm text-[rgb(87,101,66)]">
+                Movie and show tracking for solo queues and shared households
               </span>
             </span>
           </Link>
-          <PublicAuthCta className="hidden md:flex" />
-        </div>
 
-        <div className="mt-2 flex flex-wrap items-center justify-between gap-2 md:mt-1">
-          <nav aria-label="Public" className="flex items-center gap-1">
+          <nav
+            aria-label="Public"
+            className="ml-6 hidden flex-1 items-center justify-center gap-1.5 md:flex"
+          >
             {navLinks.map((link) => (
               <Link
                 key={link.href}
@@ -50,15 +52,39 @@ export function PublicHeader() {
                 aria-current={isActive(link.href) ? "page" : undefined}
                 className={
                   isActive(link.href)
-                    ? "rounded-lg border border-accent/35 bg-accent/10 px-3 py-2 text-sm font-semibold text-foreground"
-                    : "rounded-lg px-3 py-2 text-sm font-medium text-text-muted hover:bg-surface-muted hover:text-foreground"
+                    ? "rounded-full bg-[rgba(255,255,255,0.78)] px-4 py-2 text-sm font-semibold text-[rgb(24,38,19)] shadow-[0_8px_18px_rgba(84,90,42,0.08)]"
+                    : "rounded-full px-4 py-2 text-sm font-medium text-[rgb(70,84,54)] hover:bg-[rgba(255,255,255,0.58)] hover:text-[rgb(24,38,19)]"
                 }
               >
                 {link.label}
               </Link>
             ))}
           </nav>
-          <PublicAuthCta className="md:hidden" />
+
+          <PublicAuthCta className="ml-auto hidden md:flex" />
+        </div>
+
+        <div className="flex items-center justify-between gap-3 border-t border-[rgb(58,104,63,0.08)] py-3 md:hidden">
+          <nav
+            aria-label="Public"
+            className="flex flex-wrap items-center gap-1.5"
+          >
+            {navLinks.map((link) => (
+              <Link
+                key={link.href}
+                href={link.href}
+                aria-current={isActive(link.href) ? "page" : undefined}
+                className={
+                  isActive(link.href)
+                    ? "rounded-full bg-[rgba(255,255,255,0.78)] px-4 py-2 text-sm font-semibold text-[rgb(24,38,19)] shadow-[0_8px_18px_rgba(84,90,42,0.08)]"
+                    : "rounded-full px-4 py-2 text-sm font-medium text-[rgb(70,84,54)] hover:bg-[rgba(255,255,255,0.58)] hover:text-[rgb(24,38,19)]"
+                }
+              >
+                {link.label}
+              </Link>
+            ))}
+          </nav>
+          <PublicAuthCta />
         </div>
       </div>
     </header>
