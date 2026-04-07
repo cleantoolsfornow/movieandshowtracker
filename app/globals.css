@@ -1,38 +1,43 @@
 @import "tailwindcss";
 
 :root {
-  --background: #f4f6fb;
-  --foreground: #10172a;
-  --surface: #ffffffd9;
-  --surface-strong: #fffffff2;
-  --surface-muted: #e8edf6cc;
-  --border-subtle: #d7dfec;
-  --border-strong: #9ca9c4;
-  --text-muted: #4b5b79;
-  --text-soft: #6b7a98;
-  --accent: #2a63ff;
-  --accent-strong: #1e4ae8;
-  --accent-contrast: #f8faff;
-  --success: #0f8a60;
-  --warning: #be6a03;
-  --shared-watch: #157a6e;
-  --focus-ring: #2a63ff66;
+  --background: #f7f0de;
+  --foreground: #172312;
+  --surface: #fffaf0d9;
+  --surface-strong: #fffdf6f0;
+  --surface-muted: #f4ecd7d6;
+  --border-subtle: #d9ddc9;
+  --border-strong: #97a67d;
+  --text-muted: #556548;
+  --text-soft: #728162;
+  --accent: #2f8a55;
+  --accent-strong: #1f643a;
+  --accent-contrast: #f8ffef;
+  --success: #2d7a49;
+  --warning: #b9701d;
+  --shared-watch: #346f55;
+  --focus-ring: #2f8a5566;
   --shadow-soft:
-    0 1px 2px rgb(15 23 42 / 0.07), 0 14px 30px rgb(37 62 109 / 0.12);
+    0 1px 2px rgb(28 35 20 / 0.06), 0 14px 30px rgb(91 86 37 / 0.1);
   --shadow-elevated:
-    0 2px 8px rgb(15 23 42 / 0.1), 0 24px 54px rgb(32 49 80 / 0.16);
+    0 2px 8px rgb(35 40 23 / 0.09), 0 24px 54px rgb(84 78 30 / 0.14);
   --bg-gradient:
     radial-gradient(
       1200px 520px at 15% -15%,
-      rgb(56 112 255 / 0.22) 0%,
+      rgb(219 241 158 / 0.38) 0%,
       transparent 60%
     ),
     radial-gradient(
       900px 460px at 100% 0%,
-      rgb(15 138 96 / 0.12) 0%,
+      rgb(244 188 70 / 0.18) 0%,
       transparent 62%
     ),
-    linear-gradient(180deg, #f6f8fc 0%, #eef2f9 100%);
+    radial-gradient(
+      840px 420px at 100% 100%,
+      rgb(86 137 89 / 0.12) 0%,
+      transparent 62%
+    ),
+    linear-gradient(180deg, #fbf4df 0%, #f6edd8 38%, #f7f2e7 100%);
 }
 
 @theme inline {
@@ -106,8 +111,8 @@ button:active {
 }
 
 ::selection {
-  background: rgb(42 99 255 / 0.22);
-  color: #09122a;
+  background: rgb(47 138 85 / 0.2);
+  color: #10200f;
 }
 
 .app-panel {
@@ -133,12 +138,12 @@ button:active {
 }
 
 .shared-watch-callout {
-  border: 1px solid rgb(21 122 110 / 0.35);
+  border: 1px solid rgb(52 111 85 / 0.3);
   background:
-    linear-gradient(140deg, rgb(21 122 110 / 0.12), rgb(42 99 255 / 0.08)),
+    linear-gradient(140deg, rgb(52 111 85 / 0.14), rgb(219 241 158 / 0.12)),
     var(--surface-strong);
   box-shadow:
-    0 0 0 1px rgb(21 122 110 / 0.08),
+    0 0 0 1px rgb(52 111 85 / 0.08),
     var(--shadow-soft);
 }
 

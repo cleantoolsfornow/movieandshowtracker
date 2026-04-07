@@ -15,9 +15,13 @@ const primaryClass = "marketing-button-primary";
 
 type PublicAuthCtaProps = {
   className?: string;
+  createLabel?: string;
 };
 
-export function PublicAuthCta({ className }: PublicAuthCtaProps) {
+export function PublicAuthCta({
+  className,
+  createLabel = "Create account",
+}: PublicAuthCtaProps) {
   const { user, profile } = useAuth();
   const openAppHref = profile?.householdId ? "/dashboard" : "/onboarding";
 
@@ -42,7 +46,7 @@ export function PublicAuthCta({ className }: PublicAuthCtaProps) {
         className={cn(sharedButtonClass, primaryClass)}
         href="/sign-in?mode=sign-up"
       >
-        Create account
+        {createLabel}
         <ArrowRightIcon className="h-4 w-4" />
       </Link>
     </div>

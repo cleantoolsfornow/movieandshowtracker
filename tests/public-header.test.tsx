@@ -33,12 +33,11 @@ describe("PublicHeader", () => {
 
     render(<PublicHeader />);
 
-    expect(screen.getByRole("link", { name: "Features" })).toHaveAttribute(
-      "aria-current",
-      "page",
-    );
-    expect(screen.getByRole("link", { name: "Home" })).not.toHaveAttribute(
-      "aria-current",
-    );
+    screen.getAllByRole("link", { name: "Features" }).forEach((link) => {
+      expect(link).toHaveAttribute("aria-current", "page");
+    });
+    screen.getAllByRole("link", { name: "Home" }).forEach((link) => {
+      expect(link).not.toHaveAttribute("aria-current");
+    });
   });
 });

@@ -49,12 +49,12 @@ function SummaryCard({
   hint: string;
 }) {
   return (
-    <PageCard className="space-y-1 p-3">
-      <p className="text-xs font-semibold tracking-wide text-text-soft uppercase">
+    <PageCard className="space-y-1 rounded-[24px] p-3">
+      <p className="text-text-soft text-xs font-semibold tracking-wide uppercase">
         {label}
       </p>
-      <p className="text-2xl font-semibold text-foreground">{value}</p>
-      <p className="text-xs text-text-muted">{hint}</p>
+      <p className="text-foreground text-2xl font-semibold">{value}</p>
+      <p className="text-text-muted text-xs">{hint}</p>
     </PageCard>
   );
 }
@@ -100,7 +100,8 @@ export function DashboardPage() {
   const bothWantToWatch = useMemo(
     () =>
       records.filter(
-        (record) => isTwoMemberHousehold && record.household.wantsToWatchCount === 2,
+        (record) =>
+          isTwoMemberHousehold && record.household.wantsToWatchCount === 2,
       ),
     [isTwoMemberHousehold, records],
   );
@@ -113,7 +114,10 @@ export function DashboardPage() {
 
   return (
     <div className="space-y-6">
-      <PageCard elevated>
+      <PageCard
+        elevated
+        className="bg-[linear-gradient(135deg,rgba(255,253,247,0.9),rgba(245,238,215,0.76))]"
+      >
         <SectionHeader
           title={
             isSoloHousehold
@@ -145,13 +149,13 @@ export function DashboardPage() {
         <div className="mt-4 flex flex-wrap gap-2">
           <Link
             href="/search"
-            className="rounded-xl border border-accent bg-accent px-3.5 py-2 text-sm font-medium text-accent-contrast hover:border-accent-strong hover:bg-accent-strong"
+            className="border-accent bg-accent text-accent-contrast hover:border-accent-strong hover:bg-accent-strong rounded-xl border px-3.5 py-2 text-sm font-medium"
           >
             Quick add
           </Link>
           <Link
             href="/library"
-            className="rounded-xl border border-border-strong/45 bg-surface px-3.5 py-2 text-sm font-medium text-text-muted hover:bg-surface-muted hover:text-foreground"
+            className="border-border-strong/45 bg-surface text-text-muted hover:bg-surface-muted hover:text-foreground rounded-xl border px-3.5 py-2 text-sm font-medium"
           >
             Browse library
           </Link>
@@ -249,7 +253,11 @@ export function DashboardPage() {
       {isLoading ? (
         <div className="grid grid-cols-2 gap-3 sm:grid-cols-4 lg:grid-cols-6">
           {Array.from({ length: 6 }).map((_, index) => (
-            <LoadingSkeleton key={index} className="aspect-[2/3]" rounded="xl" />
+            <LoadingSkeleton
+              key={index}
+              className="aspect-[2/3]"
+              rounded="xl"
+            />
           ))}
         </div>
       ) : null}

@@ -26,10 +26,10 @@ export function PublicHeader() {
   return (
     <header className="sticky top-0 z-30 border-b border-[rgb(58,104,63,0.1)] bg-[rgba(255,249,240,0.82)] backdrop-blur-xl">
       <div className="mx-auto w-full max-w-7xl px-4 sm:px-5">
-        <div className="flex min-h-[72px] items-center gap-3 sm:min-h-[76px] sm:gap-4">
-          <Link href="/" className="inline-flex min-w-0 items-center gap-3">
-            <span className="flex h-10 w-10 shrink-0 items-center justify-center text-[rgb(31,87,51)] sm:h-11 sm:w-11">
-              <PickleIcon className="h-8 w-8 sm:h-9 sm:w-9" />
+        <div className="flex min-h-[72px] items-start justify-between gap-3 py-3 sm:min-h-[76px] sm:items-center sm:gap-4 sm:py-0">
+          <Link href="/" className="inline-flex min-w-0 items-center gap-2.5">
+            <span className="flex h-14 w-14 shrink-0 items-center justify-center text-[rgb(31,87,51)] sm:h-16 sm:w-16">
+              <PickleIcon className="h-12 w-12 sm:h-14 sm:w-14" />
             </span>
             <span className="min-w-0">
               <span className="block truncate text-lg font-semibold text-[rgb(23,35,18)] sm:text-2xl">
@@ -62,6 +62,10 @@ export function PublicHeader() {
           </nav>
 
           <PublicAuthCta className="ml-auto hidden md:flex" />
+          <PublicAuthCta
+            className="ml-auto flex md:hidden"
+            createLabel="Create"
+          />
         </div>
 
         <div className="flex flex-col gap-3 border-t border-[rgb(58,104,63,0.08)] py-3 md:hidden">
@@ -84,7 +88,6 @@ export function PublicHeader() {
               </Link>
             ))}
           </nav>
-          <PublicAuthCta className="w-full justify-end" />
         </div>
       </div>
     </header>
