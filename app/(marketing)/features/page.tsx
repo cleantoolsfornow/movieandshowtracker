@@ -128,10 +128,10 @@ export default function FeaturesPage() {
 
           <div className="space-y-4">
             <p className="app-kicker">What you actually get</p>
-            <h1 className="max-w-3xl text-5xl leading-[1] font-semibold text-balance text-[rgb(23,35,18)] md:text-6xl">
+            <h1 className="max-w-3xl text-4xl leading-[1] font-semibold text-balance text-[rgb(23,35,18)] sm:text-5xl md:text-6xl">
               The tools that make FilmPickle feel fast, tidy, and useful.
             </h1>
-            <p className="max-w-2xl text-lg leading-8 text-[rgb(69,84,53)]">
+            <p className="max-w-2xl text-base leading-7 text-[rgb(69,84,53)] sm:text-lg sm:leading-8">
               Every feature is there to support the same outcome: capture the
               titles you care about, keep the queue readable, and make watch
               decisions easier when they actually matter.
@@ -184,7 +184,7 @@ export default function FeaturesPage() {
       <section className="marketing-section space-y-6">
         <div className="max-w-3xl space-y-3">
           <p className="app-kicker">Feature set</p>
-          <h2 className="text-4xl font-semibold text-[rgb(23,35,18)] md:text-5xl">
+          <h2 className="text-3xl font-semibold text-[rgb(23,35,18)] sm:text-4xl md:text-5xl">
             Designed around the parts of watch tracking that usually break.
           </h2>
         </div>
@@ -214,7 +214,7 @@ export default function FeaturesPage() {
       <section className="marketing-section grid gap-6 lg:grid-cols-[0.9fr_1.1fr]">
         <PageCard elevated className="rounded-[32px] p-6 md:p-7">
           <p className="app-kicker">Watch modes</p>
-          <h2 className="mt-3 text-4xl leading-tight font-semibold text-[rgb(23,35,18)]">
+          <h2 className="mt-3 text-3xl leading-tight font-semibold text-[rgb(23,35,18)] sm:text-4xl">
             The same product works for one person, two people, or a full
             household.
           </h2>
@@ -259,7 +259,7 @@ export default function FeaturesPage() {
           <div className="grid gap-6 lg:grid-cols-[1fr_auto] lg:items-center">
             <div className="space-y-4">
               <p className="app-kicker">Start tracking</p>
-              <h2 className="max-w-3xl text-4xl leading-tight font-semibold text-[rgb(23,35,18)] md:text-5xl">
+              <h2 className="max-w-3xl text-3xl leading-tight font-semibold text-[rgb(23,35,18)] sm:text-4xl md:text-5xl">
                 Build your queue now, then let FilmPickle make the next decision
                 easier.
               </h2>

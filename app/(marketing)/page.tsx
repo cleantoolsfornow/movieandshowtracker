@@ -132,10 +132,10 @@ export default function MarketingHomePage() {
             <p className="app-kicker">
               A smarter watchlist for real movie nights
             </p>
-            <h1 className="font-display max-w-3xl text-5xl leading-[0.98] font-semibold text-balance text-[rgb(23,35,18)] md:text-7xl">
+            <h1 className="font-display max-w-3xl text-4xl leading-[0.98] font-semibold text-balance text-[rgb(23,35,18)] sm:text-5xl md:text-6xl lg:text-7xl">
               Your household&apos;s watchlist, finally handled.
             </h1>
-            <p className="max-w-2xl text-lg leading-8 text-[rgb(69,84,53)] md:text-xl">
+            <p className="max-w-2xl text-base leading-7 text-[rgb(69,84,53)] sm:text-lg sm:leading-8 md:text-xl">
               FilmPickle keeps recommendations, personal queues, and shared
               picks in one polished, poster-first space, so deciding what to
               watch stops feeling like work.
@@ -172,7 +172,7 @@ export default function MarketingHomePage() {
 
           <div className="marketing-hero-card marketing-shine p-5 sm:p-6">
             <div className="rounded-[30px] border border-[rgb(58,104,63,0.1)] bg-[rgba(255,255,255,0.68)] shadow-[0_22px_44px_rgba(84,90,42,0.08)]">
-              <div className="flex items-center justify-between gap-4 border-b border-[rgb(58,104,63,0.08)] px-4 py-3 sm:px-5">
+              <div className="flex flex-col gap-3 border-b border-[rgb(58,104,63,0.08)] px-4 py-3 sm:flex-row sm:items-center sm:justify-between sm:px-5">
                 <div className="flex items-center gap-3">
                   <div className="flex items-center gap-1.5">
                     <span className="h-2.5 w-2.5 rounded-full bg-[rgba(39,102,57,0.85)]" />
@@ -186,7 +186,7 @@ export default function MarketingHomePage() {
                     </p>
                   </div>
                 </div>
-                <span className="marketing-pill shrink-0 text-xs font-semibold">
+                <span className="marketing-pill w-fit shrink-0 text-xs font-semibold">
                   2 members synced
                 </span>
               </div>
@@ -196,7 +196,7 @@ export default function MarketingHomePage() {
                   <p className="text-xs font-semibold tracking-[0.18em] text-[rgba(245,252,236,0.66)] uppercase">
                     Shared shortlist
                   </p>
-                  <h2 className="mt-3 max-w-sm text-3xl leading-tight font-semibold">
+                  <h2 className="mt-3 max-w-sm text-2xl leading-tight font-semibold sm:text-3xl">
                     Three strong picks for tonight.
                   </h2>
                   <p className="mt-3 max-w-sm text-sm leading-6 text-[rgba(245,252,236,0.8)]">
@@ -204,7 +204,7 @@ export default function MarketingHomePage() {
                     the household is actually likely to say yes to.
                   </p>
 
-                  <div className="mt-6 grid grid-cols-3 gap-3">
+                  <div className="mt-6 grid grid-cols-2 gap-3 sm:grid-cols-3">
                     {[
                       {
                         title: "Severance",
@@ -221,8 +221,13 @@ export default function MarketingHomePage() {
                         tag: "Queued",
                         tone: "bg-[linear-gradient(180deg,rgba(94,125,96,0.92),rgba(58,84,62,0.92))]",
                       },
-                    ].map((item) => (
-                      <div key={item.title} className="space-y-3">
+                    ].map((item, index) => (
+                      <div
+                        key={item.title}
+                        className={`space-y-3 ${
+                          index === 2 ? "col-span-2 sm:col-span-1" : ""
+                        }`}
+                      >
                         <div
                           className={`aspect-[0.74] rounded-[20px] ${item.tone} shadow-[inset_0_1px_0_rgba(255,255,255,0.16)]`}
                         />
@@ -244,7 +249,7 @@ export default function MarketingHomePage() {
                     <div className="flex items-center justify-between">
                       <div>
                         <p className="app-kicker">Household pulse</p>
-                        <p className="mt-2 text-2xl leading-tight font-semibold text-[rgb(23,35,18)]">
+                        <p className="mt-2 text-xl leading-tight font-semibold text-[rgb(23,35,18)] sm:text-2xl">
                           Everyone is pointed at the same few options.
                         </p>
                       </div>
@@ -297,7 +302,7 @@ export default function MarketingHomePage() {
                       </p>
                     </PageCard>
                     <div className="rounded-[24px] border border-[rgb(58,104,63,0.1)] bg-[rgba(255,255,255,0.72)] p-4 sm:col-span-2">
-                      <div className="flex items-center justify-between gap-3">
+                      <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
                         <div className="flex items-center gap-3">
                           <span className="flex h-10 w-10 items-center justify-center rounded-2xl bg-[rgba(39,102,57,0.12)] text-[rgb(30,88,48)]">
                             <SearchIcon className="h-4 w-4" />
@@ -311,7 +316,7 @@ export default function MarketingHomePage() {
                             </p>
                           </div>
                         </div>
-                        <span className="rounded-full bg-[rgba(219,241,158,0.8)] px-3 py-1 text-xs font-semibold text-[rgb(33,78,42)]">
+                        <span className="w-fit rounded-full bg-[rgba(219,241,158,0.8)] px-3 py-1 text-xs font-semibold text-[rgb(33,78,42)]">
                           Instant save
                         </span>
                       </div>
@@ -339,7 +344,7 @@ export default function MarketingHomePage() {
       <section className="marketing-section space-y-6">
         <div className="max-w-3xl space-y-3">
           <p className="app-kicker">Why it lands</p>
-          <h2 className="text-4xl font-semibold text-[rgb(23,35,18)] md:text-5xl">
+          <h2 className="text-3xl font-semibold text-[rgb(23,35,18)] sm:text-4xl md:text-5xl">
             Built to solve the parts of watch tracking that usually fall apart.
           </h2>
           <p className="max-w-2xl text-base leading-7 text-[rgb(69,84,53)] md:text-lg">
@@ -374,7 +379,7 @@ export default function MarketingHomePage() {
       <section className="marketing-section grid gap-6 lg:grid-cols-[0.9fr_1.1fr]">
         <PageCard elevated className="rounded-[32px] p-6 md:p-7">
           <p className="app-kicker">How it works</p>
-          <h2 className="mt-3 max-w-md text-4xl leading-tight font-semibold text-[rgb(23,35,18)]">
+          <h2 className="mt-3 max-w-md text-3xl leading-tight font-semibold text-[rgb(23,35,18)] sm:text-4xl">
             A simple loop that holds up in real life.
           </h2>
           <p className="mt-4 max-w-md text-base leading-7 text-[rgb(69,84,53)]">
@@ -418,7 +423,7 @@ export default function MarketingHomePage() {
       <section className="marketing-section space-y-5">
         <div className="max-w-2xl space-y-3">
           <p className="app-kicker">Fits the way you watch</p>
-          <h2 className="text-4xl font-semibold text-[rgb(23,35,18)] md:text-5xl">
+          <h2 className="text-3xl font-semibold text-[rgb(23,35,18)] sm:text-4xl md:text-5xl">
             Start with one person. Grow into whatever your household looks like.
           </h2>
         </div>
@@ -460,7 +465,7 @@ export default function MarketingHomePage() {
               <p className="app-kicker">
                 Ready to make this your new watch home?
               </p>
-              <h2 className="max-w-3xl text-4xl leading-tight font-semibold text-[rgb(23,35,18)] md:text-5xl">
+              <h2 className="max-w-3xl text-3xl leading-tight font-semibold text-[rgb(23,35,18)] sm:text-4xl md:text-5xl">
                 Start building a watchlist that is actually pleasant to use.
               </h2>
               <p className="max-w-2xl text-base leading-7 text-[rgb(69,84,53)]">

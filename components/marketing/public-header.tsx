@@ -26,16 +26,16 @@ export function PublicHeader() {
   return (
     <header className="sticky top-0 z-30 border-b border-[rgb(58,104,63,0.1)] bg-[rgba(255,249,240,0.82)] backdrop-blur-xl">
       <div className="mx-auto w-full max-w-7xl px-4 sm:px-5">
-        <div className="flex min-h-[76px] items-center gap-4">
+        <div className="flex min-h-[72px] items-center gap-3 sm:min-h-[76px] sm:gap-4">
           <Link href="/" className="inline-flex min-w-0 items-center gap-3">
-            <span className="flex h-11 w-11 shrink-0 items-center justify-center text-[rgb(31,87,51)]">
-              <PickleIcon className="h-9 w-9" />
+            <span className="flex h-10 w-10 shrink-0 items-center justify-center text-[rgb(31,87,51)] sm:h-11 sm:w-11">
+              <PickleIcon className="h-8 w-8 sm:h-9 sm:w-9" />
             </span>
             <span className="min-w-0">
-              <span className="block truncate text-xl font-semibold text-[rgb(23,35,18)] sm:text-2xl">
+              <span className="block truncate text-lg font-semibold text-[rgb(23,35,18)] sm:text-2xl">
                 FilmPickle
               </span>
-              <span className="block truncate text-sm text-[rgb(87,101,66)]">
+              <span className="hidden truncate text-sm text-[rgb(87,101,66)] sm:block">
                 Movie and show tracking for solo queues and shared households
               </span>
             </span>
@@ -64,7 +64,7 @@ export function PublicHeader() {
           <PublicAuthCta className="ml-auto hidden md:flex" />
         </div>
 
-        <div className="flex items-center justify-between gap-3 border-t border-[rgb(58,104,63,0.08)] py-3 md:hidden">
+        <div className="flex flex-col gap-3 border-t border-[rgb(58,104,63,0.08)] py-3 md:hidden">
           <nav
             aria-label="Public"
             className="flex flex-wrap items-center gap-1.5"
@@ -84,7 +84,7 @@ export function PublicHeader() {
               </Link>
             ))}
           </nav>
-          <PublicAuthCta />
+          <PublicAuthCta className="w-full justify-end" />
         </div>
       </div>
     </header>

@@ -7,7 +7,7 @@ import { ArrowRightIcon } from "@/components/marketing/inline-icons";
 import { cn } from "@/lib/ui/cn";
 
 const sharedButtonClass =
-  "inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-full border px-4 py-2.5 text-sm font-semibold transition";
+  "inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-full border px-3.5 py-2.5 text-sm font-semibold transition sm:px-4";
 
 const secondaryClass = "marketing-button-secondary";
 

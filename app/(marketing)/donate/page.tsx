@@ -58,11 +58,11 @@ export default function DonatePage() {
 
           <div className="space-y-4">
             <p className="app-kicker">Support the project</p>
-            <h1 className="max-w-3xl text-5xl leading-[1] font-semibold text-balance text-[rgb(23,35,18)] md:text-6xl">
+            <h1 className="max-w-3xl text-4xl leading-[1] font-semibold text-balance text-[rgb(23,35,18)] sm:text-5xl md:text-6xl">
               If FilmPickle has earned a place in your watch routine, you can
               help keep it improving.
             </h1>
-            <p className="max-w-2xl text-lg leading-8 text-[rgb(69,84,53)]">
+            <p className="max-w-2xl text-base leading-7 text-[rgb(69,84,53)] sm:text-lg sm:leading-8">
               Support is never expected, but it directly helps with the real
               work behind the product: hosting, maintenance, and the time it
               takes to keep refining the experience.
@@ -99,7 +99,7 @@ export default function DonatePage() {
       <section className="marketing-section space-y-6">
         <div className="max-w-3xl space-y-3">
           <p className="app-kicker">What support helps with</p>
-          <h2 className="text-4xl font-semibold text-[rgb(23,35,18)] md:text-5xl">
+          <h2 className="text-3xl font-semibold text-[rgb(23,35,18)] sm:text-4xl md:text-5xl">
             The practical side of keeping a good product good.
           </h2>
         </div>
@@ -126,7 +126,7 @@ export default function DonatePage() {
           <div className="grid gap-6 lg:grid-cols-[1fr_auto] lg:items-center">
             <div className="space-y-4">
               <p className="app-kicker">Keep tracking</p>
-              <h2 className="max-w-3xl text-4xl leading-tight font-semibold text-[rgb(23,35,18)] md:text-5xl">
+              <h2 className="max-w-3xl text-3xl leading-tight font-semibold text-[rgb(23,35,18)] sm:text-4xl md:text-5xl">
                 The easiest free way to support FilmPickle is simple: keep using
                 it.
               </h2>

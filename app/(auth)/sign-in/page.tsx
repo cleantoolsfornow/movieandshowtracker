@@ -38,7 +38,7 @@ export default function SignInPage() {
       <div className="marketing-dot-pattern pointer-events-none absolute top-24 left-10 h-40 w-40 rounded-full opacity-50" />
       <div className="marketing-dot-pattern pointer-events-none absolute right-10 bottom-10 h-56 w-56 rounded-full opacity-40" />
 
-      <div className="relative mx-auto grid min-h-screen w-full max-w-7xl items-center gap-10 px-4 py-10 sm:px-5 lg:grid-cols-[1.04fr_460px]">
+      <div className="relative mx-auto grid min-h-screen w-full max-w-7xl items-center gap-8 px-4 py-8 sm:px-5 sm:py-10 lg:grid-cols-[1.04fr_460px] lg:gap-10">
         <section className="space-y-7">
           <div className="flex flex-wrap gap-2">
             <span className="marketing-pill text-xs font-semibold tracking-[0.2em] uppercase">
@@ -50,10 +50,10 @@ export default function SignInPage() {
           </div>
 
           <div className="space-y-4">
-            <h1 className="max-w-2xl text-5xl leading-[0.98] font-semibold text-balance text-[rgb(23,35,18)] md:text-6xl">
+            <h1 className="max-w-2xl text-4xl leading-[0.98] font-semibold text-balance text-[rgb(23,35,18)] sm:text-5xl md:text-6xl">
               Your queue, your shared picks, and your next watch are waiting.
             </h1>
-            <p className="max-w-xl text-lg leading-8 text-[rgb(69,84,53)]">
+            <p className="max-w-xl text-base leading-7 text-[rgb(69,84,53)] sm:text-lg sm:leading-8">
               Sign in to get back to the shortlist, the saved recommendations,
               and the household context that make deciding what to watch feel
               much easier.
@@ -61,10 +61,10 @@ export default function SignInPage() {
           </div>
 
           <div className="rounded-[34px] border border-[rgb(58,104,63,0.12)] bg-[rgba(255,251,243,0.72)] p-5 shadow-[0_22px_46px_rgba(84,90,42,0.1)] md:p-6">
-            <div className="flex items-center justify-between gap-3 border-b border-[rgb(58,104,63,0.08)] pb-4">
+            <div className="flex items-start justify-between gap-3 border-b border-[rgb(58,104,63,0.08)] pb-4">
               <div>
                 <p className="app-kicker">Preview</p>
-                <p className="mt-2 text-2xl font-semibold text-[rgb(23,35,18)]">
+                <p className="mt-2 text-xl font-semibold text-[rgb(23,35,18)] sm:text-2xl">
                   What you are signing back into
                 </p>
               </div>
@@ -76,7 +76,7 @@ export default function SignInPage() {
                 <p className="text-xs font-semibold tracking-[0.18em] text-[rgba(245,252,236,0.66)] uppercase">
                   Tonight&apos;s shortlist
                 </p>
-                <p className="mt-3 text-3xl leading-tight font-semibold">
+                <p className="mt-3 text-2xl leading-tight font-semibold sm:text-3xl">
                   Three strong options already lined up.
                 </p>
                 <div className="mt-5 space-y-2">
