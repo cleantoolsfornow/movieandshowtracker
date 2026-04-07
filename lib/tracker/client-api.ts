@@ -52,6 +52,7 @@ export type AddTitleClientRequest = AddTitleRequest & {
   runtime?: number;
   numberOfSeasons?: number;
   voteAverage?: number | null;
+  participantUserIds?: string[];
 };
 
 export async function addTitle(

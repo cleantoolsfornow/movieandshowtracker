@@ -11,10 +11,23 @@ import { TitleStatusEditor } from "@/components/status/title-status-editor";
 import type { TitleViewModel } from "@/lib/tracker/types";
 
 const patchTitleStatusMock = vi.fn();
+const invalidateQueriesMock = vi.fn();
+const setQueryDataMock = vi.fn();
 
 vi.mock("@/lib/tracker/client-api", () => ({
   patchTitleStatus: (...args: unknown[]) => patchTitleStatusMock(...args),
 }));
+
+vi.mock("@tanstack/react-query", async () => {
+  const actual = await vi.importActual("@tanstack/react-query");
+  return {
+    ...actual,
+    useQueryClient: () => ({
+      invalidateQueries: invalidateQueriesMock,
+      setQueryData: setQueryDataMock,
+    }),
+  };
+});
 
 function buildRecord(): TitleViewModel {
   return {
@@ -27,8 +40,20 @@ function buildRecord(): TitleViewModel {
     household: {
       wantsToWatch: false,
       watchedTogether: false,
+      watchedTogetherAt: undefined,
+      watchedTogetherParticipantUserIds: undefined,
+      watchedTogetherParticipantCount: 0,
+      watchedTogetherParticipantsKnown: false,
+      anyMembersWatched: false,
       allMembersWatched: false,
       someMembersWatched: false,
+      noMembersWatched: true,
+      anyMembersWantToWatch: false,
+      allMembersWantToWatch: false,
+      someButNotAllMembersWantToWatch: false,
+      noMembersWantToWatch: true,
+      someMembersWantToWatch: false,
+      multipleMembersWantToWatch: false,
       watchedCount: 0,
       wantsToWatchCount: 0,
       memberCount: 2,
@@ -60,6 +85,8 @@ function buildRecord(): TitleViewModel {
 describe("TitleStatusEditor", () => {
   beforeEach(() => {
     patchTitleStatusMock.mockReset();
+    invalidateQueriesMock.mockReset();
+    setQueryDataMock.mockReset();
   });
 
   it("rolls back optimistic member toggle when update fails", async () => {
@@ -85,6 +112,25 @@ describe("TitleStatusEditor", () => {
     await waitFor(() => {
       expect(screen.getByRole("alert")).toHaveTextContent("Network failed.");
       expect(youButton).toHaveAttribute("aria-pressed", "false");
+    });
+  });
+
+  it("auto-selects both members when a two-member household marks watched together", async () => {
+    patchTitleStatusMock.mockResolvedValue(buildRecord());
+
+    render(<TitleStatusEditor record={buildRecord()} />);
+
+    fireEvent.click(screen.getByRole("button", { name: "Watched together" }));
+
+    await waitFor(() => {
+      expect(patchTitleStatusMock).toHaveBeenCalledWith(
+        "household-1_movie_550",
+        expect.objectContaining({
+          action: "set_watched_together",
+          value: true,
+          participantUserIds: ["u1", "u2"],
+        }),
+      );
     });
   });
 
@@ -114,6 +160,28 @@ describe("TitleStatusEditor", () => {
           value: true,
         }),
       );
+    });
+  });
+
+  it("updates the title cache and invalidates title lists after a successful save", async () => {
+    const nextRecord = buildRecord();
+    patchTitleStatusMock.mockResolvedValue(nextRecord);
+
+    render(<TitleStatusEditor record={buildRecord()} />);
+
+    const householdButton = screen.getByRole("button", {
+      name: "Shared watchlist",
+    });
+    fireEvent.click(householdButton);
+
+    await waitFor(() => {
+      expect(setQueryDataMock).toHaveBeenCalledWith(
+        ["title", nextRecord.id],
+        nextRecord,
+      );
+      expect(invalidateQueriesMock).toHaveBeenCalledWith({
+        queryKey: ["titles"],
+      });
     });
   });
 

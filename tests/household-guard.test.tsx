@@ -39,6 +39,24 @@ describe("HouseholdGuard", () => {
     });
   });
 
+  it("redirects signed-out users to sign-in with next path", async () => {
+    useAuthMock.mockReturnValue({
+      isLoading: false,
+      user: null,
+      profile: null,
+    });
+
+    render(
+      <HouseholdGuard>
+        <div>App</div>
+      </HouseholdGuard>,
+    );
+
+    await waitFor(() => {
+      expect(replaceMock).toHaveBeenCalledWith("/sign-in?next=%2Fhome");
+    });
+  });
+
   it("renders children when household exists", () => {
     useAuthMock.mockReturnValue({
       isLoading: false,

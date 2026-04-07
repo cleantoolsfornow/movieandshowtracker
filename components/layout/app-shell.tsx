@@ -24,16 +24,24 @@ export function AppShell({ children }: { children: React.ReactNode }) {
       .toUpperCase() || "P";
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-slate-100 to-slate-200">
-      <header className="sticky top-0 z-20 border-b border-slate-200 bg-white/95 backdrop-blur">
-        <div className="mx-auto flex w-full max-w-6xl items-center justify-between px-4 py-3">
+    <div className="relative min-h-screen">
+      <div
+        aria-hidden="true"
+        className="pointer-events-none absolute inset-x-0 top-0 -z-10 h-64 bg-gradient-to-r from-blue-500/15 via-cyan-400/10 to-teal-500/15 blur-3xl"
+      />
+      <header className="sticky top-0 z-20 border-b border-border-subtle/90 bg-surface-strong/90 backdrop-blur-xl">
+        <div className="mx-auto flex w-full max-w-6xl flex-wrap items-center justify-between gap-3 px-4 py-3">
           <Link
             href="/home"
-            className="text-sm font-bold tracking-wide text-slate-900"
+            className="min-w-0 text-sm font-bold tracking-[0.08em] text-foreground"
           >
-            Shared Movie & TV Tracker
+            <span className="app-kicker block leading-none">Household</span>
+            <span className="block truncate font-display text-base tracking-[0.02em] text-foreground sm:text-lg">
+              Movie & TV Tracker
+            </span>
           </Link>
-          <nav className="flex items-center gap-1">
+          <nav className="max-w-full overflow-x-auto">
+            <div className="flex min-w-max items-center gap-1 rounded-2xl border border-border-subtle bg-surface px-1 py-1 shadow-soft">
             {NAV_ITEMS.map((item) => {
               const active =
                 pathname === item.href || pathname.startsWith(`${item.href}/`);
@@ -41,10 +49,10 @@ export function AppShell({ children }: { children: React.ReactNode }) {
                 <Link
                   key={item.href}
                   href={item.href}
-                  className={`rounded-md px-3 py-1.5 text-sm ${
+                  className={`rounded-xl px-3 py-1.5 text-sm font-medium ${
                     active
-                      ? "bg-slate-900 text-white"
-                      : "text-slate-700 hover:bg-slate-100"
+                      ? "bg-accent text-accent-contrast shadow-sm"
+                      : "text-text-muted hover:bg-surface-muted hover:text-foreground"
                   }`}
                 >
                   {item.href === "/settings" ? (
@@ -54,10 +62,10 @@ export function AppShell({ children }: { children: React.ReactNode }) {
                         <img
                           src={avatarUrl}
                           alt="Profile"
-                          className="h-5 w-5 rounded-full object-cover ring-1 ring-slate-300"
+                          className="h-5 w-5 rounded-full object-cover ring-1 ring-border-strong/40"
                         />
                       ) : (
-                        <span className="flex h-5 w-5 items-center justify-center rounded-full bg-slate-200 text-[10px] font-semibold text-slate-700 ring-1 ring-slate-300">
+                        <span className="flex h-5 w-5 items-center justify-center rounded-full bg-surface-muted text-[10px] font-semibold text-text-muted ring-1 ring-border-strong/35">
                           {avatarFallback}
                         </span>
                       )}
@@ -69,10 +77,11 @@ export function AppShell({ children }: { children: React.ReactNode }) {
                 </Link>
               );
             })}
+            </div>
           </nav>
         </div>
       </header>
-      <main className="mx-auto w-full max-w-6xl px-4 py-6">{children}</main>
+      <main className="mx-auto w-full max-w-6xl px-4 py-6 md:py-7">{children}</main>
     </div>
   );
 }

@@ -2,8 +2,12 @@
 
 import { type ChangeEvent, useEffect, useRef, useState } from "react";
 
+import { Button } from "@/components/common/button";
+import { Chip } from "@/components/common/chip";
 import { EmptyStateCard } from "@/components/common/empty-state-card";
 import { LoadingSkeleton } from "@/components/common/loading-skeleton";
+import { PageCard } from "@/components/common/page-card";
+import { SectionHeader } from "@/components/common/section-header";
 import { useAuth } from "@/components/auth/auth-provider";
 import { useHousehold } from "@/components/household/household-context";
 import {
@@ -18,12 +22,21 @@ import { compressAvatarToDataUrl } from "@/lib/profile/avatar";
 
 export default function SettingsPage() {
   const { user, profile } = useAuth();
-  const { household, isLoadingHousehold, refreshHousehold } = useHousehold();
+  const {
+    household,
+    isLoadingHousehold,
+    refreshHousehold,
+    members,
+    memberCount,
+    isSoloHousehold,
+    isThreePlusHousehold,
+  } = useHousehold();
   const [displayName, setDisplayName] = useState(profile?.displayName ?? "");
   const [isSavingName, setIsSavingName] = useState(false);
   const [isSavingAvatar, setIsSavingAvatar] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState<string | null>(null);
+  const [inviteMessage, setInviteMessage] = useState<string | null>(null);
   const fileInputRef = useRef<HTMLInputElement | null>(null);
 
   useEffect(() => {
@@ -96,18 +109,76 @@ export default function SettingsPage() {
     }
   }
 
+  async function copyInviteCode() {
+    if (!household?.inviteCode) {
+      return;
+    }
+
+    try {
+      await navigator.clipboard.writeText(household.inviteCode);
+      setInviteMessage("Invite code copied.");
+    } catch {
+      setInviteMessage("Could not copy invite code.");
+    }
+  }
+
+  async function shareInviteCode() {
+    if (!household?.inviteCode) {
+      return;
+    }
+
+    const message = `Join my household in Movie and Show Tracker with invite code: ${household.inviteCode}`;
+    if (typeof navigator.share === "function") {
+      try {
+        await navigator.share({
+          title: "Household invite code",
+          text: message,
+        });
+        setInviteMessage("Invite code shared.");
+        return;
+      } catch {
+        // Fall back to clipboard path.
+      }
+    }
+
+    try {
+      await navigator.clipboard.writeText(message);
+      setInviteMessage("Share message copied.");
+    } catch {
+      setInviteMessage("Could not share invite code.");
+    }
+  }
+
   return (
     <div className="space-y-4">
-      <section className="rounded-xl border border-slate-200 bg-white p-4 shadow-sm">
-        <h1 className="text-2xl font-semibold text-slate-900">Settings</h1>
-        <p className="mt-1 text-sm text-slate-600">
-          Account and household details.
-        </p>
-      </section>
+      <PageCard elevated>
+        <SectionHeader
+          title="Settings"
+          titleLevel="h1"
+          titleClassName="text-2xl"
+          description={
+            isSoloHousehold
+              ? "Account and household details for your current solo setup."
+              : "Account and household details for your shared setup."
+          }
+        />
+        <div className="mt-3 flex flex-wrap gap-2">
+          <Chip tone="muted" className="text-xs">
+            {isSoloHousehold
+              ? "Solo household"
+              : isThreePlusHousehold
+                ? "3+ member household"
+                : "Two-member household"}
+          </Chip>
+          <Chip tone="muted" className="text-xs">
+            {memberCount} member{memberCount === 1 ? "" : "s"}
+          </Chip>
+        </div>
+      </PageCard>
 
-      <section className="rounded-xl border border-slate-200 bg-white p-4 shadow-sm">
-        <h2 className="text-lg font-semibold text-slate-900">Account</h2>
-        <p className="mt-2 text-sm text-slate-600">
+      <PageCard>
+        <SectionHeader title="Account" titleLevel="h2" />
+        <p className="mt-2 text-sm text-text-muted">
           Signed in as {user?.email ?? user?.displayName ?? "Unknown"}
         </p>
         <div className="mt-4 flex items-center gap-4">
@@ -116,10 +187,10 @@ export default function SettingsPage() {
             <img
               src={profile.avatarDataUrl ?? profile.photoURL ?? ""}
               alt="Profile avatar"
-              className="h-14 w-14 rounded-full border border-slate-200 object-cover"
+              className="h-14 w-14 rounded-full border border-border-subtle object-cover"
             />
           ) : (
-            <div className="flex h-14 w-14 items-center justify-center rounded-full border border-slate-200 bg-slate-100 text-sm font-semibold text-slate-600">
+            <div className="flex h-14 w-14 items-center justify-center rounded-full border border-border-subtle bg-surface-muted text-sm font-semibold text-text-muted">
               {displayName.trim().slice(0, 1).toUpperCase() || "U"}
             </div>
           )}
@@ -131,15 +202,15 @@ export default function SettingsPage() {
               className="hidden"
               onChange={(event) => void handleAvatarSelected(event)}
             />
-            <button
-              type="button"
+            <Button
               onClick={() => fileInputRef.current?.click()}
               disabled={isSavingAvatar}
-              className="rounded-md border border-slate-300 px-3 py-2 text-sm text-slate-700 hover:bg-slate-100 disabled:opacity-60"
+              variant="secondary"
+              size="sm"
             >
               {isSavingAvatar ? "Uploading..." : "Upload avatar"}
-            </button>
-            <p className="text-xs text-slate-500">
+            </Button>
+            <p className="text-xs text-text-soft">
               Images are center-cropped and compressed for a lightweight avatar.
             </p>
           </div>
@@ -147,7 +218,7 @@ export default function SettingsPage() {
         <div className="mt-4 space-y-2">
           <label
             htmlFor="display-name"
-            className="block text-sm text-slate-700"
+            className="block text-sm text-text-muted"
           >
             Display name
           </label>
@@ -155,31 +226,30 @@ export default function SettingsPage() {
             id="display-name"
             value={displayName}
             onChange={(event) => setDisplayName(event.target.value)}
-            className="w-full max-w-sm rounded-lg border border-slate-300 px-3 py-2 text-sm text-slate-900"
+            className="w-full max-w-sm rounded-xl border border-border-strong/45 bg-surface px-3 py-2 text-sm text-foreground"
             placeholder="Your name"
           />
-          <p className="text-xs text-slate-500">
-            This name is shown to other members in your household.
+          <p className="text-xs text-text-soft">
+            {isSoloHousehold
+              ? "This name appears in your account and will be used if you invite others later."
+              : "This name appears to other members in your household."}
           </p>
-          <button
-            type="button"
+          <Button
             onClick={() => void handleSaveName()}
             disabled={isSavingName}
-            className="rounded-md bg-slate-900 px-3 py-2 text-sm text-white hover:bg-slate-700 disabled:opacity-60"
           >
             {isSavingName ? "Saving..." : "Save name"}
-          </button>
+          </Button>
         </div>
-        <div className="mt-6 border-t border-slate-200 pt-4">
-          <button
-            type="button"
+        <div className="mt-6 border-t border-border-subtle pt-4">
+          <Button
             onClick={() => void signOutUser()}
-            className="rounded-md border border-slate-300 px-3 py-2 text-sm text-slate-700 hover:bg-slate-100"
+            variant="secondary"
           >
             Sign out
-          </button>
+          </Button>
         </div>
-      </section>
+      </PageCard>
 
       {error ? (
         <p className="rounded-lg border border-red-200 bg-red-50 p-3 text-sm text-red-700">
@@ -191,10 +261,15 @@ export default function SettingsPage() {
           {success}
         </p>
       ) : null}
+      {inviteMessage ? (
+        <p className="rounded-lg border border-emerald-200 bg-emerald-50 p-3 text-sm text-emerald-700">
+          {inviteMessage}
+        </p>
+      ) : null}
 
       {isLoadingHousehold ? (
         <div className="space-y-2">
-          <LoadingSkeleton className="h-28" />
+          <LoadingSkeleton className="h-28" rounded="xl" />
         </div>
       ) : null}
 
@@ -206,21 +281,84 @@ export default function SettingsPage() {
       ) : null}
 
       {household ? (
-        <section className="rounded-xl border border-slate-200 bg-white p-4 shadow-sm">
-          <h2 className="text-lg font-semibold text-slate-900">Household</h2>
-          <p className="mt-2 text-sm text-slate-600">Name: {household.name}</p>
-          <p className="mt-1 text-sm text-slate-600">
-            Invite code: {household.inviteCode}
-          </p>
-          <h3 className="mt-4 text-sm font-semibold text-slate-800">Members</h3>
-          <ul className="mt-2 space-y-1 text-sm text-slate-600">
-            {household.members.map((member) => (
-              <li key={member.uid}>
-                {member.displayName ?? member.email ?? member.uid}
-              </li>
+        <PageCard>
+          <SectionHeader
+            title="Household"
+            titleLevel="h2"
+            description={
+              isSoloHousehold
+                ? "You can keep this solo or invite more members anytime."
+                : "Manage invites and member identities."
+            }
+          />
+          <p className="mt-2 text-sm text-text-muted">Name: {household.name}</p>
+
+          <div className="mt-3 rounded-xl border border-border-subtle bg-surface-muted p-3">
+            <p className="text-xs font-semibold tracking-wide text-text-soft uppercase">
+              Invite code
+            </p>
+            <p className="mt-1 font-mono text-sm tracking-wide text-foreground">
+              {household.inviteCode}
+            </p>
+            <div className="mt-2 flex flex-wrap gap-2">
+              <Button
+                variant="secondary"
+                size="sm"
+                onClick={() => void copyInviteCode()}
+              >
+                Copy code
+              </Button>
+              <Button
+                variant="secondary"
+                size="sm"
+                onClick={() => void shareInviteCode()}
+              >
+                Share invite
+              </Button>
+            </div>
+          </div>
+
+          <h3 className="mt-4 text-sm font-semibold text-foreground">
+            {memberCount === 1 ? "Member" : "Members"}
+          </h3>
+          <div className="mt-2 grid gap-2 sm:grid-cols-2">
+            {members.map((member) => (
+              <article
+                key={member.uid}
+                className="rounded-xl border border-border-subtle bg-surface p-3"
+              >
+                <div className="flex items-center gap-3">
+                  {member.avatarUrl ? (
+                    // eslint-disable-next-line @next/next/no-img-element
+                    <img
+                      src={member.avatarUrl}
+                      alt=""
+                      aria-hidden="true"
+                      className="h-10 w-10 rounded-full border border-border-subtle object-cover"
+                    />
+                  ) : (
+                    <div className="flex h-10 w-10 items-center justify-center rounded-full border border-border-subtle bg-surface-muted text-xs font-semibold text-text-muted">
+                      {member.label.slice(0, 1).toUpperCase()}
+                    </div>
+                  )}
+                  <div className="min-w-0">
+                    <p className="truncate text-sm font-medium text-foreground">
+                      {member.label}
+                    </p>
+                    <p className="truncate text-xs text-text-soft">
+                      {member.email ?? member.uid}
+                    </p>
+                  </div>
+                  {member.isCurrentUser ? (
+                    <Chip tone="muted" className="ml-auto text-[11px]">
+                      You
+                    </Chip>
+                  ) : null}
+                </div>
+              </article>
             ))}
-          </ul>
-        </section>
+          </div>
+        </PageCard>
       ) : null}
     </div>
   );

@@ -54,6 +54,7 @@ export type TitleHouseholdStatusDocument = {
   householdWantsToWatch: boolean;
   watchedTogether: boolean;
   watchedTogetherAt?: string;
+  watchedTogetherParticipantUserIds?: string[];
   createdAt?: TimestampLike;
   updatedAt?: TimestampLike;
   updatedBy?: string;
@@ -63,9 +64,14 @@ export type TitleDerivedSummary = {
   memberCount: number;
   watchedCount: number;
   wantsToWatchCount: number;
+  anyMembersWatched: boolean;
   allMembersWatched: boolean;
   someMembersWatched: boolean;
   noMembersWatched: boolean;
+  anyMembersWantToWatch: boolean;
+  allMembersWantToWatch: boolean;
+  someButNotAllMembersWantToWatch: boolean;
+  noMembersWantToWatch: boolean;
   someMembersWantToWatch: boolean;
   multipleMembersWantToWatch: boolean;
 };
@@ -108,8 +114,19 @@ export type TitleViewModel = {
     wantsToWatch: boolean;
     watchedTogether: boolean;
     watchedTogetherAt?: string;
+    watchedTogetherParticipantUserIds?: string[];
+    watchedTogetherParticipantCount: number;
+    watchedTogetherParticipantsKnown: boolean;
+    anyMembersWatched: boolean;
     allMembersWatched: boolean;
     someMembersWatched: boolean;
+    noMembersWatched: boolean;
+    anyMembersWantToWatch: boolean;
+    allMembersWantToWatch: boolean;
+    someButNotAllMembersWantToWatch: boolean;
+    noMembersWantToWatch: boolean;
+    someMembersWantToWatch: boolean;
+    multipleMembersWantToWatch: boolean;
     watchedCount: number;
     wantsToWatchCount: number;
     memberCount: number;
@@ -153,6 +170,7 @@ export type AddTitleRequest = {
   mediaType: MediaType;
   action: AddTitleAction;
   targetUserId?: string;
+  participantUserIds?: string[];
 };
 
 export type PatchTitleAction =
@@ -175,6 +193,7 @@ export type PatchTitleAction =
       action: "set_watched_together";
       value: boolean;
       watchedTogetherAt?: string;
+      participantUserIds?: string[];
     }
   | {
       action: "set_user_rating";

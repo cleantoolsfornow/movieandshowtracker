@@ -1,5 +1,14 @@
 "use client";
 
+import { useMemo, useState } from "react";
+
+import { Button } from "@/components/common/button";
+import { ChipButton } from "@/components/common/chip";
+import {
+  getTitleMemberAvatarUrl,
+  getTitleMemberLabel,
+  MemberAvatar,
+} from "@/components/household/member-display";
 import type { TitleViewModelMember } from "@/lib/tracker/types";
 
 type GroupField = "wantsToWatch" | "watched";
@@ -8,13 +17,6 @@ const GROUP_LABELS: Record<GroupField, string> = {
   wantsToWatch: "Wants To Watch",
   watched: "Watched",
 };
-
-function getMemberLabel(member: TitleViewModelMember, currentUserId: string) {
-  if (member.userId === currentUserId) {
-    return "You";
-  }
-  return member.displayName?.trim() || member.userId;
-}
 
 export function StatusChipGroup({
   group,
@@ -29,53 +31,65 @@ export function StatusChipGroup({
   onToggle: (member: TitleViewModelMember, nextValue: boolean) => void;
   disabled?: boolean;
 }) {
+  const [expanded, setExpanded] = useState(false);
+  const hasOverflow = members.length >= 4;
+  const activeCount = useMemo(
+    () => members.filter((member) => Boolean(member[group])).length,
+    [group, members],
+  );
+  const visibleMembers = useMemo(
+    () => (expanded || !hasOverflow ? members : members.slice(0, 3)),
+    [expanded, hasOverflow, members],
+  );
+
   return (
     <section>
-      <h4 className="mb-2 text-xs font-semibold tracking-wide text-slate-500 uppercase">
+      <h4 className="mb-2 text-xs font-semibold tracking-wide text-text-soft uppercase">
         {GROUP_LABELS[group]}
       </h4>
+      <p className="mb-2 text-xs text-text-soft">
+        {activeCount} of {members.length} members
+      </p>
       <div className="flex flex-wrap gap-2">
-        {members.map((member) => {
+        {visibleMembers.map((member) => {
           const active = Boolean(member[group]);
-          const label = getMemberLabel(member, currentUserId);
-          const avatarUrl = member.avatarDataUrl ?? member.photoURL ?? null;
-          const fallbackInitial = label.trim().slice(0, 1).toUpperCase() || "?";
+          const label = getTitleMemberLabel(member, currentUserId);
+          const avatarUrl = getTitleMemberAvatarUrl(member);
           return (
-            <button
+            <ChipButton
               key={member.userId}
-              type="button"
               disabled={disabled}
               aria-pressed={active}
               onClick={() => onToggle(member, !active)}
-              className={`rounded-full border px-3 py-1 text-sm transition ${
-                active
-                  ? "border-slate-900 bg-slate-900 text-white"
-                  : "border-slate-300 bg-white text-slate-700 hover:bg-slate-100"
-              } disabled:cursor-not-allowed disabled:opacity-50`}
+              active={active}
             >
               <span className="inline-flex items-center gap-1.5">
-                {avatarUrl ? (
-                  // eslint-disable-next-line @next/next/no-img-element
-                  <img
-                    src={avatarUrl}
-                    alt=""
-                    aria-hidden="true"
-                    className="h-4 w-4 rounded-full object-cover ring-1 ring-slate-300"
-                  />
-                ) : (
-                  <span
-                    aria-hidden="true"
-                    className="flex h-4 w-4 items-center justify-center rounded-full bg-slate-200 text-[10px] font-semibold text-slate-700 ring-1 ring-slate-300"
-                  >
-                    {fallbackInitial}
-                  </span>
-                )}
+                <MemberAvatar label={label} avatarUrl={avatarUrl} size="xs" />
                 <span>{label}</span>
               </span>
-            </button>
+            </ChipButton>
           );
         })}
       </div>
+      {hasOverflow ? (
+        <div className="mt-2 flex items-center gap-2">
+          <Button
+            variant="secondary"
+            size="sm"
+            onClick={() => setExpanded((value) => !value)}
+            disabled={disabled}
+          >
+            {expanded
+              ? "Show compact"
+              : `Show all members (${members.length})`}
+          </Button>
+          {!expanded ? (
+            <span className="text-xs text-text-soft">
+              Showing 3 of {members.length} members.
+            </span>
+          ) : null}
+        </div>
+      ) : null}
     </section>
   );
 }

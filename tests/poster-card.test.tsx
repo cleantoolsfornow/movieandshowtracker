@@ -40,7 +40,7 @@ describe("PosterCard", () => {
   it("shows concise per-member badges for 1-2 member households", () => {
     render(<PosterCard record={buildRecord()} />);
 
-    expect(screen.getByText("Alex")).toBeInTheDocument();
+    expect(screen.getByText("You")).toBeInTheDocument();
     expect(screen.getByText("Casey")).toBeInTheDocument();
     expect(screen.queryByText("Watched: 1/2")).not.toBeInTheDocument();
   });

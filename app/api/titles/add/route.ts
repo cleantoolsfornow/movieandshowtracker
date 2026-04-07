@@ -9,9 +9,11 @@ import { createTitleKey, createTitleUserStatusId } from "@/lib/tracker/shared";
 import {
   assertUserHasHouseholdMembership,
   assertUserIsInHousehold,
+  getHouseholdById,
   getHouseholdIdForUid,
   getTitleViewModelById,
 } from "@/lib/tracker/server";
+import { normalizeParticipantUserIds } from "@/lib/tracker/shared";
 
 const addActionSchema = z.enum([
   "add_title_only",
@@ -26,6 +28,7 @@ const addTitleSchema = z.object({
   mediaType: z.enum(["movie", "tv"]),
   action: addActionSchema,
   targetUserId: z.string().min(1).optional(),
+  participantUserIds: z.array(z.string().min(1)).optional(),
   name: z.string().min(1).optional(),
   title: z.string().min(1).optional(),
   overview: z.string().optional(),
@@ -71,6 +74,41 @@ function compactObject<T extends Record<string, unknown>>(value: T) {
   return next;
 }
 
+async function getValidatedParticipantUserIds(
+  householdId: string,
+  participantUserIds?: string[],
+) {
+  const normalizedParticipantUserIds = normalizeParticipantUserIds(
+    participantUserIds,
+  );
+
+  if (!normalizedParticipantUserIds) {
+    return undefined;
+  }
+
+  if (normalizedParticipantUserIds.length < 2) {
+    throw new Error(
+      "watchedTogether participants must include at least 2 household members.",
+    );
+  }
+
+  const household = await getHouseholdById(householdId);
+  if (!household) {
+    throw new Error("Household not found.");
+  }
+
+  const hasOutsideParticipant = normalizedParticipantUserIds.some(
+    (participantUserId) => !household.memberIds.includes(participantUserId),
+  );
+  if (hasOutsideParticipant) {
+    throw new Error(
+      "watchedTogether participants must belong to the household.",
+    );
+  }
+
+  return normalizedParticipantUserIds;
+}
+
 export async function POST(request: NextRequest) {
   try {
     const uid = await requireUidFromRequest(request);
@@ -88,6 +126,14 @@ export async function POST(request: NextRequest) {
     if (targetUserId !== uid) {
       await assertUserIsInHousehold(uid, targetUserId, householdId);
     }
+
+    const participantUserIds =
+      parsed.action === "mark_watched_together"
+        ? await getValidatedParticipantUserIds(
+            householdId,
+            parsed.participantUserIds,
+          )
+        : undefined;
 
     const titleFields = compactObject({
       householdId,
@@ -199,6 +245,10 @@ export async function POST(request: NextRequest) {
                 : undefined,
             watchedTogether:
               parsed.action === "mark_watched_together" ? true : undefined,
+            watchedTogetherParticipantUserIds:
+              parsed.action === "mark_watched_together"
+                ? participantUserIds ?? FieldValue.delete()
+                : undefined,
             updatedAt: now,
             updatedBy: uid,
             createdAt: householdStatusSnapshot.exists ? undefined : now,
@@ -222,7 +272,9 @@ export async function POST(request: NextRequest) {
         ? 401
         : message === "Forbidden."
           ? 403
-          : message.includes("household") || message.includes("name")
+          : message.includes("household") ||
+              message.includes("name") ||
+              message.includes("participant")
             ? 400
             : 500;
     logServerError("api.titles.add", error, { status });

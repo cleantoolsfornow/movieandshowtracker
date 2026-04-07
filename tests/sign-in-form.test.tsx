@@ -10,6 +10,7 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 import { SignInForm } from "@/components/auth/sign-in-form";
 
 const pushMock = vi.fn();
+let searchParamsMock = new URLSearchParams();
 
 const signInWithGoogleMock = vi.fn();
 const signInWithEmailMock = vi.fn();
@@ -17,7 +18,7 @@ const signUpWithEmailMock = vi.fn();
 
 vi.mock("next/navigation", () => ({
   useRouter: () => ({ push: pushMock }),
-  useSearchParams: () => new URLSearchParams(),
+  useSearchParams: () => searchParamsMock,
 }));
 
 vi.mock("@/lib/auth/auth-client", () => ({
@@ -28,6 +29,7 @@ vi.mock("@/lib/auth/auth-client", () => ({
 
 describe("SignInForm", () => {
   beforeEach(() => {
+    searchParamsMock = new URLSearchParams();
     pushMock.mockReset();
     signInWithGoogleMock.mockReset();
     signInWithEmailMock.mockReset();
@@ -117,6 +119,51 @@ describe("SignInForm", () => {
         "Alex",
       );
       expect(pushMock).toHaveBeenCalledWith("/home");
+    });
+  });
+
+  it("initializes in sign-up mode from the mode query param", () => {
+    searchParamsMock = new URLSearchParams("mode=sign-up");
+
+    render(<SignInForm />);
+
+    expect(screen.getByLabelText("Name")).toBeInTheDocument();
+    expect(
+      screen.getByRole("button", { name: "Create account" }),
+    ).toBeInTheDocument();
+  });
+
+  it("preserves next redirect behavior for sign-up mode", async () => {
+    searchParamsMock = new URLSearchParams("mode=sign-up&next=/library");
+
+    render(<SignInForm />);
+
+    fireEvent.change(screen.getByLabelText("Name"), {
+      target: { value: "Alex" },
+    });
+    fireEvent.change(screen.getByLabelText("Email"), {
+      target: { value: "alex@example.com" },
+    });
+    fireEvent.change(screen.getByLabelText("Password"), {
+      target: { value: "secret123" },
+    });
+
+    const form = screen.getByLabelText("Email").closest("form");
+    if (!form) {
+      throw new Error("Sign-up form should exist");
+    }
+
+    fireEvent.click(
+      within(form).getByRole("button", { name: "Create account" }),
+    );
+
+    await waitFor(() => {
+      expect(signUpWithEmailMock).toHaveBeenCalledWith(
+        "alex@example.com",
+        "secret123",
+        "Alex",
+      );
+      expect(pushMock).toHaveBeenCalledWith("/library");
     });
   });
 });

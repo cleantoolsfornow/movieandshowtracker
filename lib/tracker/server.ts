@@ -53,6 +53,18 @@ function asTimestampLike(value: unknown): TimestampLike {
   return undefined;
 }
 
+function asStringArray(value: unknown): string[] | undefined {
+  if (!Array.isArray(value)) {
+    return undefined;
+  }
+
+  const next = value.filter(
+    (entry): entry is string => typeof entry === "string" && entry.trim().length > 0,
+  );
+
+  return next.length ? next : undefined;
+}
+
 function mapGenres(
   value: unknown,
 ): Array<{ id: number; name: string }> | undefined {
@@ -142,6 +154,9 @@ function mapTitleHouseholdStatusDocument(
     householdWantsToWatch: Boolean(data.householdWantsToWatch),
     watchedTogether: Boolean(data.watchedTogether),
     watchedTogetherAt: asString(data.watchedTogetherAt),
+    watchedTogetherParticipantUserIds: asStringArray(
+      data.watchedTogetherParticipantUserIds,
+    ),
     createdAt: asTimestampLike(data.createdAt),
     updatedAt: asTimestampLike(data.updatedAt),
     updatedBy: asString(data.updatedBy),

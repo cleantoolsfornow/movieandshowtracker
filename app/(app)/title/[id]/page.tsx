@@ -2,68 +2,53 @@
 
 import Link from "next/link";
 import { useParams } from "next/navigation";
-import { useEffect, useState } from "react";
+import { useQueryClient } from "@tanstack/react-query";
+import { useState } from "react";
 
+import { Button } from "@/components/common/button";
+import { Chip } from "@/components/common/chip";
 import { EmptyStateCard } from "@/components/common/empty-state-card";
 import { LoadingSkeleton } from "@/components/common/loading-skeleton";
+import { PageCard } from "@/components/common/page-card";
+import { SectionHeader } from "@/components/common/section-header";
+import { SharedWatchCallout } from "@/components/common/shared-watch-callout";
 import { TitleStatusEditor } from "@/components/status/title-status-editor";
-import { getTitleById, refreshTitleMetadata } from "@/lib/tracker/client-api";
+import { refreshTitleMetadata } from "@/lib/tracker/client-api";
+import {
+  invalidateTitlesQuery,
+  titleQueryKey,
+  useTitleQuery,
+} from "@/lib/tracker/queries";
 import { buildPosterUrl } from "@/lib/tracker/shared";
-import type { TitleViewModel } from "@/lib/tracker/types";
+import { getTitleMemberLabel } from "@/components/household/member-display";
 
 export default function TitleDetailPage() {
   const { id } = useParams<{ id: string }>();
-  const [record, setRecord] = useState<TitleViewModel | null>(null);
-  const [isLoading, setIsLoading] = useState(true);
+  const queryClient = useQueryClient();
+  const { data: record, isLoading, error } = useTitleQuery(id);
   const [isRefreshingMetadata, setIsRefreshingMetadata] = useState(false);
-  const [refreshMessage, setRefreshMessage] = useState<string | null>(null);
-  const [error, setError] = useState<string | null>(null);
-
-  useEffect(() => {
-    let cancelled = false;
-
-    async function load() {
-      setIsLoading(true);
-      setError(null);
-
-      try {
-        const next = await getTitleById(id);
-        if (!cancelled) {
-          setRecord(next);
-        }
-      } catch (err) {
-        if (!cancelled) {
-          setError(
-            err instanceof Error ? err.message : "Failed to load title.",
-          );
-        }
-      } finally {
-        if (!cancelled) {
-          setIsLoading(false);
-        }
-      }
-    }
-
-    if (id) {
-      void load();
-    }
-
-    return () => {
-      cancelled = true;
-    };
-  }, [id]);
+  const [refreshSuccessMessage, setRefreshSuccessMessage] = useState<
+    string | null
+  >(null);
+  const [refreshErrorMessage, setRefreshErrorMessage] = useState<string | null>(
+    null,
+  );
 
   if (isLoading) {
     return (
       <div className="space-y-3">
-        <LoadingSkeleton className="h-12" />
-        <LoadingSkeleton className="h-64" />
+        <LoadingSkeleton className="h-12" rounded="xl" />
+        <LoadingSkeleton className="h-64" rounded="xl" />
       </div>
     );
   }
 
   if (error) {
-    return <p className="text-sm text-red-600">{error}</p>;
+    return (
+      <p className="text-sm text-red-600">
+        {error instanceof Error ? error.message : "Failed to load title."}
+      </p>
+    );
   }
 
   if (!record) {
@@ -76,12 +61,26 @@ export default function TitleDetailPage() {
   }
 
   const posterUrl = buildPosterUrl(record.posterPath ?? null, "w500");
+  const backdropUrl = buildPosterUrl(record.backdropPath ?? null, "w780");
   const titleYear = record.releaseDate
     ? new Date(record.releaseDate).getUTCFullYear()
     : record.firstAirDate
       ? new Date(record.firstAirDate).getUTCFullYear()
       : null;
   const isSoloHousehold = record.household.memberCount <= 1;
+  const isTwoMemberHousehold = record.household.memberCount === 2;
+  const isThreePlusHousehold = record.household.memberCount >= 3;
+  const watchedTogetherParticipantLabels =
+    record.household.watchedTogetherParticipantUserIds
+      ?.map((participantUserId) => {
+        const member = record.members.find(
+          (entry) => entry.userId === participantUserId,
+        );
+        return member
+          ? getTitleMemberLabel(member, record.currentUser.userId)
+          : undefined;
+      })
+      .filter((value): value is string => Boolean(value));
 
   async function handleRefreshMetadata() {
     if (!record) {
@@ -89,15 +88,16 @@ export default function TitleDetailPage() {
     }
 
     setIsRefreshingMetadata(true);
-    setRefreshMessage(null);
-    setError(null);
+    setRefreshSuccessMessage(null);
+    setRefreshErrorMessage(null);
 
     try {
       const next = await refreshTitleMetadata(record.id);
-      setRecord(next);
-      setRefreshMessage("Metadata refreshed.");
+      queryClient.setQueryData(titleQueryKey(record.id), next);
+      void invalidateTitlesQuery(queryClient);
+      setRefreshSuccessMessage("Metadata refreshed.");
     } catch (err) {
-      setError(
+      setRefreshErrorMessage(
         err instanceof Error ? err.message : "Failed to refresh metadata.",
       );
     } finally {
@@ -109,101 +109,221 @@ export default function TitleDetailPage() {
     <div className="space-y-4">
       <Link
         href="/library"
-        className="text-sm text-slate-600 hover:text-slate-900"
+        className="text-sm text-text-muted hover:text-foreground"
       >
         ← Back to library
       </Link>
 
-      <section className="grid gap-4 rounded-xl border border-slate-200 bg-white p-4 shadow-sm md:grid-cols-[220px_1fr]">
-        <div className="overflow-hidden rounded-lg bg-slate-200">
-          {posterUrl ? (
-            // eslint-disable-next-line @next/next/no-img-element
+      <PageCard className="relative overflow-hidden p-0">
+        {backdropUrl ? (
+          <>
+            {/* eslint-disable-next-line @next/next/no-img-element */}
             <img
-              src={posterUrl}
-              alt={record.name}
-              className="h-full w-full object-cover"
+              src={backdropUrl}
+              alt=""
+              aria-hidden="true"
+              className="absolute inset-0 h-full w-full object-cover"
             />
-          ) : null}
-        </div>
-        <div className="space-y-3">
-          <h1 className="text-3xl font-semibold text-slate-900">
-            {record.name}
-          </h1>
-          <p className="text-sm text-slate-500">
-            {record.mediaType.toUpperCase()} · {titleYear ?? "-"}
-          </p>
-          <p className="text-sm leading-6 text-slate-700">{record.overview}</p>
-          {record.genres && record.genres.length > 0 ? (
-            <div className="flex flex-wrap gap-2">
-              {record.genres.map((genre) => (
-                <span
-                  key={`${genre.id}-${genre.name}`}
-                  className="rounded-full bg-slate-200 px-2 py-1 text-xs text-slate-600"
-                >
-                  {genre.name}
+            <div className="absolute inset-0 bg-gradient-to-r from-slate-900/80 via-slate-900/70 to-slate-900/35" />
+          </>
+        ) : (
+          <div className="absolute inset-0 bg-[radial-gradient(circle_at_10%_10%,rgba(42,99,255,0.28),transparent_55%),radial-gradient(circle_at_90%_95%,rgba(21,122,110,0.2),transparent_60%)]" />
+        )}
+        <div className="relative grid gap-4 p-4 md:grid-cols-[220px_1fr] md:p-5">
+          <div className="overflow-hidden rounded-xl border border-white/15 bg-surface-muted shadow-elevated">
+            {posterUrl ? (
+              // eslint-disable-next-line @next/next/no-img-element
+              <img
+                src={posterUrl}
+                alt={record.name}
+                className="h-full w-full object-cover"
+              />
+            ) : (
+              <div className="flex h-full min-h-72 flex-col items-center justify-center gap-2 bg-surface-muted text-center">
+                <span className="inline-flex h-12 w-12 items-center justify-center rounded-full border border-border-subtle bg-surface text-base font-semibold text-text-muted">
+                  {record.name.slice(0, 1).toUpperCase()}
                 </span>
-              ))}
+                <p className="text-sm text-text-muted">Poster unavailable</p>
+              </div>
+            )}
+          </div>
+          <div className="space-y-3 text-white">
+            <SectionHeader
+              title={record.name}
+              titleLevel="h1"
+              titleClassName="text-3xl text-white"
+            />
+            <p className="text-sm text-white/75">
+              {record.mediaType.toUpperCase()} · {titleYear ?? "-"}
+            </p>
+            <p className="text-sm leading-6 text-white/90">{record.overview}</p>
+
+            <div className="flex flex-wrap gap-2">
+              {typeof record.runtime === "number" ? (
+                <Chip tone="muted" className="border-white/20 bg-white/10 text-xs text-white">
+                  Runtime: {record.runtime} min
+                </Chip>
+              ) : null}
+              {typeof record.numberOfSeasons === "number" ? (
+                <Chip tone="muted" className="border-white/20 bg-white/10 text-xs text-white">
+                  Seasons: {record.numberOfSeasons}
+                </Chip>
+              ) : null}
+              {typeof record.voteAverage === "number" ? (
+                <Chip tone="muted" className="border-white/20 bg-white/10 text-xs text-white">
+                  TMDB: {record.voteAverage.toFixed(1)}
+                </Chip>
+              ) : null}
+              {record.releaseDate ? (
+                <Chip tone="muted" className="border-white/20 bg-white/10 text-xs text-white">
+                  Released: {record.releaseDate}
+                </Chip>
+              ) : null}
             </div>
-          ) : null}
-          <div className="pt-1">
+
+            {record.genres && record.genres.length > 0 ? (
+              <div className="flex flex-wrap gap-2">
+                {record.genres.map((genre) => (
+                  <Chip
+                    key={`${genre.id}-${genre.name}`}
+                    tone="muted"
+                    className="border-white/20 bg-white/10 text-xs text-white"
+                  >
+                    {genre.name}
+                  </Chip>
+                ))}
+              </div>
+            ) : null}
+
+            <div className="pt-1">
+              <Button
+                onClick={() => void handleRefreshMetadata()}
+                disabled={isRefreshingMetadata}
+                variant="ghost"
+                size="sm"
+                className="text-white hover:bg-white/15 hover:text-white"
+              >
+                {isRefreshingMetadata
+                  ? "Refreshing metadata..."
+                  : "Refresh metadata"}
+              </Button>
+              {refreshSuccessMessage ? (
+                <p className="mt-1 text-xs text-emerald-200">
+                  {refreshSuccessMessage}
+                </p>
+              ) : null}
+              {refreshErrorMessage ? (
+                <p className="mt-1 text-xs text-rose-200">
+                  {refreshErrorMessage}
+                </p>
+              ) : null}
+            </div>
+
             <a
               href="https://www.themoviedb.org/about/logos-attribution?language=en-GB"
               target="_blank"
               rel="noreferrer"
-              className="inline-flex flex-col items-start gap-1 text-[11px] text-slate-400 hover:text-slate-500"
+              className="inline-flex flex-col items-start gap-1 text-[11px] text-white/70 hover:text-white/90"
             >
               {/* Official TMDB attribution logo from themoviedb.org */}
               {/* eslint-disable-next-line @next/next/no-img-element */}
               <img
                 src="https://www.themoviedb.org/assets/2/v4/logos/v2/blue_short-8e7b30f73a4020692ccca9c88bafe5dcb6f8a62a4c6bc55cd9ba82bb2cd95f6c.svg"
                 alt="TMDB"
-                className="h-3 w-auto opacity-80"
+                className="h-3 w-auto opacity-90"
               />
               <span>Uses TMDB data; not endorsed or certified by TMDB.</span>
             </a>
           </div>
-          <div className="pt-1">
-            <button
-              type="button"
-              onClick={() => void handleRefreshMetadata()}
-              disabled={isRefreshingMetadata}
-              className="text-xs text-slate-500 underline decoration-slate-300 underline-offset-2 hover:text-slate-700 disabled:opacity-60"
+        </div>
+      </PageCard>
+
+      {isSoloHousehold ? (
+        <PageCard>
+          <SectionHeader
+            title="Personal Summary"
+            titleLevel="h2"
+            titleClassName="app-kicker text-sm"
+            description="Your current status for this title."
+          />
+          <div className="mt-2 flex flex-wrap gap-2">
+            <Chip tone={record.currentUser.watched ? "success" : "muted"} className="text-xs">
+              Watched by me: {record.currentUser.watched ? "Yes" : "No"}
+            </Chip>
+            <Chip tone={record.currentUser.wantsToWatch ? "accent" : "muted"} className="text-xs">
+              My watchlist: {record.currentUser.wantsToWatch ? "Yes" : "No"}
+            </Chip>
+          </div>
+        </PageCard>
+      ) : (
+        <PageCard>
+          <SectionHeader
+            title="Household Summary"
+            titleLevel="h2"
+            titleClassName="app-kicker text-sm"
+            description="Shared state is separate from per-member completion."
+          />
+          <div className="mt-2 flex flex-wrap gap-2">
+            <Chip
+              tone={record.household.wantsToWatch ? "accent" : "muted"}
+              className="text-xs"
             >
-              {isRefreshingMetadata
-                ? "Refreshing metadata..."
-                : "Refresh metadata"}
-            </button>
-            {refreshMessage ? (
-              <p className="mt-1 text-xs text-emerald-700">{refreshMessage}</p>
+              Shared watchlist: {record.household.wantsToWatch ? "Yes" : "No"}
+            </Chip>
+            <Chip
+              tone={record.household.watchedTogether ? "success" : "muted"}
+              className="text-xs"
+            >
+              {record.household.watchedTogetherParticipantsKnown &&
+              record.household.watchedTogetherParticipantCount >= 2
+                ? isTwoMemberHousehold
+                  ? "Watched together"
+                  : `${record.household.watchedTogetherParticipantCount} watched together`
+                : isThreePlusHousehold
+                  ? "Watched together (unknown participants)"
+                  : "Watched together"}
+              : {record.household.watchedTogether ? "Yes" : "No"}
+            </Chip>
+            <Chip
+              tone={record.household.allMembersWatched ? "accent" : "muted"}
+              className="text-xs"
+            >
+              {isTwoMemberHousehold ? "Both watched" : "All members watched"}:{" "}
+              {record.household.allMembersWatched ? "Yes" : "No"}
+            </Chip>
+            {record.household.someMembersWatched ? (
+              <Chip tone="accent" className="text-xs">
+                Partially watched
+              </Chip>
             ) : null}
           </div>
-        </div>
-      </section>
+          {record.household.watchedTogether ? (
+            <SharedWatchCallout
+              memberCount={record.household.memberCount}
+              watchedTogetherAt={record.household.watchedTogetherAt}
+              participantsKnown={
+                record.household.watchedTogetherParticipantsKnown
+              }
+              participantCount={
+                record.household.watchedTogetherParticipantCount
+              }
+              participantLabels={watchedTogetherParticipantLabels}
+              className="mt-3"
+            />
+          ) : isThreePlusHousehold ? (
+            <p className="mt-1 text-xs text-text-soft">
+              For 3+ households, watched together stays separate from all-members-watched and may still have legacy rows without recorded participants.
+            </p>
+          ) : null}
+        </PageCard>
+      )}
 
-      <section className="rounded-xl border border-slate-200 bg-white p-4 shadow-sm">
-        <h2 className="text-sm font-semibold tracking-wide text-slate-500 uppercase">
-          Household Summary
-        </h2>
-        <div className="mt-2 grid gap-2 text-sm text-slate-700 md:grid-cols-3">
-          <p>
-            Household watchlist: {record.household.wantsToWatch ? "Yes" : "No"}
-          </p>
-          <p>
-            Watched together:{" "}
-            {isSoloHousehold
-              ? "Hidden for solo household"
-              : record.household.watchedTogether
-                ? "Yes"
-                : "No"}
-          </p>
-          <p>
-            All members watched:{" "}
-            {record.household.allMembersWatched ? "Yes" : "No"}
-          </p>
-        </div>
-      </section>
-
-      <TitleStatusEditor record={record} onUpdated={setRecord} />
+      <TitleStatusEditor
+        record={record}
+        onUpdated={(next) => {
+          queryClient.setQueryData(titleQueryKey(next.id), next);
+        }}
+      />
     </div>
   );
 }

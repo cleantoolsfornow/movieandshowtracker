@@ -25,10 +25,13 @@ export type HouseholdMemberView = HouseholdSummary["members"][number] & {
 type HouseholdContextValue = {
   household: HouseholdSummary | null;
   isLoadingHousehold: boolean;
+  memberCount: number;
   members: HouseholdMemberView[];
   currentMember: HouseholdMemberView | null;
   otherMembers: HouseholdMemberView[];
   isSoloHousehold: boolean;
+  isTwoMemberHousehold: boolean;
+  isThreePlusHousehold: boolean;
   getMemberById: (uid: string) => HouseholdMemberView | undefined;
   getMemberLabelById: (uid: string) => string;
   refreshHousehold: () => Promise<void>;
@@ -197,10 +200,13 @@ export function HouseholdProvider({ children }: PropsWithChildren) {
     () => ({
       household,
       isLoadingHousehold,
+      memberCount: members.length,
       members,
       currentMember,
       otherMembers,
       isSoloHousehold: members.length <= 1,
+      isTwoMemberHousehold: members.length === 2,
+      isThreePlusHousehold: members.length >= 3,
       getMemberById,
       getMemberLabelById,
       refreshHousehold,

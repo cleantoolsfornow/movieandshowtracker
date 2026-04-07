@@ -1,8 +1,12 @@
 "use client";
 
-import { FormEvent, useMemo, useState } from "react";
+import { FormEvent, useEffect, useMemo, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 
+import { Button } from "@/components/common/button";
+import { Chip } from "@/components/common/chip";
+import { PageCard } from "@/components/common/page-card";
+import { SectionHeader } from "@/components/common/section-header";
 import {
   signInWithEmail,
   signInWithGoogle,
@@ -25,11 +29,21 @@ export function SignInForm() {
 
   const router = useRouter();
   const searchParams = useSearchParams();
+  const requestedMode = searchParams.get("mode");
 
   const nextPath = useMemo(
     () => getPostSignInPath(searchParams.get("next")),
     [searchParams],
   );
+
+  useEffect(() => {
+    if (requestedMode === "sign-up") {
+      setMode("sign-up");
+      return;
+    }
+
+    setMode("sign-in");
+  }, [requestedMode]);
 
   async function handleGoogleSignIn() {
     setIsSubmitting(true);
@@ -71,36 +85,50 @@ export function SignInForm() {
   }
 
   return (
-    <section className="w-full max-w-md rounded-xl border border-slate-200 bg-white p-6 shadow-sm">
-      <div className="mb-6 space-y-2">
-        <h1 className="text-2xl font-semibold text-slate-900">Welcome back</h1>
-        <p className="text-sm text-slate-600">
-          Sign in to your shared movie and TV tracker.
-        </p>
+    <PageCard className="w-full max-w-md space-y-5 p-6" elevated>
+      <div className="space-y-3">
+        <SectionHeader
+          title={mode === "sign-up" ? "Create your account" : "Welcome back"}
+          titleLevel="h1"
+          titleClassName="text-2xl"
+          description={
+            mode === "sign-up"
+              ? "Start tracking movies and shows for yourself or your household."
+              : "Track movies and shows for your household, including just you."
+          }
+        />
+        <div className="flex flex-wrap gap-2">
+          <Chip tone="muted" className="text-xs">
+            Solo-friendly
+          </Chip>
+          <Chip tone="muted" className="text-xs">
+            Shared household ready
+          </Chip>
+        </div>
       </div>
 
-      <button
-        type="button"
-        className="mb-4 w-full rounded-lg border border-slate-300 bg-white px-4 py-2 text-sm font-medium text-slate-700 hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-60"
+      <Button
+        className="w-full"
+        variant="secondary"
         onClick={handleGoogleSignIn}
         disabled={isSubmitting}
       >
         Continue with Google
-      </button>
+      </Button>
 
-      <div className="mb-4 flex items-center gap-2 text-xs text-slate-400">
-        <div className="h-px flex-1 bg-slate-200" />
+      <div className="flex items-center gap-2 text-xs text-text-soft">
+        <div className="h-px flex-1 bg-border-subtle" />
         <span>or</span>
-        <div className="h-px flex-1 bg-slate-200" />
+        <div className="h-px flex-1 bg-border-subtle" />
       </div>
 
-      <div className="mb-4 grid grid-cols-2 rounded-lg bg-slate-100 p-1 text-sm">
+      <div className="grid grid-cols-2 rounded-xl border border-border-subtle bg-surface-muted p-1 text-sm">
         <button
           type="button"
-          className={`rounded-md px-3 py-2 ${
+          className={`rounded-lg px-3 py-2 font-medium transition ${
             mode === "sign-in"
-              ? "bg-white text-slate-900 shadow-sm"
-              : "text-slate-600"
+              ? "border border-border-subtle bg-surface text-foreground shadow-soft"
+              : "text-text-muted"
           }`}
           onClick={() => setMode("sign-in")}
         >
@@ -108,10 +136,10 @@ export function SignInForm() {
         </button>
         <button
           type="button"
-          className={`rounded-md px-3 py-2 ${
+          className={`rounded-lg px-3 py-2 font-medium transition ${
             mode === "sign-up"
-              ? "bg-white text-slate-900 shadow-sm"
-              : "text-slate-600"
+              ? "border border-border-subtle bg-surface text-foreground shadow-soft"
+              : "text-text-muted"
           }`}
           onClick={() => setMode("sign-up")}
         >
@@ -122,10 +150,7 @@ export function SignInForm() {
       <form onSubmit={handleEmailSubmit} className="space-y-3">
         {mode === "sign-up" ? (
           <>
-            <label
-              className="block text-sm text-slate-700"
-              htmlFor="display-name"
-            >
+            <label className="block text-sm text-text-muted" htmlFor="display-name">
               Name
             </label>
             <input
@@ -134,17 +159,17 @@ export function SignInForm() {
               type="text"
               autoComplete="name"
               required
-              className="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm text-slate-900"
+              className="w-full rounded-xl border border-border-strong/45 bg-surface px-3 py-2 text-sm text-foreground"
               value={displayName}
               onChange={(event) => setDisplayName(event.target.value)}
             />
-            <p className="text-xs text-slate-500">
-              This name will be visible to members in your household.
+            <p className="text-xs text-text-soft">
+              This is the name shown in your account and household.
             </p>
           </>
         ) : null}
 
-        <label className="block text-sm text-slate-700" htmlFor="email">
+        <label className="block text-sm text-text-muted" htmlFor="email">
           Email
         </label>
         <input
@@ -153,12 +178,12 @@ export function SignInForm() {
           type="email"
           autoComplete="email"
           required
-          className="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm text-slate-900"
+          className="w-full rounded-xl border border-border-strong/45 bg-surface px-3 py-2 text-sm text-foreground"
           value={email}
           onChange={(event) => setEmail(event.target.value)}
         />
 
-        <label className="block text-sm text-slate-700" htmlFor="password">
+        <label className="block text-sm text-text-muted" htmlFor="password">
           Password
         </label>
         <input
@@ -170,25 +195,21 @@ export function SignInForm() {
           }
           required
           minLength={6}
-          className="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm text-slate-900"
+          className="w-full rounded-xl border border-border-strong/45 bg-surface px-3 py-2 text-sm text-foreground"
           value={password}
           onChange={(event) => setPassword(event.target.value)}
         />
 
         {error ? (
-          <p role="alert" className="text-sm text-red-600">
+          <p role="alert" className="text-sm text-red-700">
             {error}
           </p>
         ) : null}
 
-        <button
-          type="submit"
-          className="w-full rounded-lg bg-slate-900 px-4 py-2 text-sm font-medium text-white hover:bg-slate-700 disabled:cursor-not-allowed disabled:opacity-60"
-          disabled={isSubmitting}
-        >
+        <Button type="submit" className="w-full" disabled={isSubmitting}>
           {mode === "sign-up" ? "Create account" : "Sign in"}
-        </button>
+        </Button>
       </form>
-    </section>
+    </PageCard>
   );
 }

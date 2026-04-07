@@ -4,6 +4,7 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 
 const requireUidFromRequestMock = vi.fn();
 const getHouseholdIdForUidMock = vi.fn();
+const getHouseholdByIdMock = vi.fn();
 const getTitleViewModelByIdMock = vi.fn();
 const assertUserHasHouseholdMembershipMock = vi.fn();
 const assertUserIsInHouseholdMock = vi.fn();
@@ -39,6 +40,7 @@ vi.mock("@/lib/firebase/admin", () => ({
 vi.mock("@/lib/tracker/server", () => ({
   getHouseholdIdForUid: (...args: unknown[]) =>
     getHouseholdIdForUidMock(...args),
+  getHouseholdById: (...args: unknown[]) => getHouseholdByIdMock(...args),
   getTitleViewModelById: (...args: unknown[]) =>
     getTitleViewModelByIdMock(...args),
   assertUserHasHouseholdMembership: (...args: unknown[]) =>
@@ -149,12 +151,19 @@ describe("title mutation/read routes", () => {
   beforeEach(() => {
     requireUidFromRequestMock.mockReset();
     getHouseholdIdForUidMock.mockReset();
+    getHouseholdByIdMock.mockReset();
     getTitleViewModelByIdMock.mockReset();
     assertUserHasHouseholdMembershipMock.mockReset();
     assertUserIsInHouseholdMock.mockReset();
 
     requireUidFromRequestMock.mockResolvedValue("u1");
     getHouseholdIdForUidMock.mockResolvedValue("h1");
+    getHouseholdByIdMock.mockResolvedValue({
+      id: "h1",
+      name: "Home",
+      inviteCode: "ABC123",
+      memberIds: ["u1", "u2", "u3"],
+    });
     getTitleViewModelByIdMock.mockResolvedValue(viewModelFixture);
     assertUserHasHouseholdMembershipMock.mockResolvedValue(undefined);
     assertUserIsInHouseholdMock.mockResolvedValue(undefined);
@@ -264,6 +273,51 @@ describe("title mutation/read routes", () => {
     );
 
     expect(forbiddenResponse.status).toBe(403);
+  });
+
+  it("PATCH persists normalized watchedTogether participants when provided", async () => {
+    const response = await patchTitlePatch(
+      new Request("http://localhost/api/titles/h1_movie_101", {
+        method: "PATCH",
+        body: JSON.stringify({
+          action: "set_watched_together",
+          value: true,
+          watchedTogetherAt: "2026-04-06",
+          participantUserIds: ["u3", "u1", "u3"],
+        }),
+      }) as never,
+      { params: Promise.resolve({ titleId: "h1_movie_101" }) },
+    );
+
+    expect(response.status).toBe(200);
+    const householdStatusWrite = activeDb.setCalls.find(
+      (call) => call.ref._collection === "titleHouseholdStatuses",
+    );
+    expect(householdStatusWrite).toBeDefined();
+    expect(
+      (householdStatusWrite?.data as Record<string, unknown>)
+        .watchedTogetherParticipantUserIds,
+    ).toEqual(["u1", "u3"]);
+  });
+
+  it("PATCH rejects watchedTogether participants outside the household", async () => {
+    const response = await patchTitlePatch(
+      new Request("http://localhost/api/titles/h1_movie_101", {
+        method: "PATCH",
+        body: JSON.stringify({
+          action: "set_watched_together",
+          value: true,
+          watchedTogetherAt: "2026-04-06",
+          participantUserIds: ["u1", "u999"],
+        }),
+      }) as never,
+      { params: Promise.resolve({ titleId: "h1_movie_101" }) },
+    );
+
+    expect(response.status).toBe(400);
+    await expect(response.json()).resolves.toEqual({
+      error: "watchedTogether participants must belong to the household.",
+    });
   });
 
   it("does not rewrite createdAt for existing user status docs", async () => {

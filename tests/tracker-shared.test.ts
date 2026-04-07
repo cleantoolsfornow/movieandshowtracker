@@ -84,7 +84,7 @@ describe("tracker shared helpers", () => {
     });
   });
 
-  it("computes derived summary counts from current members", () => {
+  it("computes derived summary counts from current members (3-member case)", () => {
     const members = [{ uid: "u1" }, { uid: "u2" }, { uid: "u3" }];
     const statuses = new Map([
       ["u1", { watched: true, wantsToWatch: false }],
@@ -96,9 +96,87 @@ describe("tracker shared helpers", () => {
       memberCount: 3,
       watchedCount: 1,
       wantsToWatchCount: 2,
+      anyMembersWatched: true,
       allMembersWatched: false,
       someMembersWatched: true,
       noMembersWatched: false,
+      anyMembersWantToWatch: true,
+      allMembersWantToWatch: false,
+      someButNotAllMembersWantToWatch: true,
+      noMembersWantToWatch: false,
+      someMembersWantToWatch: true,
+      multipleMembersWantToWatch: true,
+    });
+  });
+
+  it("computes correct solo (1-member) summaries", () => {
+    const members = [{ uid: "u1" }];
+    const statuses = new Map<string, { watched: boolean; wantsToWatch: boolean }>([
+      ["u1", { watched: false, wantsToWatch: false }],
+    ]);
+
+    expect(computeDerivedSummary(members, statuses)).toMatchObject({
+      memberCount: 1,
+      watchedCount: 0,
+      wantsToWatchCount: 0,
+      anyMembersWatched: false,
+      allMembersWatched: false,
+      someMembersWatched: false,
+      noMembersWatched: true,
+      anyMembersWantToWatch: false,
+      allMembersWantToWatch: false,
+      someButNotAllMembersWantToWatch: false,
+      noMembersWantToWatch: true,
+      someMembersWantToWatch: false,
+      multipleMembersWantToWatch: false,
+    });
+  });
+
+  it("computes correct two-member summaries when everyone watched and wants", () => {
+    const members = [{ uid: "u1" }, { uid: "u2" }];
+    const statuses = new Map<string, { watched: boolean; wantsToWatch: boolean }>([
+      ["u1", { watched: true, wantsToWatch: true }],
+      ["u2", { watched: true, wantsToWatch: true }],
+    ]);
+
+    expect(computeDerivedSummary(members, statuses)).toMatchObject({
+      memberCount: 2,
+      watchedCount: 2,
+      wantsToWatchCount: 2,
+      anyMembersWatched: true,
+      allMembersWatched: true,
+      someMembersWatched: false,
+      noMembersWatched: false,
+      anyMembersWantToWatch: true,
+      allMembersWantToWatch: true,
+      someButNotAllMembersWantToWatch: false,
+      noMembersWantToWatch: false,
+      someMembersWantToWatch: true,
+      multipleMembersWantToWatch: true,
+    });
+  });
+
+  it("computes correct four-member summaries for mixed participation", () => {
+    const members = [{ uid: "u1" }, { uid: "u2" }, { uid: "u3" }, { uid: "u4" }];
+    const statuses = new Map<string, { watched: boolean; wantsToWatch: boolean }>([
+      ["u1", { watched: true, wantsToWatch: true }],
+      ["u2", { watched: true, wantsToWatch: false }],
+      ["u3", { watched: false, wantsToWatch: true }],
+      ["u4", { watched: false, wantsToWatch: false }],
+    ]);
+
+    expect(computeDerivedSummary(members, statuses)).toMatchObject({
+      memberCount: 4,
+      watchedCount: 2,
+      wantsToWatchCount: 2,
+      anyMembersWatched: true,
+      allMembersWatched: false,
+      someMembersWatched: true,
+      noMembersWatched: false,
+      anyMembersWantToWatch: true,
+      allMembersWantToWatch: false,
+      someButNotAllMembersWantToWatch: true,
+      noMembersWantToWatch: false,
       someMembersWantToWatch: true,
       multipleMembersWantToWatch: true,
     });

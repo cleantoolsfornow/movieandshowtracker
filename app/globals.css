@@ -1,20 +1,224 @@
 @import "tailwindcss";
 
 :root {
-  --background: #f1f5f9;
-  --foreground: #0f172a;
+  --background: #f4f6fb;
+  --foreground: #10172a;
+  --surface: #ffffffd9;
+  --surface-strong: #fffffff2;
+  --surface-muted: #e8edf6cc;
+  --border-subtle: #d7dfec;
+  --border-strong: #9ca9c4;
+  --text-muted: #4b5b79;
+  --text-soft: #6b7a98;
+  --accent: #2a63ff;
+  --accent-strong: #1e4ae8;
+  --accent-contrast: #f8faff;
+  --success: #0f8a60;
+  --warning: #be6a03;
+  --shared-watch: #157a6e;
+  --focus-ring: #2a63ff66;
+  --shadow-soft:
+    0 1px 2px rgb(15 23 42 / 0.07), 0 14px 30px rgb(37 62 109 / 0.12);
+  --shadow-elevated:
+    0 2px 8px rgb(15 23 42 / 0.1), 0 24px 54px rgb(32 49 80 / 0.16);
+  --bg-gradient:
+    radial-gradient(
+      1200px 520px at 15% -15%,
+      rgb(56 112 255 / 0.22) 0%,
+      transparent 60%
+    ),
+    radial-gradient(
+      900px 460px at 100% 0%,
+      rgb(15 138 96 / 0.12) 0%,
+      transparent 62%
+    ),
+    linear-gradient(180deg, #f6f8fc 0%, #eef2f9 100%);
 }
 
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
-  --font-sans: "Segoe UI", system-ui, sans-serif;
-  --font-mono: "SFMono-Regular", ui-monospace, monospace;
+  --font-sans: var(--font-sans), "Avenir Next", "Segoe UI", system-ui,
+    sans-serif;
+  --font-display: var(--font-display), "Avenir Next", "Segoe UI", sans-serif;
+  --font-mono: "SFMono-Regular", "JetBrains Mono", ui-monospace, monospace;
+  --color-surface: var(--surface);
+  --color-surface-strong: var(--surface-strong);
+  --color-surface-muted: var(--surface-muted);
+  --color-border-subtle: var(--border-subtle);
+  --color-border-strong: var(--border-strong);
+  --color-text-muted: var(--text-muted);
+  --color-text-soft: var(--text-soft);
+  --color-accent: var(--accent);
+  --color-accent-strong: var(--accent-strong);
+  --color-accent-contrast: var(--accent-contrast);
+  --color-success: var(--success);
+  --color-warning: var(--warning);
+  --color-shared-watch: var(--shared-watch);
+  --shadow-soft: var(--shadow-soft);
+  --shadow-elevated: var(--shadow-elevated);
+}
+
+*,
+*::before,
+*::after {
+  border-color: var(--border-subtle);
 }
 
 body {
   background: var(--background);
+  background-image: var(--bg-gradient);
+  background-attachment: fixed;
   color: var(--foreground);
   font-family: var(--font-sans);
   color-scheme: light;
+  text-rendering: optimizeLegibility;
+}
+
+h1,
+h2,
+h3,
+h4 {
+  font-family: var(--font-display);
+  letter-spacing: -0.015em;
+}
+
+a,
+button,
+input,
+select,
+textarea {
+  transition:
+    background-color 140ms ease,
+    border-color 140ms ease,
+    color 140ms ease,
+    box-shadow 140ms ease,
+    transform 140ms ease;
+}
+
+button:active {
+  transform: translateY(0.5px);
+}
+
+:focus-visible {
+  outline: 2px solid transparent;
+  box-shadow: 0 0 0 3px var(--focus-ring);
+}
+
+::selection {
+  background: rgb(42 99 255 / 0.22);
+  color: #09122a;
+}
+
+.app-panel {
+  border: 1px solid var(--border-subtle);
+  background: var(--surface);
+  backdrop-filter: blur(10px);
+  box-shadow: var(--shadow-soft);
+}
+
+.app-panel-strong {
+  border: 1px solid var(--border-subtle);
+  background: var(--surface-strong);
+  backdrop-filter: blur(12px);
+  box-shadow: var(--shadow-elevated);
+}
+
+.app-kicker {
+  font-size: 0.67rem;
+  font-weight: 700;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--text-soft);
+}
+
+.shared-watch-callout {
+  border: 1px solid rgb(21 122 110 / 0.35);
+  background:
+    linear-gradient(140deg, rgb(21 122 110 / 0.12), rgb(42 99 255 / 0.08)),
+    var(--surface-strong);
+  box-shadow:
+    0 0 0 1px rgb(21 122 110 / 0.08),
+    var(--shadow-soft);
+}
+
+.shared-watch-celebrate {
+  animation: shared-watch-glow 700ms ease-out;
+}
+
+.marketing-grid {
+  background-image:
+    linear-gradient(
+      to right,
+      color-mix(in srgb, var(--border-subtle) 58%, transparent) 1px,
+      transparent 1px
+    ),
+    linear-gradient(
+      to bottom,
+      color-mix(in srgb, var(--border-subtle) 58%, transparent) 1px,
+      transparent 1px
+    );
+  background-size: 36px 36px;
+  mask-image: linear-gradient(180deg, rgb(0 0 0 / 0.4), transparent 82%);
+}
+
+.marketing-section {
+  animation: marketing-rise 520ms ease-out both;
+}
+
+.marketing-glow {
+  position: relative;
+}
+
+.marketing-glow::before {
+  content: "";
+  position: absolute;
+  inset: -1px;
+  border-radius: inherit;
+  background:
+    linear-gradient(
+      135deg,
+      rgb(42 99 255 / 0.18),
+      rgb(255 255 255 / 0),
+      rgb(21 122 110 / 0.16)
+    );
+  opacity: 0.9;
+  pointer-events: none;
+}
+
+.marketing-glow > * {
+  position: relative;
+}
+
+@keyframes marketing-rise {
+  0% {
+    opacity: 0;
+    transform: translateY(14px);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes shared-watch-glow {
+  0% {
+    box-shadow:
+      0 0 0 0 rgb(21 122 110 / 0.32),
+      var(--shadow-soft);
+  }
+  100% {
+    box-shadow:
+      0 0 0 1px rgb(21 122 110 / 0.08),
+      var(--shadow-soft);
+  }
+}
+
+@keyframes skeleton-shimmer {
+  0% {
+    transform: translateX(-120%);
+  }
+  100% {
+    transform: translateX(120%);
+  }
 }

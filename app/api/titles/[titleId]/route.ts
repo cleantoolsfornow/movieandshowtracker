@@ -9,9 +9,11 @@ import { createTitleUserStatusId } from "@/lib/tracker/shared";
 import {
   assertUserHasHouseholdMembership,
   assertUserIsInHousehold,
+  getHouseholdById,
   getHouseholdIdForUid,
   getTitleViewModelById,
 } from "@/lib/tracker/server";
+import { normalizeParticipantUserIds } from "@/lib/tracker/shared";
 
 const patchSchema = z.discriminatedUnion("action", [
   z.object({
@@ -33,6 +35,7 @@ const patchSchema = z.discriminatedUnion("action", [
     action: z.literal("set_watched_together"),
     value: z.boolean(),
     watchedTogetherAt: z.string().optional(),
+    participantUserIds: z.array(z.string().min(1)).optional(),
   }),
   z.object({
     action: z.literal("set_user_rating"),
@@ -66,7 +69,45 @@ function getPatchErrorStatus(message: string) {
   if (message === "Title not found.") {
     return 404;
   }
+  if (message.includes("participant")) {
+    return 400;
+  }
   return 500;
+}
+
+async function getValidatedParticipantUserIds(
+  householdId: string,
+  participantUserIds?: string[],
+) {
+  const normalizedParticipantUserIds = normalizeParticipantUserIds(
+    participantUserIds,
+  );
+
+  if (!normalizedParticipantUserIds) {
+    return undefined;
+  }
+
+  if (normalizedParticipantUserIds.length < 2) {
+    throw new Error(
+      "watchedTogether participants must include at least 2 household members.",
+    );
+  }
+
+  const household = await getHouseholdById(householdId);
+  if (!household) {
+    throw new Error("Household not found.");
+  }
+
+  const hasOutsideParticipant = normalizedParticipantUserIds.some(
+    (participantUserId) => !household.memberIds.includes(participantUserId),
+  );
+  if (hasOutsideParticipant) {
+    throw new Error(
+      "watchedTogether participants must belong to the household.",
+    );
+  }
+
+  return normalizedParticipantUserIds;
 }
 
 export async function GET(
@@ -123,6 +164,14 @@ export async function PATCH(
     ) {
       throw new Error("Forbidden.");
     }
+
+    const participantUserIds =
+      patch.action === "set_watched_together" && patch.value
+        ? await getValidatedParticipantUserIds(
+            householdId,
+            patch.participantUserIds,
+          )
+        : undefined;
 
     await adminDb.runTransaction(async (transaction) => {
       const titleRef = adminDb.collection("titles").doc(titleId);
@@ -191,10 +240,13 @@ export async function PATCH(
             householdId,
             ...(patch.action === "set_household_wants_to_watch"
               ? { householdWantsToWatch: patch.value }
-              : {
+                : {
                   watchedTogether: patch.value,
                   watchedTogetherAt: patch.value
                     ? patch.watchedTogetherAt
+                    : FieldValue.delete(),
+                  watchedTogetherParticipantUserIds: patch.value
+                    ? participantUserIds ?? FieldValue.delete()
                     : FieldValue.delete(),
                 }),
             updatedAt: now,

@@ -1,6 +1,7 @@
 import {
   computeDerivedSummary,
   extractCurrentUserMemberStatus,
+  getWatchedTogetherParticipantState,
   mapMembersToTitleViewModelMembers,
   normalizeHouseholdStatus,
 } from "@/lib/tracker/shared";
@@ -54,6 +55,9 @@ export function buildTitleViewModel({
   }
 
   const household = normalizeHouseholdStatus(householdStatus);
+  const watchedTogetherParticipants = getWatchedTogetherParticipantState(
+    household,
+  );
   const membersView = mapMembersToTitleViewModelMembers(
     members,
     userStatusesByUserId,
@@ -83,8 +87,23 @@ export function buildTitleViewModel({
       wantsToWatch: household.householdWantsToWatch,
       watchedTogether: household.watchedTogether,
       watchedTogetherAt: household.watchedTogetherAt,
+      watchedTogetherParticipantUserIds:
+        watchedTogetherParticipants.watchedTogetherParticipantUserIds,
+      watchedTogetherParticipantCount:
+        watchedTogetherParticipants.watchedTogetherParticipantCount,
+      watchedTogetherParticipantsKnown:
+        watchedTogetherParticipants.watchedTogetherParticipantsKnown,
+      anyMembersWatched: derived.anyMembersWatched,
       allMembersWatched: derived.allMembersWatched,
       someMembersWatched: derived.someMembersWatched,
+      noMembersWatched: derived.noMembersWatched,
+      anyMembersWantToWatch: derived.anyMembersWantToWatch,
+      allMembersWantToWatch: derived.allMembersWantToWatch,
+      someButNotAllMembersWantToWatch:
+        derived.someButNotAllMembersWantToWatch,
+      noMembersWantToWatch: derived.noMembersWantToWatch,
+      someMembersWantToWatch: derived.someMembersWantToWatch,
+      multipleMembersWantToWatch: derived.multipleMembersWantToWatch,
       watchedCount: derived.watchedCount,
       wantsToWatchCount: derived.wantsToWatchCount,
       memberCount: derived.memberCount,

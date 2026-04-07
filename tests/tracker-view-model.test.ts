@@ -31,8 +31,19 @@ describe("buildTitleViewModel", () => {
       wantsToWatch: false,
       watchedTogether: false,
       watchedTogetherAt: undefined,
+      watchedTogetherParticipantUserIds: undefined,
+      watchedTogetherParticipantCount: 0,
+      watchedTogetherParticipantsKnown: false,
+      anyMembersWatched: false,
       allMembersWatched: false,
       someMembersWatched: false,
+      noMembersWatched: true,
+      anyMembersWantToWatch: false,
+      allMembersWantToWatch: false,
+      someButNotAllMembersWantToWatch: false,
+      noMembersWantToWatch: true,
+      someMembersWantToWatch: false,
+      multipleMembersWantToWatch: false,
       watchedCount: 0,
       wantsToWatchCount: 0,
       memberCount: 1,
@@ -85,6 +96,14 @@ describe("buildTitleViewModel", () => {
 
     expect(viewModel.household.allMembersWatched).toBe(true);
     expect(viewModel.household.someMembersWatched).toBe(false);
+    expect(viewModel.household.noMembersWatched).toBe(false);
+    expect(viewModel.household.anyMembersWatched).toBe(true);
+    expect(viewModel.household.anyMembersWantToWatch).toBe(true);
+    expect(viewModel.household.allMembersWantToWatch).toBe(false);
+    expect(viewModel.household.someButNotAllMembersWantToWatch).toBe(true);
+    expect(viewModel.household.noMembersWantToWatch).toBe(false);
+    expect(viewModel.household.someMembersWantToWatch).toBe(true);
+    expect(viewModel.household.multipleMembersWantToWatch).toBe(false);
     expect(viewModel.household.watchedCount).toBe(2);
     expect(viewModel.household.wantsToWatch).toBe(true);
     expect(viewModel.household.watchedTogether).toBe(false);
@@ -119,16 +138,31 @@ describe("buildTitleViewModel", () => {
         householdWantsToWatch: false,
         watchedTogether: true,
         watchedTogetherAt: "2026-01-15",
+        watchedTogetherParticipantUserIds: ["u1", "u3"],
       },
     });
 
     expect(viewModel.household.memberCount).toBe(3);
     expect(viewModel.household.watchedCount).toBe(1);
     expect(viewModel.household.wantsToWatchCount).toBe(2);
+    expect(viewModel.household.anyMembersWantToWatch).toBe(true);
+    expect(viewModel.household.allMembersWantToWatch).toBe(false);
+    expect(viewModel.household.someButNotAllMembersWantToWatch).toBe(true);
+    expect(viewModel.household.noMembersWantToWatch).toBe(false);
+    expect(viewModel.household.someMembersWantToWatch).toBe(true);
+    expect(viewModel.household.multipleMembersWantToWatch).toBe(true);
+    expect(viewModel.household.anyMembersWatched).toBe(true);
+    expect(viewModel.household.noMembersWatched).toBe(false);
     expect(viewModel.household.allMembersWatched).toBe(false);
     expect(viewModel.household.someMembersWatched).toBe(true);
     expect(viewModel.household.watchedTogether).toBe(true);
     expect(viewModel.household.watchedTogetherAt).toBe("2026-01-15");
+    expect(viewModel.household.watchedTogetherParticipantUserIds).toEqual([
+      "u1",
+      "u3",
+    ]);
+    expect(viewModel.household.watchedTogetherParticipantCount).toBe(2);
+    expect(viewModel.household.watchedTogetherParticipantsKnown).toBe(true);
     expect(viewModel.currentUser).toEqual({
       userId: "u3",
       wantsToWatch: false,
@@ -137,5 +171,63 @@ describe("buildTitleViewModel", () => {
       rating: undefined,
       notes: undefined,
     });
+  });
+
+  it("supports 4+ households with partial watched and partial wants derived states", () => {
+    const viewModel = buildTitleViewModel({
+      title: baseTitle({ mediaType: "movie", name: "Arrival" }),
+      currentUserId: "u4",
+      members: [{ uid: "u1" }, { uid: "u2" }, { uid: "u3" }, { uid: "u4" }],
+      userStatuses: [
+        {
+          id: "s1",
+          householdId: "house1",
+          titleId: "house1_movie_42",
+          userId: "u1",
+          wantsToWatch: true,
+          watched: true,
+        },
+        {
+          id: "s2",
+          householdId: "house1",
+          titleId: "house1_movie_42",
+          userId: "u2",
+          wantsToWatch: false,
+          watched: true,
+        },
+        {
+          id: "s3",
+          householdId: "house1",
+          titleId: "house1_movie_42",
+          userId: "u3",
+          wantsToWatch: true,
+          watched: false,
+        },
+      ],
+      householdStatus: {
+        titleId: "house1_movie_42",
+        householdId: "house1",
+        householdWantsToWatch: false,
+        watchedTogether: false,
+      },
+    });
+
+    expect(viewModel.household.memberCount).toBe(4);
+    expect(viewModel.household.watchedCount).toBe(2);
+    expect(viewModel.household.anyMembersWatched).toBe(true);
+    expect(viewModel.household.someMembersWatched).toBe(true);
+    expect(viewModel.household.allMembersWatched).toBe(false);
+    expect(viewModel.household.noMembersWatched).toBe(false);
+
+    expect(viewModel.household.wantsToWatchCount).toBe(2);
+    expect(viewModel.household.anyMembersWantToWatch).toBe(true);
+    expect(viewModel.household.someMembersWantToWatch).toBe(true);
+    expect(viewModel.household.multipleMembersWantToWatch).toBe(true);
+    expect(viewModel.household.someButNotAllMembersWantToWatch).toBe(true);
+    expect(viewModel.household.allMembersWantToWatch).toBe(false);
+    expect(viewModel.household.noMembersWantToWatch).toBe(false);
+
+    expect(viewModel.household.watchedTogether).toBe(false);
+    expect(viewModel.household.allMembersWatched).toBe(false);
   });
 });

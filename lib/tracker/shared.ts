@@ -27,15 +27,40 @@ export function normalizeHouseholdStatus(
   status?: Partial<TitleHouseholdStatusDocument> | null,
 ): Pick<
   TitleHouseholdStatusDocument,
-  "householdWantsToWatch" | "watchedTogether" | "watchedTogetherAt"
+  | "householdWantsToWatch"
+  | "watchedTogether"
+  | "watchedTogetherAt"
+  | "watchedTogetherParticipantUserIds"
 > {
   const value = status ?? {};
+  const watchedTogetherParticipantUserIds = normalizeParticipantUserIds(
+    value.watchedTogetherParticipantUserIds,
+  );
 
   return {
     householdWantsToWatch: Boolean(value.householdWantsToWatch),
     watchedTogether: Boolean(value.watchedTogether),
     watchedTogetherAt: value.watchedTogetherAt,
+    watchedTogetherParticipantUserIds,
   };
+}
+
+export function normalizeParticipantUserIds(
+  participantUserIds?: string[] | null,
+): string[] | undefined {
+  if (!Array.isArray(participantUserIds)) {
+    return undefined;
+  }
+
+  const normalized = Array.from(
+    new Set(
+      participantUserIds
+        .map((value) => value.trim())
+        .filter((value) => value.length > 0),
+    ),
+  ).sort();
+
+  return normalized.length ? normalized : undefined;
 }
 
 export function normalizeUserStatus(
@@ -63,6 +88,27 @@ export function buildPosterUrl(path: string | null, size = "w342") {
   return `https://image.tmdb.org/t/p/${size}${path}`;
 }
 
+export function getWatchedTogetherParticipantState(
+  status?: Pick<
+    TitleHouseholdStatusDocument,
+    "watchedTogether" | "watchedTogetherParticipantUserIds"
+  > | null,
+) {
+  const watchedTogether = Boolean(status?.watchedTogether);
+  const watchedTogetherParticipantUserIds = watchedTogether
+    ? normalizeParticipantUserIds(status?.watchedTogetherParticipantUserIds)
+    : undefined;
+
+  return {
+    watchedTogetherParticipantUserIds,
+    watchedTogetherParticipantCount:
+      watchedTogetherParticipantUserIds?.length ?? 0,
+    watchedTogetherParticipantsKnown: Boolean(
+      watchedTogether && watchedTogetherParticipantUserIds,
+    ),
+  };
+}
+
 export function computeDerivedSummary(
   members: HouseholdMemberProfile[],
   userStatusesByUserId: Map<string, Partial<TitleUserStatusDocument>>,
@@ -82,19 +128,31 @@ export function computeDerivedSummary(
     }
   }
 
+  const anyMembersWatched = watchedCount > 0;
   const allMembersWatched = memberCount > 0 && watchedCount === memberCount;
   const someMembersWatched = watchedCount > 0 && watchedCount < memberCount;
   const noMembersWatched = watchedCount === 0;
-  const someMembersWantToWatch = wantsToWatchCount > 0;
+  const anyMembersWantToWatch = wantsToWatchCount > 0;
+  const allMembersWantToWatch =
+    memberCount > 0 && wantsToWatchCount === memberCount;
+  const someButNotAllMembersWantToWatch =
+    wantsToWatchCount > 0 && wantsToWatchCount < memberCount;
+  const noMembersWantToWatch = wantsToWatchCount === 0;
+  const someMembersWantToWatch = anyMembersWantToWatch;
   const multipleMembersWantToWatch = wantsToWatchCount >= 2;
 
   return {
     memberCount,
     watchedCount,
     wantsToWatchCount,
+    anyMembersWatched,
     allMembersWatched,
     someMembersWatched,
     noMembersWatched,
+    anyMembersWantToWatch,
+    allMembersWantToWatch,
+    someButNotAllMembersWantToWatch,
+    noMembersWantToWatch,
     someMembersWantToWatch,
     multipleMembersWantToWatch,
   };

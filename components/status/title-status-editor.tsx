@@ -1,7 +1,18 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { useQueryClient } from "@tanstack/react-query";
 
+import { Button } from "@/components/common/button";
+import { Chip } from "@/components/common/chip";
+import { ChipButton } from "@/components/common/chip";
+import { SharedWatchCallout } from "@/components/common/shared-watch-callout";
+import {
+  getTitleMemberLabel,
+  HouseholdCountChips,
+} from "@/components/household/member-display";
+import { PageCard } from "@/components/common/page-card";
+import { SectionHeader } from "@/components/common/section-header";
 import { patchTitleStatus } from "@/lib/tracker/client-api";
 import type {
   PatchTitleAction,
@@ -9,6 +20,11 @@ import type {
   TitleViewModelMember,
 } from "@/lib/tracker/types";
 import { StatusChipGroup } from "@/components/status/status-chip-group";
+import {
+  invalidateTitlesQuery,
+  titleQueryKey,
+} from "@/lib/tracker/queries";
+import { normalizeParticipantUserIds } from "@/lib/tracker/shared";
 
 function updateMember(
   record: TitleViewModel,
@@ -21,6 +37,21 @@ function updateMember(
   const currentUserMember =
     members.find((member) => member.userId === record.currentUser.userId) ??
     null;
+  const memberCount = members.length;
+  const watchedCount = members.filter((member) => member.watched).length;
+  const wantsToWatchCount = members.filter((member) => member.wantsToWatch).length;
+  const anyMembersWatched = watchedCount > 0;
+  const allMembersWatched = memberCount > 0 && watchedCount === memberCount;
+  const someMembersWatched = watchedCount > 0 && watchedCount < memberCount;
+  const noMembersWatched = watchedCount === 0;
+  const anyMembersWantToWatch = wantsToWatchCount > 0;
+  const allMembersWantToWatch =
+    memberCount > 0 && wantsToWatchCount === memberCount;
+  const someButNotAllMembersWantToWatch =
+    wantsToWatchCount > 0 && wantsToWatchCount < memberCount;
+  const noMembersWantToWatch = wantsToWatchCount === 0;
+  const someMembersWantToWatch = anyMembersWantToWatch;
+  const multipleMembersWantToWatch = wantsToWatchCount >= 2;
 
   return {
     ...record,
@@ -37,13 +68,46 @@ function updateMember(
       : record.currentUser,
     household: {
       ...record.household,
-      watchedCount: members.filter((member) => member.watched).length,
-      wantsToWatchCount: members.filter((member) => member.wantsToWatch).length,
-      allMembersWatched:
-        members.length > 0 && members.every((member) => member.watched),
-      someMembersWatched:
-        members.some((member) => member.watched) &&
-        !members.every((member) => member.watched),
+      watchedCount,
+      wantsToWatchCount,
+      anyMembersWatched,
+      allMembersWatched,
+      someMembersWatched,
+      noMembersWatched,
+      anyMembersWantToWatch,
+      allMembersWantToWatch,
+      someButNotAllMembersWantToWatch,
+      noMembersWantToWatch,
+      someMembersWantToWatch,
+      multipleMembersWantToWatch,
+    },
+  };
+}
+
+function buildWatchedTogetherState(
+  record: TitleViewModel,
+  options: {
+    value: boolean;
+    watchedTogetherAt?: string;
+    participantUserIds?: string[];
+  },
+): TitleViewModel {
+  const watchedTogetherParticipantUserIds = options.value
+    ? normalizeParticipantUserIds(options.participantUserIds)
+    : undefined;
+
+  return {
+    ...record,
+    household: {
+      ...record.household,
+      watchedTogether: options.value,
+      watchedTogetherAt: options.value ? options.watchedTogetherAt : undefined,
+      watchedTogetherParticipantUserIds,
+      watchedTogetherParticipantCount:
+        watchedTogetherParticipantUserIds?.length ?? 0,
+      watchedTogetherParticipantsKnown: Boolean(
+        options.value && watchedTogetherParticipantUserIds,
+      ),
     },
   };
 }
@@ -55,8 +119,13 @@ export function TitleStatusEditor({
   record: TitleViewModel;
   onUpdated?: (next: TitleViewModel) => void;
 }) {
+  const queryClient = useQueryClient();
   const [local, setLocal] = useState(record);
   const [isSaving, setIsSaving] = useState(false);
+  const [isSelectingParticipants, setIsSelectingParticipants] = useState(false);
+  const [participantSelection, setParticipantSelection] = useState<string[]>(
+    [],
+  );
   const [error, setError] = useState<string | null>(null);
   const [ratingInput, setRatingInput] = useState("");
   const [notesInput, setNotesInput] = useState("");
@@ -65,11 +134,29 @@ export function TitleStatusEditor({
     local.members.find(
       (member) => member.userId === local.currentUser.userId,
     ) ?? null;
+  const isTwoMemberHousehold = local.household.memberCount === 2;
+  const isThreePlusHousehold = local.household.memberCount >= 3;
   const isSoloHousehold = local.household.memberCount <= 1;
+  const watchedTogetherParticipantLabels =
+    local.household.watchedTogetherParticipantUserIds
+      ?.map((participantUserId) => {
+        const member = local.members.find(
+          (entry) => entry.userId === participantUserId,
+        );
+        return member
+          ? getTitleMemberLabel(member, local.currentUser.userId)
+          : undefined;
+      })
+      .filter((value): value is string => Boolean(value));
 
   useEffect(() => {
     setLocal(record);
   }, [record]);
+
+  useEffect(() => {
+    setIsSelectingParticipants(false);
+    setParticipantSelection([]);
+  }, [record.id]);
 
   useEffect(() => {
     setRatingInput(
@@ -90,6 +177,8 @@ export function TitleStatusEditor({
     try {
       const next = await patchTitleStatus(local.id, action);
       setLocal(next);
+      queryClient.setQueryData(titleQueryKey(next.id), next);
+      void invalidateTitlesQuery(queryClient);
       onUpdated?.(next);
     } catch (err) {
       setLocal(previous);
@@ -110,25 +199,80 @@ export function TitleStatusEditor({
   }
 
   async function toggleWatchedTogether(nextValue: boolean) {
+    const watchedTogetherAt = nextValue
+      ? local.household.watchedTogetherAt ?? new Date().toISOString().slice(0, 10)
+      : undefined;
+    const participantUserIds = nextValue
+      ? isTwoMemberHousehold
+        ? local.members.map((member) => member.userId)
+        : undefined
+      : undefined;
+
     await applyPatch(
       {
         action: "set_watched_together",
         value: nextValue,
-        watchedTogetherAt: nextValue
-          ? new Date().toISOString().slice(0, 10)
-          : undefined,
+        watchedTogetherAt,
+        participantUserIds,
       },
-      {
-        ...local,
-        household: {
-          ...local.household,
-          watchedTogether: nextValue,
-          watchedTogetherAt: nextValue
-            ? new Date().toISOString().slice(0, 10)
-            : undefined,
-        },
-      },
+      buildWatchedTogetherState(local, {
+        value: nextValue,
+        watchedTogetherAt,
+        participantUserIds,
+      }),
     );
+  }
+
+  function getDefaultParticipantSelection() {
+    if (
+      local.household.watchedTogetherParticipantsKnown &&
+      local.household.watchedTogetherParticipantUserIds
+    ) {
+      return local.household.watchedTogetherParticipantUserIds;
+    }
+
+    return local.currentUser.userId ? [local.currentUser.userId] : [];
+  }
+
+  function openParticipantPicker() {
+    setParticipantSelection(getDefaultParticipantSelection());
+    setIsSelectingParticipants(true);
+    setError(null);
+  }
+
+  function toggleParticipant(userId: string) {
+    setParticipantSelection((current) =>
+      current.includes(userId)
+        ? current.filter((value) => value !== userId)
+        : [...current, userId],
+    );
+  }
+
+  async function saveWatchedTogetherParticipants() {
+    const participantUserIds = normalizeParticipantUserIds(participantSelection);
+    if (!participantUserIds || participantUserIds.length < 2) {
+      setError("Choose at least 2 household members for a shared watch.");
+      return;
+    }
+
+    const watchedTogetherAt =
+      local.household.watchedTogetherAt ??
+      new Date().toISOString().slice(0, 10);
+
+    await applyPatch(
+      {
+        action: "set_watched_together",
+        value: true,
+        watchedTogetherAt,
+        participantUserIds,
+      },
+      buildWatchedTogetherState(local, {
+        value: true,
+        watchedTogetherAt,
+        participantUserIds,
+      }),
+    );
+    setIsSelectingParticipants(false);
   }
 
   async function toggleMemberWatch(
@@ -197,51 +341,146 @@ export function TitleStatusEditor({
   }
 
   return (
-    <div className="space-y-4 rounded-xl border border-slate-200 bg-white p-4">
-      <section className="space-y-2">
-        <h3 className="text-sm font-semibold text-slate-900">Household</h3>
-        <div className="flex flex-wrap gap-2">
-          <button
-            type="button"
-            aria-pressed={local.household.wantsToWatch}
-            onClick={() =>
-              void toggleHouseholdWants(!local.household.wantsToWatch)
-            }
-            disabled={isSaving}
-            className={`rounded-full border px-3 py-1 text-sm transition ${
-              local.household.wantsToWatch
-                ? "border-slate-900 bg-slate-900 text-white"
-                : "border-slate-300 bg-white text-slate-700 hover:bg-slate-100"
-            } disabled:opacity-60`}
-          >
-            In household watchlist
-          </button>
-          {!isSoloHousehold ? (
-            <button
-              type="button"
-              aria-pressed={local.household.watchedTogether}
+    <PageCard className="space-y-4">
+      {!isSoloHousehold ? (
+        <section className="space-y-2">
+          <SectionHeader
+            title="Household"
+            titleLevel="h3"
+            description="Shared status that applies across members."
+          />
+          <div className="flex flex-wrap gap-2">
+            <ChipButton
+              aria-pressed={local.household.wantsToWatch}
               onClick={() =>
-                void toggleWatchedTogether(!local.household.watchedTogether)
+                void toggleHouseholdWants(!local.household.wantsToWatch)
               }
               disabled={isSaving}
-              className={`rounded-full border px-3 py-1 text-sm transition ${
-                local.household.watchedTogether
-                  ? "border-slate-900 bg-slate-900 text-white"
-                  : "border-slate-300 bg-white text-slate-700 hover:bg-slate-100"
-              } disabled:opacity-60`}
+              active={local.household.wantsToWatch}
             >
-              Watched together
-            </button>
+              Shared watchlist
+            </ChipButton>
+            <ChipButton
+              aria-pressed={local.household.watchedTogether}
+              onClick={() =>
+                local.household.watchedTogether
+                  ? void toggleWatchedTogether(false)
+                  : isThreePlusHousehold
+                    ? openParticipantPicker()
+                    : void toggleWatchedTogether(true)
+              }
+              disabled={isSaving}
+              active={local.household.watchedTogether}
+              tone="success"
+            >
+              {isThreePlusHousehold
+                ? local.household.watchedTogether
+                  ? "Clear shared watch"
+                  : "Record shared watch"
+                : "Watched together"}
+            </ChipButton>
+            {isThreePlusHousehold && local.household.watchedTogether ? (
+              <Button
+                variant="secondary"
+                size="sm"
+                onClick={openParticipantPicker}
+                disabled={isSaving}
+              >
+                {local.household.watchedTogetherParticipantsKnown
+                  ? "Edit participants"
+                  : "Record participants"}
+              </Button>
+            ) : null}
+          </div>
+
+          {local.household.watchedTogether ? (
+            <SharedWatchCallout
+              memberCount={local.household.memberCount}
+              watchedTogetherAt={local.household.watchedTogetherAt}
+              participantsKnown={
+                local.household.watchedTogetherParticipantsKnown
+              }
+              participantCount={
+                local.household.watchedTogetherParticipantCount
+              }
+              participantLabels={watchedTogetherParticipantLabels}
+              compact
+            />
+          ) : isThreePlusHousehold ? (
+            <p className="text-xs text-text-soft">
+              Shared-watch state can record a subgroup without changing each member’s watched status.
+            </p>
           ) : null}
-        </div>
-        <p className="text-xs text-slate-500">
-          All members watched:{" "}
-          {local.household.allMembersWatched ? "Yes" : "No"}
-        </p>
-      </section>
+
+          {isSelectingParticipants ? (
+            <div className="space-y-3 rounded-2xl border border-border-subtle bg-surface-muted/70 p-3">
+              <p className="text-xs font-medium text-foreground">
+                Choose the members who watched together
+              </p>
+              <div className="flex flex-wrap gap-2">
+                {local.members.map((member) => (
+                  <ChipButton
+                    key={member.userId}
+                    active={participantSelection.includes(member.userId)}
+                    onClick={() => toggleParticipant(member.userId)}
+                    disabled={isSaving}
+                    className="text-xs"
+                  >
+                    {getTitleMemberLabel(member, local.currentUser.userId)}
+                  </ChipButton>
+                ))}
+              </div>
+              <div className="flex flex-wrap gap-2">
+                <Button
+                  onClick={() => void saveWatchedTogetherParticipants()}
+                  disabled={isSaving}
+                  size="sm"
+                >
+                  {isSaving ? "Saving..." : "Save shared watch"}
+                </Button>
+                <Button
+                  variant="secondary"
+                  size="sm"
+                  onClick={() => setIsSelectingParticipants(false)}
+                  disabled={isSaving}
+                >
+                  Cancel
+                </Button>
+              </div>
+              <p className="text-[11px] text-text-soft">
+                Pick at least 2 members. This records who watched together without changing per-member watched completion.
+              </p>
+            </div>
+          ) : null}
+
+          <div className="flex flex-wrap gap-2">
+            <Chip
+              tone={local.household.allMembersWatched ? "accent" : "muted"}
+              className="text-xs"
+            >
+              {isTwoMemberHousehold ? "Both watched" : "All members watched"}:{" "}
+              {local.household.allMembersWatched ? "Yes" : "No"}
+            </Chip>
+            {local.household.someMembersWatched ? (
+              <Chip tone="accent" className="text-xs">
+                Partially watched
+              </Chip>
+            ) : null}
+          </div>
+          <HouseholdCountChips
+            watchedCount={local.household.watchedCount}
+            wantsToWatchCount={local.household.wantsToWatchCount}
+            memberCount={local.household.memberCount}
+          />
+        </section>
+      ) : null}
 
       <section className="space-y-3">
-        <h3 className="text-sm font-semibold text-slate-900">Current User</h3>
+        <SectionHeader
+          title="My status"
+          titleLevel="h3"
+          description="Your personal status, rating, and notes."
+        />
         {currentMember ? (
           <>
             <StatusChipGroup
@@ -263,7 +502,7 @@ export function TitleStatusEditor({
               }}
             />
             <div className="grid gap-2 md:grid-cols-2">
-              <label className="flex flex-col gap-1 text-xs text-slate-600">
+              <label className="flex flex-col gap-1 text-xs text-text-muted">
                 My rating
                 <input
                   type="number"
@@ -274,10 +513,10 @@ export function TitleStatusEditor({
                   onChange={(event) => setRatingInput(event.currentTarget.value)}
                   onBlur={() => void saveCurrentUserRating(ratingInput)}
                   disabled={isSaving}
-                  className="rounded-md border border-slate-300 px-2 py-1 text-sm"
+                  className="rounded-xl border border-border-strong/45 bg-surface px-2 py-1 text-sm text-foreground"
                 />
               </label>
-              <label className="flex flex-col gap-1 text-xs text-slate-600">
+              <label className="flex flex-col gap-1 text-xs text-text-muted">
                 My notes
                 <input
                   type="text"
@@ -285,7 +524,7 @@ export function TitleStatusEditor({
                   onChange={(event) => setNotesInput(event.currentTarget.value)}
                   onBlur={() => void saveCurrentUserNotes(notesInput)}
                   disabled={isSaving}
-                  className="rounded-md border border-slate-300 px-2 py-1 text-sm"
+                  className="rounded-xl border border-border-strong/45 bg-surface px-2 py-1 text-sm text-foreground"
                 />
               </label>
             </div>
@@ -293,33 +532,39 @@ export function TitleStatusEditor({
         ) : null}
       </section>
 
-      <section className="space-y-3">
-        <h3 className="text-sm font-semibold text-slate-900">Members</h3>
-        <StatusChipGroup
-          group="wantsToWatch"
-          members={local.members}
-          currentUserId={local.currentUser.userId}
-          disabled={isSaving}
-          onToggle={(member, next) => {
-            void toggleMemberWant(member, next);
-          }}
-        />
-        <StatusChipGroup
-          group="watched"
-          members={local.members}
-          currentUserId={local.currentUser.userId}
-          disabled={isSaving}
-          onToggle={(member, next) => {
-            void toggleMemberWatch(member, next);
-          }}
-        />
-      </section>
+      {!isSoloHousehold ? (
+        <section className="space-y-3">
+          <SectionHeader
+            title="Members"
+            titleLevel="h3"
+            description="Per-member status controls."
+          />
+          <StatusChipGroup
+            group="wantsToWatch"
+            members={local.members}
+            currentUserId={local.currentUser.userId}
+            disabled={isSaving}
+            onToggle={(member, next) => {
+              void toggleMemberWant(member, next);
+            }}
+          />
+          <StatusChipGroup
+            group="watched"
+            members={local.members}
+            currentUserId={local.currentUser.userId}
+            disabled={isSaving}
+            onToggle={(member, next) => {
+              void toggleMemberWatch(member, next);
+            }}
+          />
+        </section>
+      ) : null}
 
       {error ? (
         <p role="alert" aria-live="polite" className="text-sm text-red-600">
           {error}
         </p>
       ) : null}
-    </div>
+    </PageCard>
   );
 }
