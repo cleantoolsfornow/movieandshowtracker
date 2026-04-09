@@ -92,20 +92,20 @@ export default function SearchPage() {
   }, [normalizedQuery]);
 
   return (
-    <div className="space-y-4">
-      <PageCard elevated>
+    <div className="space-y-5">
+      <PageCard elevated className="app-hero p-5 md:p-6">
         <SectionHeader
           title="Search & Add"
           titleLevel="h1"
-          titleClassName="text-2xl"
+          titleClassName="text-3xl"
           description="Find titles fast, then save to your personal or shared lists in one tap."
         />
-        <div className="mt-4 flex gap-2">
+        <div className="mt-5 flex gap-2">
           <input
             value={query}
             onChange={(event) => setQuery(event.target.value)}
             placeholder="Search movies and shows..."
-            className="w-full rounded-xl border border-border-strong/45 bg-surface px-3 py-2 text-sm text-foreground placeholder:text-text-soft"
+            className="app-input w-full px-3 py-2 text-sm"
           />
           {hasQuery ? (
             <Button
@@ -163,19 +163,19 @@ export default function SearchPage() {
       </PageCard>
 
       {successMessage ? (
-        <p className="rounded-lg border border-emerald-200 bg-emerald-50 p-3 text-sm text-emerald-700">
+        <p className="rounded-xl border border-emerald-200/85 bg-emerald-50/80 p-3 text-sm text-emerald-700">
           {successMessage}
         </p>
       ) : null}
 
       {error ? (
-        <p className="rounded-lg border border-red-200 bg-red-50 p-3 text-sm text-red-700">
+        <p className="rounded-xl border border-red-200/85 bg-red-50/80 p-3 text-sm text-red-700">
           {error}
         </p>
       ) : null}
 
       {isLoading ? (
-        <div className="grid gap-3 md:grid-cols-2">
+        <div className="app-stagger grid gap-3 md:grid-cols-2">
           <LoadingSkeleton className="h-32" rounded="xl" />
           <LoadingSkeleton className="h-32" rounded="xl" />
           <LoadingSkeleton className="h-32" rounded="xl" />
@@ -202,7 +202,7 @@ export default function SearchPage() {
         </PageCard>
       ) : null}
 
-      <section className="grid gap-3 md:grid-cols-2">
+      <section className="app-stagger grid gap-3 md:grid-cols-2 xl:grid-cols-3">
         {results.map((result) => (
           <SearchResultCard
             key={`${result.mediaType}_${result.tmdbId}`}

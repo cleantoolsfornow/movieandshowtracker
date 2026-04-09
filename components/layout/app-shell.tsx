@@ -4,13 +4,18 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 
 import { useAuth } from "@/components/auth/auth-provider";
-import { PickleIcon } from "@/components/marketing/inline-icons";
+import {
+  FilmIcon,
+  PickleIcon,
+  SearchIcon,
+  UsersIcon,
+} from "@/components/marketing/inline-icons";
 
 const NAV_ITEMS = [
-  { href: "/dashboard", label: "Dashboard" },
-  { href: "/search", label: "Search" },
-  { href: "/library", label: "Library" },
-  { href: "/settings", label: "Profile" },
+  { href: "/dashboard", label: "Dashboard", icon: UsersIcon },
+  { href: "/search", label: "Search", icon: SearchIcon },
+  { href: "/library", label: "Library", icon: FilmIcon },
+  { href: "/settings", label: "Profile", icon: UsersIcon },
 ];
 
 export function AppShell({ children }: { children: React.ReactNode }) {
@@ -28,39 +33,40 @@ export function AppShell({ children }: { children: React.ReactNode }) {
     <div className="relative min-h-screen">
       <div
         aria-hidden="true"
-        className="pointer-events-none absolute inset-x-0 top-0 -z-10 h-72 bg-[radial-gradient(circle_at_10%_0%,rgba(219,241,158,0.44),transparent_38%),radial-gradient(circle_at_100%_0%,rgba(244,188,70,0.24),transparent_34%),radial-gradient(circle_at_65%_50%,rgba(52,111,85,0.16),transparent_40%)] blur-3xl"
+        className="pointer-events-none absolute inset-x-0 top-0 -z-10 h-80 bg-[radial-gradient(circle_at_8%_0%,rgba(219,241,158,0.5),transparent_38%),radial-gradient(circle_at_100%_0%,rgba(244,188,70,0.28),transparent_34%),radial-gradient(circle_at_65%_46%,rgba(52,111,85,0.18),transparent_40%)] blur-3xl"
       />
-      <header className="border-border-subtle/90 bg-surface-strong/90 sticky top-0 z-20 border-b backdrop-blur-xl">
+      <header className="border-border-subtle/85 bg-surface-strong/88 sticky top-0 z-20 border-b backdrop-blur-2xl">
         <div className="mx-auto flex w-full max-w-6xl flex-wrap items-center justify-between gap-3 px-4 py-3">
           <Link
             href="/dashboard"
-            className="text-foreground inline-flex min-w-0 items-center gap-3 text-sm font-bold tracking-[0.08em]"
+            className="text-foreground inline-flex min-w-0 items-center gap-3 text-sm font-bold tracking-[0.06em]"
           >
-            <span className="shadow-soft flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl border border-[rgb(58,104,63,0.16)] bg-[linear-gradient(145deg,rgba(219,241,158,0.82),rgba(244,188,70,0.34))] text-[rgb(31,87,51)]">
+            <span className="shadow-soft flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl border border-[rgb(58,104,63,0.2)] bg-[linear-gradient(145deg,rgba(219,241,158,0.86),rgba(244,188,70,0.4))] text-[rgb(31,87,51)]">
               <PickleIcon className="h-9 w-9" />
             </span>
             <span className="min-w-0">
               <span className="app-kicker block leading-none">FilmPickle</span>
-              <span className="font-display text-foreground block truncate text-base tracking-[0.02em] sm:text-lg">
-                Household dashboard
+              <span className="font-display text-foreground block truncate text-base tracking-[0.01em] sm:text-lg">
+                Your watch universe
               </span>
             </span>
           </Link>
           <nav className="max-w-full overflow-x-auto">
-            <div className="border-border-subtle bg-surface shadow-soft flex min-w-max items-center gap-1 rounded-2xl border px-1 py-1">
+            <div className="border-border-subtle bg-surface/90 shadow-soft flex min-w-max items-center gap-1 rounded-2xl border p-1">
               {NAV_ITEMS.map((item) => {
                 const active =
                   pathname === item.href ||
                   pathname.startsWith(`${item.href}/`);
+                const Icon = item.icon;
                 return (
                   <Link
                     key={item.href}
                     href={item.href}
-                    className={`rounded-xl px-3 py-1.5 text-sm font-medium ${
+                    className={`rounded-xl px-3 py-1.5 text-sm font-semibold ${
                       active
-                        ? "bg-accent text-accent-contrast shadow-sm"
+                        ? "bg-[linear-gradient(140deg,var(--accent),var(--accent-strong))] text-accent-contrast shadow-[0_8px_18px_rgb(37_108_63_/_0.28)]"
                         : "text-text-muted hover:bg-surface-muted hover:text-foreground"
-                    }`}
+                    } app-interactive`}
                   >
                     {item.href === "/settings" ? (
                       <span className="inline-flex items-center gap-2">
@@ -79,7 +85,10 @@ export function AppShell({ children }: { children: React.ReactNode }) {
                         <span>{item.label}</span>
                       </span>
                     ) : (
-                      item.label
+                      <span className="inline-flex items-center gap-2">
+                        <Icon className="h-4 w-4" />
+                        <span>{item.label}</span>
+                      </span>
                     )}
                   </Link>
                 );
@@ -88,7 +97,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
           </nav>
         </div>
       </header>
-      <main className="mx-auto w-full max-w-6xl px-4 py-6 md:py-7">
+      <main className="mx-auto w-full max-w-6xl px-4 py-6 md:py-8">
         {children}
       </main>
     </div>

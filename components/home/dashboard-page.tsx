@@ -28,9 +28,9 @@ function Section({
   }
 
   return (
-    <section className="space-y-2">
+    <section className="app-fade-in space-y-2">
       <SectionHeader title={title} titleLevel="h2" description={description} />
-      <div className="grid grid-cols-2 gap-3 sm:grid-cols-4 lg:grid-cols-6">
+      <div className="app-stagger grid grid-cols-2 gap-3 sm:grid-cols-4 lg:grid-cols-6">
         {records.slice(0, 6).map((record) => (
           <PosterCard key={record.id} record={record} />
         ))}
@@ -49,11 +49,11 @@ function SummaryCard({
   hint: string;
 }) {
   return (
-    <PageCard className="space-y-1 rounded-[24px] p-3">
+    <PageCard className="space-y-1 rounded-[24px] bg-[linear-gradient(180deg,rgba(255,255,255,0.46),rgba(255,255,255,0.12))] p-3">
       <p className="text-text-soft text-xs font-semibold tracking-wide uppercase">
         {label}
       </p>
-      <p className="text-foreground text-2xl font-semibold">{value}</p>
+      <p className="text-foreground text-2xl font-semibold tracking-[-0.02em]">{value}</p>
       <p className="text-text-muted text-xs">{hint}</p>
     </PageCard>
   );
@@ -116,7 +116,7 @@ export function DashboardPage() {
     <div className="space-y-6">
       <PageCard
         elevated
-        className="bg-[linear-gradient(135deg,rgba(255,253,247,0.9),rgba(245,238,215,0.76))]"
+        className="app-hero bg-[linear-gradient(145deg,rgba(255,253,247,0.9),rgba(245,238,215,0.74))] p-5 md:p-6"
       >
         <SectionHeader
           title={
@@ -132,7 +132,7 @@ export function DashboardPage() {
               : `A shared snapshot for ${memberCount} members.`
           }
         />
-        <div className="mt-3 flex flex-wrap items-center gap-2">
+        <div className="mt-4 flex flex-wrap items-center gap-2">
           <Chip tone="muted" className="text-xs">
             {isSoloHousehold
               ? "Solo household"
@@ -146,16 +146,16 @@ export function DashboardPage() {
             </Chip>
           ) : null}
         </div>
-        <div className="mt-4 flex flex-wrap gap-2">
+        <div className="mt-5 flex flex-wrap gap-2">
           <Link
             href="/search"
-            className="border-accent bg-accent text-accent-contrast hover:border-accent-strong hover:bg-accent-strong rounded-xl border px-3.5 py-2 text-sm font-medium"
+            className="inline-flex items-center justify-center rounded-xl border border-accent/85 bg-[linear-gradient(140deg,var(--accent),var(--accent-strong))] px-3.5 py-2 text-sm font-semibold text-accent-contrast shadow-[0_10px_24px_rgb(37_108_63_/_0.26)] hover:-translate-y-[1px] hover:brightness-105"
           >
             Quick add
           </Link>
           <Link
             href="/library"
-            className="border-border-strong/45 bg-surface text-text-muted hover:bg-surface-muted hover:text-foreground rounded-xl border px-3.5 py-2 text-sm font-medium"
+            className="inline-flex items-center justify-center rounded-xl border border-border-strong/45 bg-surface/90 px-3.5 py-2 text-sm font-semibold text-text-muted shadow-[0_6px_18px_rgb(70_74_34_/_0.12)] hover:-translate-y-[1px] hover:bg-surface-muted hover:text-foreground"
           >
             Browse library
           </Link>
@@ -170,7 +170,7 @@ export function DashboardPage() {
       ) : null}
 
       {!isLoading ? (
-        <section className="grid grid-cols-2 gap-3 lg:grid-cols-4">
+        <section className="app-stagger grid grid-cols-2 gap-3 lg:grid-cols-4">
           {isSoloHousehold ? (
             <>
               <SummaryCard
@@ -251,7 +251,7 @@ export function DashboardPage() {
       ) : null}
 
       {isLoading ? (
-        <div className="grid grid-cols-2 gap-3 sm:grid-cols-4 lg:grid-cols-6">
+        <div className="app-stagger grid grid-cols-2 gap-3 sm:grid-cols-4 lg:grid-cols-6">
           {Array.from({ length: 6 }).map((_, index) => (
             <LoadingSkeleton
               key={index}

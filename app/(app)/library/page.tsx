@@ -187,12 +187,12 @@ export default function LibraryPage() {
   }
 
   return (
-    <div className="space-y-4">
-      <PageCard elevated>
+    <div className="space-y-5">
+      <PageCard elevated className="app-hero p-5 md:p-6">
         <SectionHeader
           title="Library"
           titleLevel="h1"
-          titleClassName="text-2xl"
+          titleClassName="text-3xl"
           description={
             isSoloHousehold
               ? "Browse your personal tracking views."
@@ -200,8 +200,8 @@ export default function LibraryPage() {
           }
         />
 
-        <div className="mt-4 space-y-3">
-          <div>
+        <div className="mt-5 space-y-3">
+          <div className="rounded-2xl border border-border-subtle/85 bg-surface/70 p-3">
             <p className="mb-2 text-xs font-semibold tracking-wide text-text-soft uppercase">
               Media type
             </p>
@@ -223,7 +223,7 @@ export default function LibraryPage() {
             </div>
           </div>
 
-          <div>
+          <div className="rounded-2xl border border-border-subtle/85 bg-surface/70 p-3">
             <p className="mb-2 text-xs font-semibold tracking-wide text-text-soft uppercase">
               Browse views
             </p>
@@ -313,7 +313,7 @@ export default function LibraryPage() {
           </div>
 
           {!isSoloHousehold && otherMembers.length > 0 ? (
-            <div>
+            <div className="rounded-2xl border border-border-subtle/85 bg-surface/70 p-3">
               <p className="mb-2 text-xs font-semibold tracking-wide text-text-soft uppercase">
                 Member focus
               </p>
@@ -355,7 +355,7 @@ export default function LibraryPage() {
             </div>
           ) : null}
 
-          <div>
+          <div className="rounded-2xl border border-border-subtle/85 bg-surface/70 p-3">
             <p className="mb-2 text-xs font-semibold tracking-wide text-text-soft uppercase">
               Sort
             </p>
@@ -394,7 +394,7 @@ export default function LibraryPage() {
       </PageCard>
 
       {error ? (
-        <p className="rounded-lg border border-red-200 bg-red-50 p-3 text-sm text-red-700">
+        <p className="rounded-xl border border-red-200/85 bg-red-50/80 p-3 text-sm text-red-700">
           {error instanceof Error ? error.message : "Failed to load library."}
         </p>
       ) : null}
@@ -407,7 +407,7 @@ export default function LibraryPage() {
       ) : null}
 
       {isLoading ? (
-        <div className="grid grid-cols-2 gap-3 sm:grid-cols-4 lg:grid-cols-6">
+        <div className="app-stagger grid grid-cols-2 gap-3 sm:grid-cols-4 lg:grid-cols-6">
           {Array.from({ length: 12 }).map((_, index) => (
             <LoadingSkeleton key={index} className="aspect-[2/3]" rounded="xl" />
           ))}
@@ -424,7 +424,7 @@ export default function LibraryPage() {
         />
       ) : null}
 
-      <section className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-5">
+      <section className="app-stagger grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-5">
         {visibleRecords.map((record) => (
           <PosterCard key={record.id} record={record} />
         ))}

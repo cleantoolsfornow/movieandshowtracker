@@ -106,10 +106,10 @@ export default function TitleDetailPage() {
   }
 
   return (
-    <div className="space-y-4">
+    <div className="space-y-5">
       <Link
         href="/library"
-        className="text-sm text-text-muted hover:text-foreground"
+        className="text-sm font-medium text-text-muted hover:text-foreground"
       >
         ← Back to library
       </Link>
@@ -129,7 +129,7 @@ export default function TitleDetailPage() {
         ) : (
           <div className="absolute inset-0 bg-[radial-gradient(circle_at_10%_10%,rgba(42,99,255,0.28),transparent_55%),radial-gradient(circle_at_90%_95%,rgba(21,122,110,0.2),transparent_60%)]" />
         )}
-        <div className="relative grid gap-4 p-4 md:grid-cols-[220px_1fr] md:p-5">
+        <div className="relative grid gap-4 p-4 md:grid-cols-[220px_1fr] md:p-6">
           <div className="overflow-hidden rounded-xl border border-white/15 bg-surface-muted shadow-elevated">
             {posterUrl ? (
               // eslint-disable-next-line @next/next/no-img-element
@@ -151,7 +151,7 @@ export default function TitleDetailPage() {
             <SectionHeader
               title={record.name}
               titleLevel="h1"
-              titleClassName="text-3xl text-white"
+              titleClassName="text-3xl text-white md:text-4xl"
             />
             <p className="text-sm text-white/75">
               {record.mediaType.toUpperCase()} · {titleYear ?? "-"}
@@ -239,7 +239,7 @@ export default function TitleDetailPage() {
       </PageCard>
 
       {isSoloHousehold ? (
-        <PageCard>
+        <PageCard className="p-5">
           <SectionHeader
             title="Personal Summary"
             titleLevel="h2"
@@ -256,7 +256,7 @@ export default function TitleDetailPage() {
           </div>
         </PageCard>
       ) : (
-        <PageCard>
+        <PageCard className="p-5">
           <SectionHeader
             title="Household Summary"
             titleLevel="h2"

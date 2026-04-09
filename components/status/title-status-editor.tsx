@@ -341,7 +341,7 @@ export function TitleStatusEditor({
   }
 
   return (
-    <PageCard className="space-y-4">
+    <PageCard className="space-y-4 p-5">
       {!isSoloHousehold ? (
         <section className="space-y-2">
           <SectionHeader
@@ -513,7 +513,7 @@ export function TitleStatusEditor({
                   onChange={(event) => setRatingInput(event.currentTarget.value)}
                   onBlur={() => void saveCurrentUserRating(ratingInput)}
                   disabled={isSaving}
-                  className="rounded-xl border border-border-strong/45 bg-surface px-2 py-1 text-sm text-foreground"
+                  className="app-input px-2 py-1 text-sm"
                 />
               </label>
               <label className="flex flex-col gap-1 text-xs text-text-muted">
@@ -524,7 +524,7 @@ export function TitleStatusEditor({
                   onChange={(event) => setNotesInput(event.currentTarget.value)}
                   onBlur={() => void saveCurrentUserNotes(notesInput)}
                   disabled={isSaving}
-                  className="rounded-xl border border-border-strong/45 bg-surface px-2 py-1 text-sm text-foreground"
+                  className="app-input px-2 py-1 text-sm"
                 />
               </label>
             </div>

@@ -114,7 +114,7 @@ export function PosterCard({ record }: { record: TitleViewModel }) {
     <Link
       href={`/title/${record.id}`}
       className={cn(
-        "group relative overflow-hidden rounded-2xl border border-border-subtle bg-surface shadow-soft transition hover:-translate-y-0.5 hover:shadow-elevated",
+        "app-interactive group relative overflow-hidden rounded-3xl border border-border-subtle bg-surface shadow-soft ring-1 ring-white/45 transition hover:-translate-y-0.5 hover:shadow-elevated",
         hasSharedWatchMoment ? "border-shared-watch/35 ring-1 ring-shared-watch/25" : "",
       )}
     >
@@ -144,7 +144,7 @@ export function PosterCard({ record }: { record: TitleViewModel }) {
           </span>
         ) : null}
       </div>
-      <div className="space-y-2 p-3.5">
+      <div className="space-y-2 p-4">
         <p className="line-clamp-1 text-sm font-semibold text-foreground">
           {record.name}
         </p>

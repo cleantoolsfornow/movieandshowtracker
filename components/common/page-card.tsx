@@ -17,7 +17,7 @@ export function PageCard({
   return (
     <Component
       className={cn(
-        "rounded-2xl p-4",
+        "rounded-3xl p-4 ring-1 ring-white/45",
         elevated ? "app-panel-strong" : "app-panel",
         className,
       )}

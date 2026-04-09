@@ -192,9 +192,12 @@ export function SearchResultCard({
   }
 
   return (
-    <PageCard as="article" className="p-3">
+    <PageCard
+      as="article"
+      className="app-interactive p-3 transition hover:-translate-y-[1px] hover:shadow-elevated"
+    >
       <div className="flex gap-3">
-        <div className="h-24 w-16 shrink-0 overflow-hidden rounded bg-surface-muted">
+        <div className="h-24 w-16 shrink-0 overflow-hidden rounded-lg border border-border-subtle/80 bg-surface-muted">
           {posterUrl ? (
             // eslint-disable-next-line @next/next/no-img-element
             <img
@@ -209,7 +212,7 @@ export function SearchResultCard({
           )}
         </div>
         <div className="min-w-0 flex-1">
-          <h3 className="line-clamp-1 text-sm font-semibold text-foreground">
+          <h3 className="line-clamp-1 text-sm font-semibold tracking-[-0.01em] text-foreground">
             {titleName}
           </h3>
           <p className="text-xs text-text-soft">

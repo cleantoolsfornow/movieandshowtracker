@@ -150,12 +150,12 @@ export default function SettingsPage() {
   }
 
   return (
-    <div className="space-y-4">
-      <PageCard elevated>
+    <div className="space-y-5">
+      <PageCard elevated className="app-hero p-5 md:p-6">
         <SectionHeader
           title="Settings"
           titleLevel="h1"
-          titleClassName="text-2xl"
+          titleClassName="text-3xl"
           description={
             isSoloHousehold
               ? "Account and household details for your current solo setup."
@@ -176,7 +176,7 @@ export default function SettingsPage() {
         </div>
       </PageCard>
 
-      <PageCard>
+      <PageCard className="p-5">
         <SectionHeader title="Account" titleLevel="h2" />
         <p className="mt-2 text-sm text-text-muted">
           Signed in as {user?.email ?? user?.displayName ?? "Unknown"}
@@ -226,7 +226,7 @@ export default function SettingsPage() {
             id="display-name"
             value={displayName}
             onChange={(event) => setDisplayName(event.target.value)}
-            className="w-full max-w-sm rounded-xl border border-border-strong/45 bg-surface px-3 py-2 text-sm text-foreground"
+            className="app-input w-full max-w-sm px-3 py-2 text-sm"
             placeholder="Your name"
           />
           <p className="text-xs text-text-soft">
@@ -252,17 +252,17 @@ export default function SettingsPage() {
       </PageCard>
 
       {error ? (
-        <p className="rounded-lg border border-red-200 bg-red-50 p-3 text-sm text-red-700">
+        <p className="rounded-xl border border-red-200/85 bg-red-50/80 p-3 text-sm text-red-700">
           {error}
         </p>
       ) : null}
       {success ? (
-        <p className="rounded-lg border border-emerald-200 bg-emerald-50 p-3 text-sm text-emerald-700">
+        <p className="rounded-xl border border-emerald-200/85 bg-emerald-50/80 p-3 text-sm text-emerald-700">
           {success}
         </p>
       ) : null}
       {inviteMessage ? (
-        <p className="rounded-lg border border-emerald-200 bg-emerald-50 p-3 text-sm text-emerald-700">
+        <p className="rounded-xl border border-emerald-200/85 bg-emerald-50/80 p-3 text-sm text-emerald-700">
           {inviteMessage}
         </p>
       ) : null}
@@ -281,7 +281,7 @@ export default function SettingsPage() {
       ) : null}
 
       {household ? (
-        <PageCard>
+        <PageCard className="p-5">
           <SectionHeader
             title="Household"
             titleLevel="h2"
