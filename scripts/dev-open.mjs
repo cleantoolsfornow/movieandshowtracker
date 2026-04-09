@@ -2,9 +2,14 @@ import { spawn } from "node:child_process";
 
 const port = process.env.PORT ?? "3000";
 const url = process.env.DEV_START_URL ?? `http://localhost:${port}/onboarding`;
+const bundler = process.env.NEXT_DEV_BUNDLER === "webpack" ? "--webpack" : null;
 
 const nextBin = process.platform === "win32" ? "next.cmd" : "next";
-const next = spawn(nextBin, ["dev", "--port", port], {
+const nextArgs = ["dev", "--port", port];
+if (bundler) {
+  nextArgs.push(bundler);
+}
+const next = spawn(nextBin, nextArgs, {
   stdio: "inherit",
   shell: process.platform === "win32",
 });

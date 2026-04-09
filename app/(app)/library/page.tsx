@@ -45,6 +45,17 @@ type SortFilter =
   | "alphabetical"
   | "recently_added";
 
+function shouldShowInLibrary(record: TitleViewModel) {
+  return (
+    record.household.wantsToWatch ||
+    record.household.watchedTogether ||
+    record.household.watchedCount > 0 ||
+    record.household.wantsToWatchCount > 0 ||
+    record.currentUser.watched ||
+    record.currentUser.wantsToWatch
+  );
+}
+
 export function applyLocalLibraryFilter(
   records: TitleViewModel[],
   filter: DynamicFilter,
@@ -129,25 +140,32 @@ export default function LibraryPage() {
     filter: toApiFilter(filter, isMemberSpecificFilter),
   });
   const records = useMemo(() => data ?? [], [data]);
-
-  const visibleRecords = useMemo(
-    () => applyLocalLibraryFilter(records, filter),
-    [filter, records],
-  );
-  const watchedTogetherRecords = useMemo(
-    () => records.filter((record) => record.household.watchedTogether),
+  const statusTrackedRecords = useMemo(
+    () => records.filter(shouldShowInLibrary),
     [records],
   );
+
+  const visibleRecords = useMemo(
+    () => applyLocalLibraryFilter(statusTrackedRecords, filter),
+    [filter, statusTrackedRecords],
+  );
+  const watchedTogetherRecords = useMemo(
+    () =>
+      statusTrackedRecords.filter((record) => record.household.watchedTogether),
+    [statusTrackedRecords],
+  );
+  const hasCustomSelection =
+    mediaType !== "all" || filter !== "all" || sort !== "recently_updated";
   const shouldShowSharedWatchCallout =
     !isSoloHousehold &&
     (filter === "watched_together" || (filter === "all" && watchedTogetherRecords.length > 0));
-  const sharedWatchlistLabel = isSoloHousehold ? "My watchlist" : "Shared watchlist";
+  const sharedWatchlistLabel = isSoloHousehold ? "Want to watch" : "Shared watchlist";
   const emptyState = emptyStateCopy();
 
   function filterLabel(value: DynamicFilter) {
     if (value === "all") return "All titles";
-    if (value === "my_wants_to_watch") return "My watchlist";
-    if (value === "my_watched") return "Watched by me";
+    if (value === "my_wants_to_watch") return "Want to watch";
+    if (value === "my_watched") return isSoloHousehold ? "Watched" : "Watched by me";
     if (value === "household_wants_to_watch") return sharedWatchlistLabel;
     if (value === "watched_together") {
       return isThreePlusHousehold
@@ -171,7 +189,7 @@ export default function LibraryPage() {
     if (filter === "all") {
       return {
         title: "No titles yet",
-        description: "Add titles from Search to start building your library.",
+        description: "Save titles from Search to start building your library.",
       };
     }
     if (isSoloHousehold) {
@@ -200,195 +218,230 @@ export default function LibraryPage() {
           }
         />
 
-        <div className="mt-5 space-y-3">
-          <div className="rounded-2xl border border-border-subtle/85 bg-surface/70 p-3">
-            <p className="mb-2 text-xs font-semibold tracking-wide text-text-soft uppercase">
-              Media type
-            </p>
-            <div className="flex flex-wrap gap-2">
-              {([
-                ["all", "All types"],
-                ["movie", "Movies"],
-                ["tv", "TV shows"],
-              ] as const).map(([value, label]) => (
-                <Button
-                  key={value}
-                  variant={mediaType === value ? "primary" : "secondary"}
-                  size="sm"
-                  onClick={() => setMediaType(value)}
-                >
-                  {label}
-                </Button>
-              ))}
-            </div>
-          </div>
-
-          <div className="rounded-2xl border border-border-subtle/85 bg-surface/70 p-3">
-            <p className="mb-2 text-xs font-semibold tracking-wide text-text-soft uppercase">
-              Browse views
-            </p>
-            <div className="flex flex-wrap gap-2">
-              <Button
-                variant={filter === "all" ? "primary" : "secondary"}
-                size="sm"
-                onClick={() => setFilter("all")}
-              >
-                All titles
-              </Button>
-              <Button
-                variant={filter === "my_wants_to_watch" ? "primary" : "secondary"}
-                size="sm"
-                onClick={() => setFilter("my_wants_to_watch")}
-              >
-                My watchlist
-              </Button>
-              <Button
-                variant={filter === "my_watched" ? "primary" : "secondary"}
-                size="sm"
-                onClick={() => setFilter("my_watched")}
-              >
-                Watched by me
-              </Button>
-              {!isSoloHousehold ? (
-                <>
-                  <Button
-                    variant={filter === "household_wants_to_watch" ? "primary" : "secondary"}
-                    size="sm"
-                    onClick={() => setFilter("household_wants_to_watch")}
-                  >
-                    Shared watchlist
-                  </Button>
-                  <Button
-                    variant={filter === "watched_together" ? "primary" : "secondary"}
-                    size="sm"
-                    onClick={() => setFilter("watched_together")}
-                  >
-                    {isThreePlusHousehold
-                      ? "Watched together (household event)"
-                      : "Watched together"}
-                  </Button>
-                  <Button
-                    variant={filter === "all_members_watched" ? "primary" : "secondary"}
-                    size="sm"
-                    onClick={() => setFilter("all_members_watched")}
-                  >
-                    {memberCount === 2 ? "Both watched" : "All members watched"}
-                  </Button>
-                  <Button
-                    variant={filter === "partially_watched" ? "primary" : "secondary"}
-                    size="sm"
-                    onClick={() => setFilter("partially_watched")}
-                  >
-                    Partially watched
-                  </Button>
-                  <Button
-                    variant={
-                      filter === "multiple_members_want_to_watch"
-                        ? "primary"
-                        : "secondary"
-                    }
-                    size="sm"
-                    onClick={() => setFilter("multiple_members_want_to_watch")}
-                  >
-                    Multiple members want
-                  </Button>
-                  <Button
-                    variant={filter === "watched_by_anyone" ? "primary" : "secondary"}
-                    size="sm"
-                    onClick={() => setFilter("watched_by_anyone")}
-                  >
-                    Watched by anyone
-                  </Button>
-                </>
-              ) : (
-                <Button
-                  variant={filter === "not_watched_by_me" ? "primary" : "secondary"}
-                  size="sm"
-                  onClick={() => setFilter("not_watched_by_me")}
-                >
-                  Not watched by me
-                </Button>
-              )}
-            </div>
-          </div>
-
-          {!isSoloHousehold && otherMembers.length > 0 ? (
-            <div className="rounded-2xl border border-border-subtle/85 bg-surface/70 p-3">
-              <p className="mb-2 text-xs font-semibold tracking-wide text-text-soft uppercase">
-                Member focus
-              </p>
+        <div className="mt-5 rounded-2xl border border-border-subtle/85 bg-surface/72 p-3 shadow-soft md:p-4">
+          <div className="space-y-3">
+            <div className="flex flex-col gap-2 md:flex-row md:items-start">
+              <div className="min-w-0 md:w-28">
+                <p className="text-[11px] font-semibold tracking-[0.18em] text-text-soft uppercase">
+                  Media
+                </p>
+              </div>
               <div className="flex flex-wrap gap-2">
-                {otherMembers.map((member) => (
+                {([
+                  ["all", "All types"],
+                  ["movie", "Movies"],
+                  ["tv", "TV shows"],
+                ] as const).map(([value, label]) => (
                   <Button
-                    key={`member-watched-${member.uid}`}
-                    variant={
-                      selectedMemberWatchedId === member.uid ? "primary" : "secondary"
-                    }
+                    key={value}
+                    variant={mediaType === value ? "primary" : "secondary"}
                     size="sm"
-                    onClick={() => setFilter(`member_watched:${member.uid}`)}
+                    onClick={() => setMediaType(value)}
                   >
-                    Watched by {member.label}
+                    {label}
                   </Button>
                 ))}
-                {otherMembers.map((member) => (
+              </div>
+            </div>
+
+            <div className="border-t border-border-subtle/70 pt-3">
+              <div className="flex flex-col gap-2 md:flex-row md:items-start">
+                <div className="min-w-0 md:w-28">
+                  <p className="text-[11px] font-semibold tracking-[0.18em] text-text-soft uppercase">
+                    View
+                  </p>
+                </div>
+                <div className="flex flex-wrap gap-2">
                   <Button
-                    key={`member-wants-${member.uid}`}
-                    variant={
-                      selectedMemberWantsId === member.uid ? "primary" : "secondary"
-                    }
-                    size="sm"
-                    onClick={() => setFilter(`member_wants:${member.uid}`)}
-                  >
-                    Wants to watch: {member.label}
-                  </Button>
-                ))}
-                {isMemberSpecificFilter ? (
-                  <Button
-                    variant="ghost"
+                    variant={filter === "all" ? "primary" : "secondary"}
                     size="sm"
                     onClick={() => setFilter("all")}
                   >
-                    Clear member focus
+                    All titles
+                  </Button>
+                  <Button
+                    variant={filter === "my_wants_to_watch" ? "primary" : "secondary"}
+                    size="sm"
+                    onClick={() => setFilter("my_wants_to_watch")}
+                  >
+                    Want to watch
+                  </Button>
+                  <Button
+                    variant={filter === "my_watched" ? "primary" : "secondary"}
+                    size="sm"
+                    onClick={() => setFilter("my_watched")}
+                  >
+                    {isSoloHousehold ? "Watched" : "Watched by me"}
+                  </Button>
+                  {!isSoloHousehold ? (
+                    <>
+                      <Button
+                        variant={filter === "household_wants_to_watch" ? "primary" : "secondary"}
+                        size="sm"
+                        onClick={() => setFilter("household_wants_to_watch")}
+                      >
+                        Shared watchlist
+                      </Button>
+                      <Button
+                        variant={filter === "watched_together" ? "primary" : "secondary"}
+                        size="sm"
+                        onClick={() => setFilter("watched_together")}
+                      >
+                        Watched together
+                      </Button>
+                      <Button
+                        variant={filter === "all_members_watched" ? "primary" : "secondary"}
+                        size="sm"
+                        onClick={() => setFilter("all_members_watched")}
+                      >
+                        {memberCount === 2 ? "Both watched" : "All members watched"}
+                      </Button>
+                      <Button
+                        variant={filter === "partially_watched" ? "primary" : "secondary"}
+                        size="sm"
+                        onClick={() => setFilter("partially_watched")}
+                      >
+                        Partially watched
+                      </Button>
+                      <Button
+                        variant={
+                          filter === "multiple_members_want_to_watch"
+                            ? "primary"
+                            : "secondary"
+                        }
+                        size="sm"
+                        onClick={() => setFilter("multiple_members_want_to_watch")}
+                      >
+                        Multiple members want
+                      </Button>
+                      <Button
+                        variant={filter === "watched_by_anyone" ? "primary" : "secondary"}
+                        size="sm"
+                        onClick={() => setFilter("watched_by_anyone")}
+                      >
+                        Watched by anyone
+                      </Button>
+                    </>
+                  ) : null}
+                </div>
+              </div>
+            </div>
+
+            {!isSoloHousehold && otherMembers.length > 0 ? (
+              <div className="border-t border-border-subtle/70 pt-3">
+                <div className="flex flex-col gap-2 md:flex-row md:items-start">
+                  <div className="min-w-0 md:w-28">
+                    <p className="text-[11px] font-semibold tracking-[0.18em] text-text-soft uppercase">
+                      Members
+                    </p>
+                  </div>
+                  <div className="flex flex-wrap gap-2">
+                    {otherMembers.map((member) => (
+                      <Button
+                        key={`member-watched-${member.uid}`}
+                        variant={
+                          selectedMemberWatchedId === member.uid
+                            ? "primary"
+                            : "secondary"
+                        }
+                        size="sm"
+                        onClick={() => setFilter(`member_watched:${member.uid}`)}
+                      >
+                        Watched by {member.label}
+                      </Button>
+                    ))}
+                    {otherMembers.map((member) => (
+                      <Button
+                        key={`member-wants-${member.uid}`}
+                        variant={
+                          selectedMemberWantsId === member.uid
+                            ? "primary"
+                            : "secondary"
+                        }
+                        size="sm"
+                        onClick={() => setFilter(`member_wants:${member.uid}`)}
+                      >
+                        Wants: {member.label}
+                      </Button>
+                    ))}
+                    {isMemberSpecificFilter ? (
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => setFilter("all")}
+                      >
+                        Clear focus
+                      </Button>
+                    ) : null}
+                  </div>
+                </div>
+              </div>
+            ) : null}
+
+            <div className="border-t border-border-subtle/70 pt-3">
+              <div className="flex flex-col gap-2 md:flex-row md:items-start">
+                <div className="min-w-0 md:w-28">
+                  <p className="text-[11px] font-semibold tracking-[0.18em] text-text-soft uppercase">
+                    Sort
+                  </p>
+                </div>
+                <div className="flex flex-wrap gap-2">
+                  {([
+                    ["recently_updated", "Recently updated"],
+                    ["recently_added", "Recently added"],
+                    ["release_date", "Release date"],
+                    ["alphabetical", "Alphabetical"],
+                  ] as const).map(([value, label]) => (
+                    <Button
+                      key={value}
+                      variant={sort === value ? "primary" : "secondary"}
+                      size="sm"
+                      onClick={() => setSort(value)}
+                    >
+                      {label}
+                    </Button>
+                  ))}
+                </div>
+              </div>
+            </div>
+
+            <div className="border-t border-border-subtle/70 pt-3">
+              <div className="flex flex-wrap items-center gap-2">
+                <Chip tone="muted" className="text-xs">
+                  View: {filterLabel(filter)}
+                </Chip>
+                <Chip tone="muted" className="text-xs">
+                  {mediaType === "all"
+                    ? "All media"
+                    : mediaType === "movie"
+                      ? "Movies only"
+                      : "TV only"}
+                </Chip>
+                <Chip tone="muted" className="text-xs">
+                  Sort:{" "}
+                  {sort === "recently_updated"
+                    ? "Recently updated"
+                    : sort === "recently_added"
+                      ? "Recently added"
+                      : sort === "release_date"
+                        ? "Release date"
+                        : "Alphabetical"}
+                </Chip>
+                {hasCustomSelection ? (
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => {
+                      setMediaType("all");
+                      setFilter("all");
+                      setSort("recently_updated");
+                    }}
+                  >
+                    Reset filters
                   </Button>
                 ) : null}
               </div>
             </div>
-          ) : null}
-
-          <div className="rounded-2xl border border-border-subtle/85 bg-surface/70 p-3">
-            <p className="mb-2 text-xs font-semibold tracking-wide text-text-soft uppercase">
-              Sort
-            </p>
-            <div className="flex flex-wrap gap-2">
-              {([
-                ["recently_updated", "Recently updated"],
-                ["recently_added", "Recently added"],
-                ["release_date", "Release date"],
-                ["alphabetical", "Alphabetical"],
-              ] as const).map(([value, label]) => (
-                <Button
-                  key={value}
-                  variant={sort === value ? "primary" : "secondary"}
-                  size="sm"
-                  onClick={() => setSort(value)}
-                >
-                  {label}
-                </Button>
-              ))}
-            </div>
-          </div>
-
-          <div className="flex flex-wrap gap-2">
-            <Chip tone="muted" className="text-xs">
-              View: {filterLabel(filter)}
-            </Chip>
-            <Chip tone="muted" className="text-xs">
-              {mediaType === "all"
-                ? "All media"
-                : mediaType === "movie"
-                  ? "Movies only"
-                  : "TV only"}
-            </Chip>
           </div>
         </div>
       </PageCard>

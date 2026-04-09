@@ -70,11 +70,13 @@ export function normalizeUserStatus(
   "wantsToWatch" | "watched" | "watchedAt" | "rating" | "notes"
 > {
   const value = status ?? {};
+  const watched = Boolean(value.watched);
+  const wantsToWatch = watched ? false : Boolean(value.wantsToWatch);
 
   return {
-    wantsToWatch: Boolean(value.wantsToWatch),
-    watched: Boolean(value.watched),
-    watchedAt: value.watchedAt,
+    wantsToWatch,
+    watched,
+    watchedAt: watched ? value.watchedAt : undefined,
     rating: value.rating,
     notes: value.notes,
   };

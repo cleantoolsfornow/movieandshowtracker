@@ -17,17 +17,21 @@ function buildLegacyBackfillPlan({ householdId, titleId, memberIds, status }) {
 
   function upsertUser(userId, update) {
     const previous = userStatusMap.get(userId);
-    if (previous) {
-      userStatusMap.set(userId, { ...previous, ...update });
-      return;
+    const next = previous
+      ? { ...previous, ...update }
+      : {
+          id: createTitleUserStatusId(householdId, titleId, userId),
+          householdId,
+          titleId,
+          userId,
+          ...update,
+        };
+
+    if (next.watched === true) {
+      delete next.wantsToWatch;
     }
-    userStatusMap.set(userId, {
-      id: createTitleUserStatusId(householdId, titleId, userId),
-      householdId,
-      titleId,
-      userId,
-      ...update,
-    });
+
+    userStatusMap.set(userId, next);
   }
 
   if (status.watchedBy?.memberOne === true) {

@@ -8,6 +8,7 @@ import { EmptyStateCard } from "@/components/common/empty-state-card";
 import { LoadingSkeleton } from "@/components/common/loading-skeleton";
 import { PageCard } from "@/components/common/page-card";
 import { SectionHeader } from "@/components/common/section-header";
+import { useTitlesQuery } from "@/lib/tracker/queries";
 import { searchTmdb } from "@/lib/tracker/client-api";
 import type { TmdbSearchResult } from "@/lib/tracker/types";
 
@@ -30,6 +31,17 @@ export default function SearchPage() {
 
   const normalizedQuery = useMemo(() => query.trim(), [query]);
   const hasQuery = normalizedQuery.length > 0;
+  const { data: trackedTitles = [] } = useTitlesQuery();
+  const trackedTitleLookup = useMemo(
+    () =>
+      new Map(
+        trackedTitles.map((record) => [
+          `${record.mediaType}_${record.tmdbId}`,
+          record,
+        ]),
+      ),
+    [trackedTitles],
+  );
 
   useEffect(() => {
     try {
@@ -95,10 +107,10 @@ export default function SearchPage() {
     <div className="space-y-5">
       <PageCard elevated className="app-hero p-5 md:p-6">
         <SectionHeader
-          title="Search & Add"
+          title="Search & Save"
           titleLevel="h1"
           titleClassName="text-3xl"
-          description="Find titles fast, then save to your personal or shared lists in one tap."
+          description="Find titles fast, then save with a status in one tap."
         />
         <div className="mt-5 flex gap-2">
           <input
@@ -207,6 +219,9 @@ export default function SearchPage() {
           <SearchResultCard
             key={`${result.mediaType}_${result.tmdbId}`}
             item={result}
+            existingRecord={trackedTitleLookup.get(
+              `${result.mediaType}_${result.tmdbId}`,
+            )}
             onAdded={(record) => {
               setSuccessMessage(`Saved “${record.name}”.`);
             }}

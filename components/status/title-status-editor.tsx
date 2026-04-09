@@ -31,8 +31,19 @@ function updateMember(
   userId: string,
   updates: Partial<TitleViewModelMember>,
 ): TitleViewModel {
+  const normalizedUpdates = { ...updates };
+
+  if (normalizedUpdates.wantsToWatch === true) {
+    normalizedUpdates.watched = false;
+    normalizedUpdates.watchedAt = undefined;
+  }
+
+  if (normalizedUpdates.watched === true) {
+    normalizedUpdates.wantsToWatch = false;
+  }
+
   const members = record.members.map((member) =>
-    member.userId === userId ? { ...member, ...updates } : member,
+    member.userId === userId ? { ...member, ...normalizedUpdates } : member,
   );
   const currentUserMember =
     members.find((member) => member.userId === record.currentUser.userId) ??

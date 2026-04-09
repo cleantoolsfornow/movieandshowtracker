@@ -1,11 +1,11 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useQueryClient } from "@tanstack/react-query";
 
 import { addTitle } from "@/lib/tracker/client-api";
 import { Button } from "@/components/common/button";
-import { ChipButton } from "@/components/common/chip";
+import { Chip, ChipButton } from "@/components/common/chip";
 import { PageCard } from "@/components/common/page-card";
 import { useHousehold } from "@/components/household/household-context";
 import {
@@ -16,6 +16,7 @@ import {
   buildPosterUrl,
   normalizeParticipantUserIds,
 } from "@/lib/tracker/shared";
+import { cn } from "@/lib/ui/cn";
 import type {
   AddTitleAction,
   TmdbSearchResult,
@@ -24,9 +25,11 @@ import type {
 
 export function SearchResultCard({
   item,
+  existingRecord,
   onAdded,
 }: {
   item: TmdbSearchResult;
+  existingRecord?: TitleViewModel;
   onAdded?: (record: TitleViewModel) => void;
 }) {
   const queryClient = useQueryClient();
@@ -44,6 +47,9 @@ export function SearchResultCard({
   const [participantSelection, setParticipantSelection] = useState<string[]>(
     [],
   );
+  const [trackedRecord, setTrackedRecord] = useState<TitleViewModel | null>(
+    existingRecord ?? null,
+  );
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState<string | null>(null);
 
@@ -53,32 +59,22 @@ export function SearchResultCard({
   const yearLabel = dateLabel ? new Date(dateLabel).getUTCFullYear() : null;
   const posterUrl = buildPosterUrl(item.posterPath ?? null);
   const householdName = household?.name?.trim() || "Household";
-  const actions = [
-    { label: "Add title", action: "add_title_only" as const },
+  const sharedActions = [
     {
-      label: "Save to my watchlist",
-      action: "mark_user_wants_to_watch" as const,
+      label: "Save to shared watchlist",
+      action: "mark_household_wants_to_watch" as const,
     },
-    { label: "Mark watched by me", action: "mark_user_watched" as const },
-    ...(!isSoloHousehold
-      ? ([
-          {
-            label: "Save to shared watchlist",
-            action: "mark_household_wants_to_watch" as const,
-          },
-        ] as const)
-      : []),
-    ...(!isSoloHousehold
-      ? ([
-          {
-            label: isThreePlusHousehold
-              ? "Mark watched together (household event)"
-              : "Mark watched together",
-            action: "mark_watched_together" as const,
-          },
-        ] as const)
-      : []),
+    {
+      label: isThreePlusHousehold
+        ? "Mark watched together (household event)"
+        : "Mark watched together",
+      action: "mark_watched_together" as const,
+    },
   ] as const;
+
+  useEffect(() => {
+    setTrackedRecord(existingRecord ?? null);
+  }, [existingRecord]);
 
   function getDefaultParticipantSelection() {
     if (isTwoMemberHousehold) {
@@ -107,9 +103,6 @@ export function SearchResultCard({
     action: AddTitleAction,
     participantCount?: number,
   ) {
-    if (action === "add_title_only") {
-      return `Added “${titleName}”.`;
-    }
     if (action === "mark_user_wants_to_watch") {
       return `Saved “${titleName}” to your watchlist.`;
     }
@@ -156,6 +149,7 @@ export function SearchResultCard({
       });
       queryClient.setQueryData(titleQueryKey(record.id), record);
       void invalidateTitlesQuery(queryClient);
+      setTrackedRecord(record);
       onAdded?.(record);
       setSuccess(
         successMessageForAction(action, participantUserIds?.length),
@@ -191,6 +185,70 @@ export function SearchResultCard({
     await handleAdd("mark_watched_together", participantUserIds);
   }
 
+  const hasTrackedRecord = Boolean(trackedRecord);
+  const currentUserWantsToWatch = trackedRecord?.currentUser.wantsToWatch ?? false;
+  const currentUserWatched = trackedRecord?.currentUser.watched ?? false;
+  const currentLibraryStatusChips = trackedRecord
+    ? [
+        {
+          label: "In library",
+          tone: "neutral" as const,
+        },
+        ...(trackedRecord.currentUser.wantsToWatch
+          ? [{ label: "Want to watch", tone: "accent" as const }]
+          : []),
+        ...(trackedRecord.currentUser.watched
+          ? [{ label: "Watched", tone: "success" as const }]
+          : []),
+        ...(!isSoloHousehold && trackedRecord.household.wantsToWatch
+          ? [{ label: "Shared watchlist", tone: "muted" as const }]
+          : []),
+        ...(!isSoloHousehold &&
+        !trackedRecord.currentUser.wantsToWatch &&
+        !trackedRecord.household.wantsToWatch &&
+        trackedRecord.household.someMembersWantToWatch
+          ? [
+              {
+                label:
+                  trackedRecord.household.wantsToWatchCount === 1
+                    ? "1 member wants to watch"
+                    : `${trackedRecord.household.wantsToWatchCount} members want to watch`,
+                tone: "muted" as const,
+              },
+            ]
+          : []),
+        ...(!isSoloHousehold && trackedRecord.household.watchedTogether
+          ? [{ label: "Watched together", tone: "success" as const }]
+          : []),
+        ...(!isSoloHousehold &&
+        !trackedRecord.currentUser.watched &&
+        !trackedRecord.household.watchedTogether &&
+        trackedRecord.household.allMembersWatched
+          ? [
+              {
+                label: isTwoMemberHousehold
+                  ? "Both watched"
+                  : "All members watched",
+                tone: "success" as const,
+              },
+            ]
+          : !isSoloHousehold &&
+              !trackedRecord.currentUser.watched &&
+              !trackedRecord.household.watchedTogether &&
+              trackedRecord.household.someMembersWatched
+            ? [
+                {
+                  label:
+                    trackedRecord.household.watchedCount === 1
+                      ? "1 member watched"
+                      : `${trackedRecord.household.watchedCount} members watched`,
+                  tone: "muted" as const,
+                },
+              ]
+            : []),
+      ]
+    : [];
+
   return (
     <PageCard
       as="article"
@@ -225,32 +283,79 @@ export function SearchResultCard({
             {isSoloHousehold
               ? "Personal actions only."
               : isTwoMemberHousehold
-                ? "Personal + shared actions."
+                ? "Personal buttons + shared actions."
                 : `${householdName}: together actions can record which members were there.`}
           </p>
-          <div className="mt-2 flex gap-2">
+          {hasTrackedRecord ? (
+            <div
+              className="mt-2 flex flex-wrap gap-1"
+              aria-label="Current library status"
+            >
+              {currentLibraryStatusChips.map((chip) => (
+                <Chip
+                  key={chip.label}
+                  tone={chip.tone}
+                  className="px-2 py-0.5 text-[11px]"
+                >
+                  {chip.label}
+                </Chip>
+              ))}
+            </div>
+          ) : null}
+          <div className="mt-2 flex flex-wrap gap-2">
             <Button
-              onClick={() => void handleAdd("add_title_only")}
+              variant={currentUserWantsToWatch ? "primary" : "secondary"}
+              onClick={() => void handleAdd("mark_user_wants_to_watch")}
               disabled={isSaving}
               size="sm"
+              aria-pressed={currentUserWantsToWatch}
+              className={cn(
+                currentUserWantsToWatch
+                  ? "ring-2 ring-accent/20 ring-offset-1 ring-offset-transparent"
+                  : "",
+              )}
             >
-              {isSaving ? "Saving..." : "Add"}
+              {isSaving
+                ? "Saving..."
+                : currentUserWantsToWatch
+                  ? "On your list"
+                  : "Want to watch"}
             </Button>
             <Button
-              variant="secondary"
-              onClick={() => setExpanded((value) => !value)}
+              variant={currentUserWatched ? "primary" : "secondary"}
+              onClick={() => void handleAdd("mark_user_watched")}
               disabled={isSaving}
               size="sm"
+              aria-pressed={currentUserWatched}
+              className={cn(
+                currentUserWatched
+                  ? "border-shared-watch/80 bg-[linear-gradient(140deg,var(--shared-watch),#2b5f4f)] text-white shadow-[0_10px_24px_rgb(43_95_79_/_0.28)] hover:border-shared-watch hover:brightness-105 ring-2 ring-shared-watch/15 ring-offset-1 ring-offset-transparent"
+                  : "",
+              )}
             >
-              Quick actions
+              {isSaving
+                ? "Saving..."
+                : currentUserWatched
+                  ? "Already watched"
+                  : "Watched"}
             </Button>
+            {!isSoloHousehold ? (
+              <Button
+                variant="secondary"
+                onClick={() => setExpanded((value) => !value)}
+                disabled={isSaving}
+                size="sm"
+              >
+                Shared actions
+              </Button>
+            ) : null}
           </div>
         </div>
       </div>
 
-      {expanded ? (
-        <div className="mt-3 grid grid-cols-2 gap-2">
-          {actions.map((action) => (
+      {!isSoloHousehold && expanded ? (
+        <div className="mt-3 grid grid-cols-1 gap-2">
+          {sharedActions.map((action) => (
             <Button
               key={action.label}
               onClick={() =>

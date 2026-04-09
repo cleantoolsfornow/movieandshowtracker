@@ -59,6 +59,34 @@ function compactObject<T extends Record<string, unknown>>(value: T) {
   return next;
 }
 
+function buildExclusiveUserPatchFields(
+  patch:
+    | Extract<z.infer<typeof patchSchema>, { action: "set_user_wants_to_watch" }>
+    | Extract<z.infer<typeof patchSchema>, { action: "set_user_watched" }>,
+) {
+  if (patch.action === "set_user_wants_to_watch") {
+    return {
+      wantsToWatch: patch.value,
+      ...(patch.value
+        ? {
+            watched: false,
+            watchedAt: FieldValue.delete(),
+          }
+        : {}),
+    };
+  }
+
+  return {
+    watched: patch.value,
+    watchedAt: patch.value ? patch.watchedAt : FieldValue.delete(),
+    ...(patch.value
+      ? {
+          wantsToWatch: false,
+        }
+      : {}),
+  };
+}
+
 function getPatchErrorStatus(message: string) {
   if (message === "Missing auth token.") {
     return 401;
@@ -202,6 +230,7 @@ export async function PATCH(
           .collection("titleUserStatuses")
           .doc(statusId);
         const userStatusSnapshot = await transaction.get(userStatusRef);
+        const userStatusFields = buildExclusiveUserPatchFields(patch);
 
         transaction.set(
           userStatusRef,
@@ -210,14 +239,7 @@ export async function PATCH(
             householdId,
             titleId,
             userId: patch.userId,
-            ...(patch.action === "set_user_wants_to_watch"
-              ? { wantsToWatch: patch.value }
-              : {
-                  watched: patch.value,
-                  watchedAt: patch.value
-                    ? patch.watchedAt
-                    : FieldValue.delete(),
-                }),
+            ...userStatusFields,
             updatedAt: now,
             updatedBy: uid,
             createdAt: userStatusSnapshot.exists ? undefined : now,

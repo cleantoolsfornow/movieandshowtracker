@@ -163,6 +163,79 @@ describe("TitleStatusEditor", () => {
     });
   });
 
+  it("optimistically clears want-to-watch when marking a member watched", async () => {
+    patchTitleStatusMock.mockImplementation(
+      () => new Promise(() => undefined),
+    );
+
+    render(
+      <TitleStatusEditor
+        record={{
+          ...buildRecord(),
+          members: [
+            {
+              userId: "u1",
+              displayName: "You",
+              wantsToWatch: true,
+              watched: false,
+            },
+            {
+              userId: "u2",
+              displayName: "Casey",
+              wantsToWatch: false,
+              watched: false,
+            },
+          ],
+          currentUser: {
+            userId: "u1",
+            wantsToWatch: true,
+            watched: false,
+          },
+          household: {
+            ...buildRecord().household,
+            wantsToWatchCount: 1,
+            anyMembersWantToWatch: true,
+            allMembersWantToWatch: false,
+            someButNotAllMembersWantToWatch: true,
+            noMembersWantToWatch: false,
+            someMembersWantToWatch: true,
+            multipleMembersWantToWatch: false,
+          },
+        }}
+      />,
+    );
+
+    const watchedHeadings = screen.getAllByRole("heading", { name: "Watched" });
+    const membersWatchedSection =
+      watchedHeadings[watchedHeadings.length - 1]?.closest("section");
+    if (!membersWatchedSection) {
+      throw new Error("Members watched section should exist");
+    }
+
+    const wantsHeadings = screen.getAllByRole("heading", {
+      name: "Wants To Watch",
+    });
+    const wantsSection = wantsHeadings[wantsHeadings.length - 1]?.closest("section");
+    if (!wantsSection) {
+      throw new Error("Want to watch section should exist");
+    }
+
+    const watchedYouButton = within(membersWatchedSection).getByRole("button", {
+      name: "You",
+    });
+    const wantsYouButton = within(wantsSection).getByRole("button", {
+      name: "You",
+    });
+
+    expect(wantsYouButton).toHaveAttribute("aria-pressed", "true");
+    expect(watchedYouButton).toHaveAttribute("aria-pressed", "false");
+
+    fireEvent.click(watchedYouButton);
+
+    expect(watchedYouButton).toHaveAttribute("aria-pressed", "true");
+    expect(wantsYouButton).toHaveAttribute("aria-pressed", "false");
+  });
+
   it("updates the title cache and invalidates title lists after a successful save", async () => {
     const nextRecord = buildRecord();
     patchTitleStatusMock.mockResolvedValue(nextRecord);

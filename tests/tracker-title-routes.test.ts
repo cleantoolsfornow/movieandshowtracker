@@ -71,9 +71,15 @@ function createDb(options?: {
     data: unknown;
     options?: unknown;
   }> = [];
+  let hasWritten = false;
 
   const transaction = {
     get: vi.fn(async (ref?: { _collection?: string }) => {
+      if (hasWritten) {
+        throw new Error(
+          "Firestore transactions require all reads to be executed before all writes.",
+        );
+      }
       const collection = ref?._collection;
       const exists =
         collection === "titles"
@@ -92,6 +98,7 @@ function createDb(options?: {
       };
     }),
     set: vi.fn((ref, data, options) => {
+      hasWritten = true;
       setCalls.push({
         ref: ref as { _collection: string; id: string },
         data,
@@ -204,6 +211,39 @@ describe("title mutation/read routes", () => {
           (call.data as Record<string, unknown>).wantsToWatch === true,
       ),
     ).toBe(true);
+    expect(
+      activeDb.setCalls.some(
+        (call) =>
+          call.ref._collection === "titleUserStatuses" &&
+          (call.data as Record<string, unknown>).watched === false,
+      ),
+    ).toBe(true);
+  });
+
+  it("POST /api/titles/add clears wants-to-watch when marking a title watched", async () => {
+    activeDb = createDb({ titleExists: true, titleHouseholdId: "h1" });
+
+    const response = await addTitlePost(
+      new Request("http://localhost/api/titles/add", {
+        method: "POST",
+        body: JSON.stringify({
+          tmdbId: 101,
+          mediaType: "movie",
+          action: "mark_user_watched",
+        }),
+      }) as never,
+    );
+
+    expect(response.status).toBe(200);
+    const userStatusWrite = activeDb.setCalls.find(
+      (call) => call.ref._collection === "titleUserStatuses",
+    );
+    expect((userStatusWrite?.data as Record<string, unknown>).wantsToWatch).toBe(
+      false,
+    );
+    expect((userStatusWrite?.data as Record<string, unknown>).watched).toBe(
+      true,
+    );
   });
 
   it("POST /api/titles/add accepts action-only payload when title already exists", async () => {
@@ -223,6 +263,35 @@ describe("title mutation/read routes", () => {
     expect(response.status).toBe(200);
   });
 
+  it("POST /api/titles/add accepts null voteAverage from search results", async () => {
+    activeDb = createDb({ titleExists: false, titleHouseholdId: "h1" });
+
+    const response = await addTitlePost(
+      new Request("http://localhost/api/titles/add", {
+        method: "POST",
+        body: JSON.stringify({
+          tmdbId: 101,
+          mediaType: "movie",
+          action: "mark_user_wants_to_watch",
+          name: "Arrival",
+          voteAverage: null,
+        }),
+      }) as never,
+    );
+
+    expect(response.status).toBe(200);
+    const titleWrite = activeDb.setCalls.find(
+      (call) => call.ref._collection === "titles",
+    );
+    expect(titleWrite).toBeDefined();
+    expect(
+      Object.prototype.hasOwnProperty.call(
+        (titleWrite?.data as Record<string, unknown>) ?? {},
+        "voteAverage",
+      ),
+    ).toBe(false);
+  });
+
   it("POST /api/titles/add requires name for new titles", async () => {
     activeDb = createDb({ titleExists: false, titleHouseholdId: "h1" });
 
@@ -232,7 +301,7 @@ describe("title mutation/read routes", () => {
         body: JSON.stringify({
           tmdbId: 101,
           mediaType: "movie",
-          action: "add_title_only",
+          action: "mark_user_watched",
         }),
       }) as never,
     );
@@ -350,6 +419,57 @@ describe("title mutation/read routes", () => {
         "createdAt",
       ),
     ).toBe(false);
+  });
+
+  it("PATCH clears watched when setting wants-to-watch to true", async () => {
+    const response = await patchTitlePatch(
+      new Request("http://localhost/api/titles/h1_movie_101", {
+        method: "PATCH",
+        body: JSON.stringify({
+          action: "set_user_wants_to_watch",
+          userId: "u1",
+          value: true,
+        }),
+      }) as never,
+      { params: Promise.resolve({ titleId: "h1_movie_101" }) },
+    );
+
+    expect(response.status).toBe(200);
+    const userStatusWrite = activeDb.setCalls.find(
+      (call) => call.ref._collection === "titleUserStatuses",
+    );
+    expect((userStatusWrite?.data as Record<string, unknown>).wantsToWatch).toBe(
+      true,
+    );
+    expect((userStatusWrite?.data as Record<string, unknown>).watched).toBe(
+      false,
+    );
+  });
+
+  it("PATCH clears wants-to-watch when setting watched to true", async () => {
+    const response = await patchTitlePatch(
+      new Request("http://localhost/api/titles/h1_movie_101", {
+        method: "PATCH",
+        body: JSON.stringify({
+          action: "set_user_watched",
+          userId: "u1",
+          value: true,
+          watchedAt: "2026-04-09",
+        }),
+      }) as never,
+      { params: Promise.resolve({ titleId: "h1_movie_101" }) },
+    );
+
+    expect(response.status).toBe(200);
+    const userStatusWrite = activeDb.setCalls.find(
+      (call) => call.ref._collection === "titleUserStatuses",
+    );
+    expect((userStatusWrite?.data as Record<string, unknown>).watched).toBe(
+      true,
+    );
+    expect((userStatusWrite?.data as Record<string, unknown>).wantsToWatch).toBe(
+      false,
+    );
   });
 
   it("GET /api/titles/[titleId] returns canonical TitleViewModel record", async () => {

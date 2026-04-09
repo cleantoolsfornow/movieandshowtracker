@@ -98,13 +98,14 @@ describe("buildTitleViewModel", () => {
     expect(viewModel.household.someMembersWatched).toBe(false);
     expect(viewModel.household.noMembersWatched).toBe(false);
     expect(viewModel.household.anyMembersWatched).toBe(true);
-    expect(viewModel.household.anyMembersWantToWatch).toBe(true);
+    expect(viewModel.household.anyMembersWantToWatch).toBe(false);
     expect(viewModel.household.allMembersWantToWatch).toBe(false);
-    expect(viewModel.household.someButNotAllMembersWantToWatch).toBe(true);
-    expect(viewModel.household.noMembersWantToWatch).toBe(false);
-    expect(viewModel.household.someMembersWantToWatch).toBe(true);
+    expect(viewModel.household.someButNotAllMembersWantToWatch).toBe(false);
+    expect(viewModel.household.noMembersWantToWatch).toBe(true);
+    expect(viewModel.household.someMembersWantToWatch).toBe(false);
     expect(viewModel.household.multipleMembersWantToWatch).toBe(false);
     expect(viewModel.household.watchedCount).toBe(2);
+    expect(viewModel.household.wantsToWatchCount).toBe(0);
     expect(viewModel.household.wantsToWatch).toBe(true);
     expect(viewModel.household.watchedTogether).toBe(false);
   });
@@ -144,13 +145,13 @@ describe("buildTitleViewModel", () => {
 
     expect(viewModel.household.memberCount).toBe(3);
     expect(viewModel.household.watchedCount).toBe(1);
-    expect(viewModel.household.wantsToWatchCount).toBe(2);
+    expect(viewModel.household.wantsToWatchCount).toBe(1);
     expect(viewModel.household.anyMembersWantToWatch).toBe(true);
     expect(viewModel.household.allMembersWantToWatch).toBe(false);
     expect(viewModel.household.someButNotAllMembersWantToWatch).toBe(true);
     expect(viewModel.household.noMembersWantToWatch).toBe(false);
     expect(viewModel.household.someMembersWantToWatch).toBe(true);
-    expect(viewModel.household.multipleMembersWantToWatch).toBe(true);
+    expect(viewModel.household.multipleMembersWantToWatch).toBe(false);
     expect(viewModel.household.anyMembersWatched).toBe(true);
     expect(viewModel.household.noMembersWatched).toBe(false);
     expect(viewModel.household.allMembersWatched).toBe(false);
@@ -219,10 +220,10 @@ describe("buildTitleViewModel", () => {
     expect(viewModel.household.allMembersWatched).toBe(false);
     expect(viewModel.household.noMembersWatched).toBe(false);
 
-    expect(viewModel.household.wantsToWatchCount).toBe(2);
+    expect(viewModel.household.wantsToWatchCount).toBe(1);
     expect(viewModel.household.anyMembersWantToWatch).toBe(true);
     expect(viewModel.household.someMembersWantToWatch).toBe(true);
-    expect(viewModel.household.multipleMembersWantToWatch).toBe(true);
+    expect(viewModel.household.multipleMembersWantToWatch).toBe(false);
     expect(viewModel.household.someButNotAllMembersWantToWatch).toBe(true);
     expect(viewModel.household.allMembersWantToWatch).toBe(false);
     expect(viewModel.household.noMembersWantToWatch).toBe(false);

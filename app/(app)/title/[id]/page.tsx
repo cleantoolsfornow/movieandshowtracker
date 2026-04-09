@@ -251,7 +251,7 @@ export default function TitleDetailPage() {
               Watched by me: {record.currentUser.watched ? "Yes" : "No"}
             </Chip>
             <Chip tone={record.currentUser.wantsToWatch ? "accent" : "muted"} className="text-xs">
-              My watchlist: {record.currentUser.wantsToWatch ? "Yes" : "No"}
+              Want to watch: {record.currentUser.wantsToWatch ? "Yes" : "No"}
             </Chip>
           </div>
         </PageCard>

@@ -21,7 +21,6 @@ describe("buildLegacyBackfillPlan", () => {
         titleId: "t1",
         userId: "u1",
         watched: true,
-        wantsToWatch: true,
       },
       {
         id: "h1_t1_u2",

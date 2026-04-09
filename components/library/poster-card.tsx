@@ -154,15 +154,14 @@ export function PosterCard({ record }: { record: TitleViewModel }) {
 
         {isSoloHousehold ? (
           <div className="flex flex-wrap gap-1">
-            <Chip
-              tone={record.currentUser.watched ? "success" : "muted"}
-              className="px-2 py-0.5 text-xs"
-            >
-              {record.currentUser.watched ? "Watched" : "Not watched"}
-            </Chip>
+            {record.currentUser.watched ? (
+              <Chip tone="success" className="px-2 py-0.5 text-xs">
+                Watched
+              </Chip>
+            ) : null}
             {record.currentUser.wantsToWatch ? (
-              <Chip tone="muted" className="px-2 py-0.5 text-xs">
-                My watchlist
+              <Chip tone="accent" className="px-2 py-0.5 text-xs">
+                Want to watch
               </Chip>
             ) : null}
           </div>

@@ -73,7 +73,7 @@ export function DashboardPage() {
   const records = useMemo(() => data ?? [], [data]);
 
   const recentlyAdded = useMemo(() => records.slice(0, 8), [records]);
-  const myWatchlist = useMemo(
+  const wantToWatch = useMemo(
     () => records.filter((record) => record.currentUser.wantsToWatch),
     [records],
   );
@@ -174,8 +174,8 @@ export function DashboardPage() {
           {isSoloHousehold ? (
             <>
               <SummaryCard
-                label="My watchlist"
-                value={myWatchlist.length}
+                label="Want to watch"
+                value={wantToWatch.length}
                 hint="Titles you marked to watch."
               />
               <SummaryCard
@@ -305,7 +305,7 @@ export function DashboardPage() {
         </>
       ) : null}
 
-      <Section title="My watchlist" records={myWatchlist} />
+      <Section title="Want to watch" records={wantToWatch} />
       <Section title="Recently watched" records={recentlyWatchedByMe} />
       <Section title="Recently added" records={recentlyAdded} />
     </div>

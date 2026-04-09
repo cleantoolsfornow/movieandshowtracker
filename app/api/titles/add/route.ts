@@ -16,7 +16,6 @@ import {
 import { normalizeParticipantUserIds } from "@/lib/tracker/shared";
 
 const addActionSchema = z.enum([
-  "add_title_only",
   "mark_user_wants_to_watch",
   "mark_user_watched",
   "mark_household_wants_to_watch",
@@ -49,7 +48,7 @@ const addTitleSchema = z.object({
     .optional(),
   runtime: z.number().int().positive().optional(),
   numberOfSeasons: z.number().int().positive().optional(),
-  voteAverage: z.number().optional(),
+  voteAverage: z.number().nullable().optional(),
 });
 
 function normalizeGenres(
@@ -72,6 +71,25 @@ function compactObject<T extends Record<string, unknown>>(value: T) {
     }
   }
   return next;
+}
+
+function buildExclusiveUserStatusFields(action: z.infer<typeof addActionSchema>) {
+  if (action === "mark_user_wants_to_watch") {
+    return {
+      wantsToWatch: true,
+      watched: false,
+      watchedAt: FieldValue.delete(),
+    };
+  }
+
+  if (action === "mark_user_watched") {
+    return {
+      wantsToWatch: false,
+      watched: true,
+    };
+  }
+
+  return {};
 }
 
 async function getValidatedParticipantUserIds(
@@ -148,7 +166,7 @@ export async function POST(request: NextRequest) {
       genres: normalizeGenres(parsed.genres),
       runtime: parsed.runtime,
       numberOfSeasons: parsed.numberOfSeasons,
-      voteAverage: parsed.voteAverage,
+      voteAverage: parsed.voteAverage ?? undefined,
     });
 
     const adminDb = getAdminDb();
@@ -156,6 +174,26 @@ export async function POST(request: NextRequest) {
     await adminDb.runTransaction(async (transaction) => {
       const titleRef = adminDb.collection("titles").doc(titleId);
       const titleSnapshot = await transaction.get(titleRef);
+      const shouldWriteUserStatus =
+        parsed.action === "mark_user_wants_to_watch" ||
+        parsed.action === "mark_user_watched";
+      const shouldWriteHouseholdStatus =
+        parsed.action === "mark_household_wants_to_watch" ||
+        parsed.action === "mark_watched_together";
+      const userStatusRef = shouldWriteUserStatus
+        ? adminDb
+            .collection("titleUserStatuses")
+            .doc(createTitleUserStatusId(householdId, titleId, targetUserId))
+        : null;
+      const householdStatusRef = shouldWriteHouseholdStatus
+        ? adminDb.collection("titleHouseholdStatuses").doc(titleId)
+        : null;
+      const userStatusSnapshot = userStatusRef
+        ? await transaction.get(userStatusRef)
+        : null;
+      const householdStatusSnapshot = householdStatusRef
+        ? await transaction.get(householdStatusRef)
+        : null;
       const now = FieldValue.serverTimestamp();
       const existingName =
         (titleSnapshot.get("name") as string | undefined) ??
@@ -193,47 +231,25 @@ export async function POST(request: NextRequest) {
         );
       }
 
-      if (
-        parsed.action === "mark_user_wants_to_watch" ||
-        parsed.action === "mark_user_watched"
-      ) {
-        const statusId = createTitleUserStatusId(
-          householdId,
-          titleId,
-          targetUserId,
-        );
-        const userStatusRef = adminDb
-          .collection("titleUserStatuses")
-          .doc(statusId);
-        const userStatusSnapshot = await transaction.get(userStatusRef);
-
+      if (shouldWriteUserStatus && userStatusRef) {
+        const userStatusFields = buildExclusiveUserStatusFields(parsed.action);
         transaction.set(
           userStatusRef,
           compactObject({
-            id: statusId,
+            id: userStatusRef.id,
             householdId,
             titleId,
             userId: targetUserId,
-            wantsToWatch:
-              parsed.action === "mark_user_wants_to_watch" ? true : undefined,
-            watched: parsed.action === "mark_user_watched" ? true : undefined,
+            ...userStatusFields,
             updatedAt: now,
             updatedBy: uid,
-            createdAt: userStatusSnapshot.exists ? undefined : now,
+            createdAt: userStatusSnapshot?.exists ? undefined : now,
           }),
           { merge: true },
         );
       }
 
-      if (
-        parsed.action === "mark_household_wants_to_watch" ||
-        parsed.action === "mark_watched_together"
-      ) {
-        const householdStatusRef = adminDb
-          .collection("titleHouseholdStatuses")
-          .doc(titleId);
-        const householdStatusSnapshot = await transaction.get(householdStatusRef);
-
+      if (shouldWriteHouseholdStatus && householdStatusRef) {
         transaction.set(
           householdStatusRef,
           compactObject({
@@ -251,7 +267,7 @@ export async function POST(request: NextRequest) {
                 : undefined,
             updatedAt: now,
             updatedBy: uid,
-            createdAt: householdStatusSnapshot.exists ? undefined : now,
+            createdAt: householdStatusSnapshot?.exists ? undefined : now,
           }),
           { merge: true },
         );
@@ -266,12 +282,19 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ record, titleId });
   } catch (error) {
     const message =
-      error instanceof Error ? error.message : "Failed to save title.";
+      error instanceof z.ZodError
+        ? error.issues[0]?.message ?? "Invalid title payload."
+        : error instanceof Error
+          ? error.message
+          : "Failed to save title.";
+    const isDev = process.env.NODE_ENV !== "production";
     const status =
       message === "Missing auth token."
         ? 401
         : message === "Forbidden."
           ? 403
+          : error instanceof z.ZodError
+            ? 400
           : message.includes("household") ||
               message.includes("name") ||
               message.includes("participant")
@@ -280,7 +303,7 @@ export async function POST(request: NextRequest) {
     logServerError("api.titles.add", error, { status });
 
     return NextResponse.json(
-      { error: status === 500 ? "Failed to save title." : message },
+      { error: status === 500 && !isDev ? "Failed to save title." : message },
       { status },
     );
   }

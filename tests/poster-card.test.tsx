@@ -37,6 +37,36 @@ function buildRecord(overrides: Partial<TitleViewModel> = {}): TitleViewModel {
 }
 
 describe("PosterCard", () => {
+  it("shows only active personal status chips for solo households", () => {
+    render(
+      <PosterCard
+        record={buildRecord({
+          household: {
+            wantsToWatch: false,
+            watchedTogether: false,
+            allMembersWatched: false,
+            someMembersWatched: false,
+            watchedCount: 0,
+            wantsToWatchCount: 1,
+            memberCount: 1,
+          },
+          members: [
+            {
+              userId: "u1",
+              displayName: "Alex",
+              wantsToWatch: true,
+              watched: false,
+            },
+          ],
+          currentUser: { userId: "u1", wantsToWatch: true, watched: false },
+        })}
+      />,
+    );
+
+    expect(screen.getByText("Want to watch")).toBeInTheDocument();
+    expect(screen.queryByText("Not watched")).not.toBeInTheDocument();
+  });
+
   it("shows concise per-member badges for 1-2 member households", () => {
     render(<PosterCard record={buildRecord()} />);
 

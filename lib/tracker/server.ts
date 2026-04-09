@@ -342,15 +342,14 @@ export async function getTitleViewModelById(
       listHouseholdMembers(householdId),
       getAdminDb()
         .collection("titleUserStatuses")
-        .where("householdId", "==", householdId)
         .where("titleId", "==", titleId)
         .get(),
       getAdminDb().collection("titleHouseholdStatuses").doc(titleId).get(),
     ]);
 
-  const userStatuses = titleUserStatusSnapshots.docs.map(
-    mapTitleUserStatusDocument,
-  );
+  const userStatuses = titleUserStatusSnapshots.docs
+    .map(mapTitleUserStatusDocument)
+    .filter((status) => status.householdId === householdId);
   const householdStatus =
     titleHouseholdStatusSnapshot.exists &&
     titleHouseholdStatusSnapshot.get("householdId") === householdId

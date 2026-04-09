@@ -52,7 +52,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
             </span>
           </Link>
           <nav className="max-w-full overflow-x-auto">
-            <div className="border-border-subtle bg-surface/90 shadow-soft flex min-w-max items-center gap-1 rounded-2xl border p-1">
+            <div className="border-border-subtle bg-surface/90 flex min-w-max items-center gap-1 rounded-2xl border p-1">
               {NAV_ITEMS.map((item) => {
                 const active =
                   pathname === item.href ||
@@ -64,9 +64,9 @@ export function AppShell({ children }: { children: React.ReactNode }) {
                     href={item.href}
                     className={`rounded-xl px-3 py-1.5 text-sm font-semibold ${
                       active
-                        ? "bg-[linear-gradient(140deg,var(--accent),var(--accent-strong))] text-accent-contrast shadow-[0_8px_18px_rgb(37_108_63_/_0.28)]"
+                        ? "bg-[linear-gradient(140deg,var(--accent),var(--accent-strong))] text-accent-contrast"
                         : "text-text-muted hover:bg-surface-muted hover:text-foreground"
-                    } app-interactive`}
+                    }`}
                   >
                     {item.href === "/settings" ? (
                       <span className="inline-flex items-center gap-2">

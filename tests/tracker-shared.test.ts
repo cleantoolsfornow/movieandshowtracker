@@ -37,6 +37,22 @@ describe("tracker shared helpers", () => {
     });
   });
 
+  it("normalizes conflicting user statuses so watched wins", () => {
+    expect(
+      normalizeUserStatus({
+        wantsToWatch: true,
+        watched: true,
+        watchedAt: "2026-04-09",
+      }),
+    ).toEqual({
+      wantsToWatch: false,
+      watched: true,
+      watchedAt: "2026-04-09",
+      rating: undefined,
+      notes: undefined,
+    });
+  });
+
   it("maps member docs to view-model members and extracts current user", () => {
     const members = [
       { uid: "u1", displayName: "Alex" },
@@ -132,7 +148,7 @@ describe("tracker shared helpers", () => {
     });
   });
 
-  it("computes correct two-member summaries when everyone watched and wants", () => {
+  it("computes summaries after normalizing conflicting watched+wants statuses", () => {
     const members = [{ uid: "u1" }, { uid: "u2" }];
     const statuses = new Map<string, { watched: boolean; wantsToWatch: boolean }>([
       ["u1", { watched: true, wantsToWatch: true }],
@@ -142,17 +158,17 @@ describe("tracker shared helpers", () => {
     expect(computeDerivedSummary(members, statuses)).toMatchObject({
       memberCount: 2,
       watchedCount: 2,
-      wantsToWatchCount: 2,
+      wantsToWatchCount: 0,
       anyMembersWatched: true,
       allMembersWatched: true,
       someMembersWatched: false,
       noMembersWatched: false,
-      anyMembersWantToWatch: true,
-      allMembersWantToWatch: true,
+      anyMembersWantToWatch: false,
+      allMembersWantToWatch: false,
       someButNotAllMembersWantToWatch: false,
-      noMembersWantToWatch: false,
-      someMembersWantToWatch: true,
-      multipleMembersWantToWatch: true,
+      noMembersWantToWatch: true,
+      someMembersWantToWatch: false,
+      multipleMembersWantToWatch: false,
     });
   });
 
@@ -168,7 +184,7 @@ describe("tracker shared helpers", () => {
     expect(computeDerivedSummary(members, statuses)).toMatchObject({
       memberCount: 4,
       watchedCount: 2,
-      wantsToWatchCount: 2,
+      wantsToWatchCount: 1,
       anyMembersWatched: true,
       allMembersWatched: false,
       someMembersWatched: true,
@@ -178,7 +194,7 @@ describe("tracker shared helpers", () => {
       someButNotAllMembersWantToWatch: true,
       noMembersWantToWatch: false,
       someMembersWantToWatch: true,
-      multipleMembersWantToWatch: true,
+      multipleMembersWantToWatch: false,
     });
   });
 });

@@ -75,7 +75,7 @@ describe("Home household copy", () => {
     render(<DashboardPage />);
 
     expect(screen.getByText("Solo household")).toBeInTheDocument();
-    expect(screen.getByText("My watchlist")).toBeInTheDocument();
+    expect(screen.getByText("Want to watch")).toBeInTheDocument();
     expect(screen.queryByText("Shared watchlist")).not.toBeInTheDocument();
     expect(screen.queryByText("Recently watched together")).not.toBeInTheDocument();
   });

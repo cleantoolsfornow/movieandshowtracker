@@ -159,7 +159,6 @@ export type TmdbSearchResult = {
 };
 
 export type AddTitleAction =
-  | "add_title_only"
   | "mark_user_wants_to_watch"
   | "mark_user_watched"
   | "mark_household_wants_to_watch"
