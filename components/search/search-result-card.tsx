@@ -51,7 +51,6 @@ export function SearchResultCard({
     existingRecord ?? null,
   );
   const [error, setError] = useState<string | null>(null);
-  const [success, setSuccess] = useState<string | null>(null);
 
   const isThreePlusHousehold = memberCount >= 3;
   const titleName = item.name ?? item.title ?? "Untitled";
@@ -96,32 +95,6 @@ export function SearchResultCard({
     setParticipantSelection(getDefaultParticipantSelection());
     setIsSelectingParticipants(true);
     setError(null);
-    setSuccess(null);
-  }
-
-  function successMessageForAction(
-    action: AddTitleAction,
-    participantCount?: number,
-  ) {
-    if (action === "mark_user_wants_to_watch") {
-      return `Saved “${titleName}” to your watchlist.`;
-    }
-    if (action === "mark_user_watched") {
-      return `Marked “${titleName}” as watched by you.`;
-    }
-    if (action === "mark_household_wants_to_watch") {
-      return isSoloHousehold
-        ? `Saved “${titleName}” to your watchlist.`
-        : `Saved “${titleName}” to the shared watchlist.`;
-    }
-    if (action === "mark_watched_together") {
-      return isThreePlusHousehold && participantCount
-        ? `Marked “${titleName}” as watched together for ${participantCount} members.`
-        : isThreePlusHousehold
-          ? `Marked “${titleName}” as watched together (household event).`
-        : `Marked “${titleName}” as watched together.`;
-    }
-    return `Saved “${titleName}”.`;
   }
 
   async function handleAdd(
@@ -130,7 +103,6 @@ export function SearchResultCard({
   ) {
     setIsSaving(true);
     setError(null);
-    setSuccess(null);
 
     try {
       const record = await addTitle({
@@ -151,9 +123,6 @@ export function SearchResultCard({
       void invalidateTitlesQuery(queryClient);
       setTrackedRecord(record);
       onAdded?.(record);
-      setSuccess(
-        successMessageForAction(action, participantUserIds?.length),
-      );
       setExpanded(false);
       setIsSelectingParticipants(false);
     } catch (err) {
@@ -421,11 +390,6 @@ export function SearchResultCard({
         </div>
       ) : null}
 
-      {success ? (
-        <p className="mt-2 text-xs text-emerald-700" aria-live="polite">
-          {success}
-        </p>
-      ) : null}
       {error ? <p className="mt-2 text-xs text-red-600">{error}</p> : null}
     </PageCard>
   );

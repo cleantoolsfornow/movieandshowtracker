@@ -151,18 +151,11 @@ export default function SettingsPage() {
 
   return (
     <div className="space-y-5">
-      <PageCard elevated className="app-hero p-5 md:p-6">
-        <SectionHeader
-          title="Settings"
-          titleLevel="h1"
-          titleClassName="text-3xl"
-          description={
-            isSoloHousehold
-              ? "Account and household details for your current solo setup."
-              : "Account and household details for your shared setup."
-          }
-        />
-        <div className="mt-3 flex flex-wrap gap-2">
+      <PageCard
+        elevated
+        className="-mx-4 -mt-6 app-hero p-5 md:mx-0 md:mt-0 md:p-6 max-md:rounded-none max-md:border-0 max-md:px-4 max-md:py-2 max-md:ring-0"
+      >
+        <div className="flex flex-wrap gap-2">
           <Chip tone="muted" className="text-xs">
             {isSoloHousehold
               ? "Solo household"
@@ -176,7 +169,7 @@ export default function SettingsPage() {
         </div>
       </PageCard>
 
-      <PageCard className="p-5">
+      <PageCard className="-mx-4 p-5 md:mx-0 max-md:rounded-none max-md:border-0 max-md:ring-0">
         <SectionHeader title="Account" titleLevel="h2" />
         <p className="mt-2 text-sm text-text-muted">
           Signed in as {user?.email ?? user?.displayName ?? "Unknown"}
@@ -281,7 +274,7 @@ export default function SettingsPage() {
       ) : null}
 
       {household ? (
-        <PageCard className="p-5">
+        <PageCard className="-mx-4 p-5 md:mx-0 max-md:rounded-none max-md:border-0 max-md:ring-0">
           <SectionHeader
             title="Household"
             titleLevel="h2"

@@ -154,6 +154,20 @@ export default function LibraryPage() {
   );
   const hasCustomSelection =
     mediaType !== "all" || filter !== "all" || sort !== "recently_updated";
+  const mediaLabel =
+    mediaType === "all"
+      ? "All media"
+      : mediaType === "movie"
+        ? "Movies only"
+        : "TV only";
+  const sortLabel =
+    sort === "recently_updated"
+      ? "Recently updated"
+      : sort === "recently_added"
+        ? "Recently added"
+        : sort === "release_date"
+          ? "Release date"
+          : "Alphabetical";
   const shouldShowSharedWatchCallout =
     !isSoloHousehold &&
     (filter === "watched_together" || (filter === "all" && watchedTogetherRecords.length > 0));
@@ -204,9 +218,44 @@ export default function LibraryPage() {
 
   return (
     <div className="space-y-5">
-      <div>
-        <div className="rounded-2xl border border-border-subtle/85 bg-surface/72 p-3 shadow-soft md:p-4">
-          <div className="space-y-3">
+      <div className="-mx-4 -mt-6 md:mx-0 md:mt-0">
+        <details className="group rounded-none border-0 bg-surface/72 px-3 py-2 shadow-soft md:rounded-2xl md:border md:border-border-subtle/85 md:p-4">
+          <summary className="flex cursor-pointer list-none items-center justify-between gap-3">
+            <div className="flex min-w-0 flex-wrap items-center gap-2">
+              <p className="hidden text-[11px] font-semibold tracking-[0.18em] text-text-soft uppercase sm:block">
+                Filters
+              </p>
+              <Chip tone="muted" className="text-xs">
+                <span className="hidden sm:inline">View: </span>
+                {filterLabel(filter)}
+              </Chip>
+              <Chip tone="muted" className="text-xs">
+                {mediaLabel}
+              </Chip>
+              <Chip tone="muted" className="text-xs">
+                <span className="hidden sm:inline">Sort: </span>
+                {sortLabel}
+              </Chip>
+            </div>
+            <span className="inline-flex h-7 w-7 items-center justify-center rounded-full border border-border-subtle/70 text-text-soft transition-colors group-hover:border-border-subtle">
+              <svg
+                viewBox="0 0 20 20"
+                fill="none"
+                aria-hidden="true"
+                className="h-4 w-4 transition-transform duration-200 ease-out group-open:rotate-180"
+              >
+                <path
+                  d="M5 8l5 5 5-5"
+                  stroke="currentColor"
+                  strokeWidth="1.8"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                />
+              </svg>
+            </span>
+          </summary>
+
+          <div className="mt-3 space-y-3 border-t border-border-subtle/70 pt-3">
             <div className="flex flex-col gap-2 md:flex-row md:items-start">
               <div className="min-w-0 md:w-28">
                 <p className="text-[11px] font-semibold tracking-[0.18em] text-text-soft uppercase">
@@ -392,45 +441,23 @@ export default function LibraryPage() {
               </div>
             </div>
 
-            <div className="border-t border-border-subtle/70 pt-3">
-              <div className="flex flex-wrap items-center gap-2">
-                <Chip tone="muted" className="text-xs">
-                  View: {filterLabel(filter)}
-                </Chip>
-                <Chip tone="muted" className="text-xs">
-                  {mediaType === "all"
-                    ? "All media"
-                    : mediaType === "movie"
-                      ? "Movies only"
-                      : "TV only"}
-                </Chip>
-                <Chip tone="muted" className="text-xs">
-                  Sort:{" "}
-                  {sort === "recently_updated"
-                    ? "Recently updated"
-                    : sort === "recently_added"
-                      ? "Recently added"
-                      : sort === "release_date"
-                        ? "Release date"
-                        : "Alphabetical"}
-                </Chip>
-                {hasCustomSelection ? (
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    onClick={() => {
-                      setMediaType("all");
-                      setFilter("all");
-                      setSort("recently_updated");
-                    }}
-                  >
-                    Reset filters
-                  </Button>
-                ) : null}
+            {hasCustomSelection ? (
+              <div className="border-t border-border-subtle/70 pt-3">
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => {
+                    setMediaType("all");
+                    setFilter("all");
+                    setSort("recently_updated");
+                  }}
+                >
+                  Reset filters
+                </Button>
               </div>
-            </div>
+            ) : null}
           </div>
-        </div>
+        </details>
       </div>
 
       {error ? (
