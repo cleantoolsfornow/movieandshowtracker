@@ -6,8 +6,6 @@ import { Button } from "@/components/common/button";
 import { Chip } from "@/components/common/chip";
 import { EmptyStateCard } from "@/components/common/empty-state-card";
 import { LoadingSkeleton } from "@/components/common/loading-skeleton";
-import { PageCard } from "@/components/common/page-card";
-import { SectionHeader } from "@/components/common/section-header";
 import { SharedWatchCallout } from "@/components/common/shared-watch-callout";
 import { useHousehold } from "@/components/household/household-context";
 import { PosterCard } from "@/components/library/poster-card";
@@ -206,19 +204,8 @@ export default function LibraryPage() {
 
   return (
     <div className="space-y-5">
-      <PageCard elevated className="app-hero p-5 md:p-6">
-        <SectionHeader
-          title="Library"
-          titleLevel="h1"
-          titleClassName="text-3xl"
-          description={
-            isSoloHousehold
-              ? "Browse your personal tracking views."
-              : "Browse shared and personal views across your household."
-          }
-        />
-
-        <div className="mt-5 rounded-2xl border border-border-subtle/85 bg-surface/72 p-3 shadow-soft md:p-4">
+      <div>
+        <div className="rounded-2xl border border-border-subtle/85 bg-surface/72 p-3 shadow-soft md:p-4">
           <div className="space-y-3">
             <div className="flex flex-col gap-2 md:flex-row md:items-start">
               <div className="min-w-0 md:w-28">
@@ -444,7 +431,7 @@ export default function LibraryPage() {
             </div>
           </div>
         </div>
-      </PageCard>
+      </div>
 
       {error ? (
         <p className="rounded-xl border border-red-200/85 bg-red-50/80 p-3 text-sm text-red-700">

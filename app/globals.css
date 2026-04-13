@@ -191,12 +191,11 @@ button:active {
 .app-hero::before {
   content: "";
   position: absolute;
-  inset: -30% -8% auto -8%;
-  height: 240px;
+  inset: 0;
   background:
-    radial-gradient(circle at 0% 25%, rgb(219 241 158 / 0.48), transparent 48%),
-    radial-gradient(circle at 100% 20%, rgb(244 188 70 / 0.28), transparent 54%),
-    radial-gradient(circle at 80% 90%, rgb(44 116 74 / 0.2), transparent 52%);
+    radial-gradient(circle at 0% 18%, rgb(219 241 158 / 0.34), transparent 46%),
+    radial-gradient(circle at 100% 14%, rgb(244 188 70 / 0.2), transparent 52%),
+    radial-gradient(circle at 80% 90%, rgb(44 116 74 / 0.14), transparent 56%);
   pointer-events: none;
   z-index: -1;
 }

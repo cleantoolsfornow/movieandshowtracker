@@ -36,7 +36,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
         className="pointer-events-none absolute inset-x-0 top-0 -z-10 h-80 bg-[radial-gradient(circle_at_8%_0%,rgba(219,241,158,0.5),transparent_38%),radial-gradient(circle_at_100%_0%,rgba(244,188,70,0.28),transparent_34%),radial-gradient(circle_at_65%_46%,rgba(52,111,85,0.18),transparent_40%)] blur-3xl"
       />
       <header className="border-border-subtle/85 bg-surface-strong/88 sticky top-0 z-20 border-b backdrop-blur-2xl">
-        <div className="mx-auto flex w-full max-w-6xl flex-wrap items-center justify-between gap-3 px-4 py-3">
+        <div className="flex w-full flex-wrap items-center justify-between gap-3 px-4 py-3">
           <Link
             href="/dashboard"
             className="text-foreground inline-flex min-w-0 items-center gap-3 text-sm font-bold tracking-[0.06em]"
@@ -44,11 +44,8 @@ export function AppShell({ children }: { children: React.ReactNode }) {
             <span className="shadow-soft flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl border border-[rgb(58,104,63,0.2)] bg-[linear-gradient(145deg,rgba(219,241,158,0.86),rgba(244,188,70,0.4))] text-[rgb(31,87,51)]">
               <PickleIcon className="h-9 w-9" />
             </span>
-            <span className="min-w-0">
-              <span className="app-kicker block leading-none">FilmPickle</span>
-              <span className="font-display text-foreground block truncate text-base tracking-[0.01em] sm:text-lg">
-                Your watch universe
-              </span>
+            <span className="font-display text-foreground block truncate text-lg tracking-[0.01em] sm:text-xl">
+              FilmPickle
             </span>
           </Link>
           <nav className="max-w-full overflow-x-auto">
