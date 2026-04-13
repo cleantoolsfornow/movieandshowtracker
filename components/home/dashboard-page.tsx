@@ -11,6 +11,7 @@ import { SectionHeader } from "@/components/common/section-header";
 import { SharedWatchCallout } from "@/components/common/shared-watch-callout";
 import { useHousehold } from "@/components/household/household-context";
 import { PosterCard } from "@/components/library/poster-card";
+import { FilmIcon, SearchIcon } from "@/components/marketing/inline-icons";
 import { useTitlesQuery } from "@/lib/tracker/queries";
 import type { TitleViewModel } from "@/lib/tracker/types";
 
@@ -116,7 +117,7 @@ export function DashboardPage() {
     <div className="space-y-6">
       <PageCard
         elevated
-        className="app-hero bg-[linear-gradient(145deg,rgba(255,253,247,0.9),rgba(245,238,215,0.74))] p-5 md:p-6"
+        className="-mx-4 -mt-6 app-hero bg-[linear-gradient(145deg,rgba(255,253,247,0.9),rgba(245,238,215,0.74))] p-5 md:mx-0 md:mt-0 md:p-6 max-md:rounded-none max-md:border-0 max-md:ring-0 max-md:shadow-none"
       >
         <SectionHeader
           title={
@@ -127,9 +128,7 @@ export function DashboardPage() {
           titleLevel="h1"
           titleClassName="text-3xl"
           description={
-            isSoloHousehold
-              ? "Your tracker, organized for quick decisions."
-              : `A shared snapshot for ${memberCount} members.`
+            isSoloHousehold ? undefined : `A shared snapshot for ${memberCount} members.`
           }
         />
         <div className="mt-4 flex flex-wrap items-center gap-2">
@@ -151,13 +150,19 @@ export function DashboardPage() {
             href="/search"
             className="inline-flex items-center justify-center rounded-xl border border-accent/85 bg-[linear-gradient(140deg,var(--accent),var(--accent-strong))] px-3.5 py-2 text-sm font-semibold text-accent-contrast shadow-[0_10px_24px_rgb(37_108_63_/_0.26)] hover:-translate-y-[1px] hover:brightness-105"
           >
-            Quick add
+            <span className="inline-flex items-center gap-1.5">
+              <SearchIcon className="h-4 w-4" />
+              <span>Search</span>
+            </span>
           </Link>
           <Link
             href="/library"
             className="inline-flex items-center justify-center rounded-xl border border-border-strong/45 bg-surface/90 px-3.5 py-2 text-sm font-semibold text-text-muted shadow-[0_6px_18px_rgb(70_74_34_/_0.12)] hover:-translate-y-[1px] hover:bg-surface-muted hover:text-foreground"
           >
-            Browse library
+            <span className="inline-flex items-center gap-1.5">
+              <FilmIcon className="h-4 w-4" />
+              <span>Your Library</span>
+            </span>
           </Link>
         </div>
       </PageCard>

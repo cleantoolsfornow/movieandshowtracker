@@ -17,11 +17,6 @@ const NAV_ITEMS = [
   { href: "/library", label: "Library", icon: FilmIcon },
 ];
 
-const DESKTOP_NAV_ITEMS = [
-  ...NAV_ITEMS,
-  { href: "/settings", label: "Profile", icon: UsersIcon },
-];
-
 export function AppShell({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
   const { user, profile } = useAuth();
@@ -32,6 +27,8 @@ export function AppShell({ children }: { children: React.ReactNode }) {
       .trim()
       .slice(0, 1)
       .toUpperCase() || "P";
+  const isProfileActive =
+    pathname === "/settings" || pathname.startsWith("/settings/");
 
   return (
     <div className="relative min-h-screen">
@@ -41,7 +38,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
       />
       <header className="border-border-subtle/85 bg-surface-strong/88 sticky top-0 z-20 border-b-0 backdrop-blur-2xl sm:border-b">
         <div className="w-full px-4 pt-2 pb-0 sm:py-3">
-          <div className="flex items-center justify-between gap-3 py-1 sm:py-0">
+          <div className="relative flex items-center justify-between gap-3 py-1 sm:py-0">
             <Link
               href="/dashboard"
               className="text-foreground -ml-1 inline-flex min-w-0 items-center gap-3 text-sm font-bold tracking-[0.06em] sm:ml-0"
@@ -72,9 +69,59 @@ export function AppShell({ children }: { children: React.ReactNode }) {
                 </span>
               )}
             </Link>
+
+            <Link
+              href="/settings"
+              className={`hidden items-center gap-2 rounded-xl border px-3 py-1.5 text-sm font-semibold sm:inline-flex ${
+                isProfileActive
+                  ? "border-accent/85 bg-[linear-gradient(140deg,var(--accent),var(--accent-strong))] text-accent-contrast"
+                  : "border-border-subtle bg-surface/90 text-text-muted hover:bg-surface-muted hover:text-foreground"
+              }`}
+            >
+              {avatarUrl ? (
+                // eslint-disable-next-line @next/next/no-img-element
+                <img
+                  src={avatarUrl}
+                  alt="Profile"
+                  className="ring-border-strong/40 h-5 w-5 rounded-full object-cover ring-1"
+                />
+              ) : (
+                <span className="bg-surface-muted text-text-muted ring-border-strong/35 flex h-5 w-5 items-center justify-center rounded-full text-[10px] font-semibold ring-1">
+                  {avatarFallback}
+                </span>
+              )}
+              <span>Profile</span>
+            </Link>
+
+            <div className="pointer-events-none absolute inset-y-0 left-1/2 hidden -translate-x-1/2 items-center sm:flex">
+              <div className="pointer-events-auto border-border-subtle bg-surface/90 inline-flex items-center gap-1 rounded-2xl border p-1">
+                {NAV_ITEMS.map((item) => {
+                  const active =
+                    pathname === item.href ||
+                    pathname.startsWith(`${item.href}/`);
+                  const Icon = item.icon;
+                  return (
+                    <Link
+                      key={item.href}
+                      href={item.href}
+                      className={`rounded-xl px-3 py-1.5 text-sm font-semibold ${
+                        active
+                          ? "bg-[linear-gradient(140deg,var(--accent),var(--accent-strong))] text-accent-contrast"
+                          : "text-text-muted hover:bg-surface-muted hover:text-foreground"
+                      }`}
+                    >
+                      <span className="inline-flex items-center gap-2">
+                        <Icon className="h-4 w-4" />
+                        <span>{item.label}</span>
+                      </span>
+                    </Link>
+                  );
+                })}
+              </div>
+            </div>
           </div>
 
-          <nav className="-mx-4 mt-1.5 max-w-none overflow-x-auto sm:mx-0 sm:mt-3">
+          <nav className="-mx-4 mt-1.5 max-w-none overflow-x-auto sm:hidden">
             <div className="border-border-subtle bg-surface/92 grid grid-cols-3 border-y sm:hidden">
               {NAV_ITEMS.map((item, index) => {
                 const active =
@@ -97,49 +144,6 @@ export function AppShell({ children }: { children: React.ReactNode }) {
                       <Icon className="h-4 w-4" />
                       <span>{item.label}</span>
                     </span>
-                  </Link>
-                );
-              })}
-            </div>
-
-            <div className="border-border-subtle bg-surface/90 hidden min-w-max items-center gap-1 rounded-2xl border p-1 sm:flex">
-              {DESKTOP_NAV_ITEMS.map((item) => {
-                const active =
-                  pathname === item.href ||
-                  pathname.startsWith(`${item.href}/`);
-                const Icon = item.icon;
-                return (
-                  <Link
-                    key={item.href}
-                    href={item.href}
-                    className={`rounded-xl px-3 py-1.5 text-sm font-semibold ${
-                      active
-                        ? "bg-[linear-gradient(140deg,var(--accent),var(--accent-strong))] text-accent-contrast"
-                        : "text-text-muted hover:bg-surface-muted hover:text-foreground"
-                    }`}
-                  >
-                    {item.href === "/settings" ? (
-                      <span className="inline-flex items-center gap-2">
-                        {avatarUrl ? (
-                          // eslint-disable-next-line @next/next/no-img-element
-                          <img
-                            src={avatarUrl}
-                            alt="Profile"
-                            className="ring-border-strong/40 h-5 w-5 rounded-full object-cover ring-1"
-                          />
-                        ) : (
-                          <span className="bg-surface-muted text-text-muted ring-border-strong/35 flex h-5 w-5 items-center justify-center rounded-full text-[10px] font-semibold ring-1">
-                            {avatarFallback}
-                          </span>
-                        )}
-                        <span>{item.label}</span>
-                      </span>
-                    ) : (
-                      <span className="inline-flex items-center gap-2">
-                        <Icon className="h-4 w-4" />
-                        <span>{item.label}</span>
-                      </span>
-                    )}
                   </Link>
                 );
               })}
