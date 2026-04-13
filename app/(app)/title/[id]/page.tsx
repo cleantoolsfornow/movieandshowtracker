@@ -3,7 +3,8 @@
 import Link from "next/link";
 import { useParams } from "next/navigation";
 import { useQueryClient } from "@tanstack/react-query";
-import { useState } from "react";
+import { useEffect, useState } from "react";
+import { createPortal } from "react-dom";
 
 import { Button } from "@/components/common/button";
 import { Chip } from "@/components/common/chip";
@@ -33,6 +34,8 @@ export default function TitleDetailPage() {
   const [refreshErrorMessage, setRefreshErrorMessage] = useState<string | null>(
     null,
   );
+  const [isPosterLightboxOpen, setIsPosterLightboxOpen] = useState(false);
+  const [isClient, setIsClient] = useState(false);
 
   if (isLoading) {
     return (
@@ -82,6 +85,31 @@ export default function TitleDetailPage() {
       })
       .filter((value): value is string => Boolean(value));
 
+  useEffect(() => {
+    setIsClient(true);
+  }, []);
+
+  useEffect(() => {
+    if (!isPosterLightboxOpen) {
+      return;
+    }
+
+    function onKeyDown(event: KeyboardEvent) {
+      if (event.key === "Escape") {
+        setIsPosterLightboxOpen(false);
+      }
+    }
+
+    const previousOverflow = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+    window.addEventListener("keydown", onKeyDown);
+
+    return () => {
+      document.body.style.overflow = previousOverflow;
+      window.removeEventListener("keydown", onKeyDown);
+    };
+  }, [isPosterLightboxOpen]);
+
   async function handleRefreshMetadata() {
     if (!record) {
       return;
@@ -106,15 +134,12 @@ export default function TitleDetailPage() {
   }
 
   return (
-    <div className="space-y-5">
-      <Link
-        href="/library"
-        className="text-sm font-medium text-text-muted hover:text-foreground"
-      >
-        ← Back to library
-      </Link>
+    <div className="space-y-5 max-md:-mt-3 max-md:space-y-2">
+      <Button asChild variant="secondary" size="sm">
+        <Link href="/library">← Back to library</Link>
+      </Button>
 
-      <PageCard className="relative overflow-hidden p-0">
+      <PageCard className="-mx-4 relative overflow-hidden p-0 md:mx-0 max-md:rounded-none max-md:border-0 max-md:ring-0">
         {backdropUrl ? (
           <>
             {/* eslint-disable-next-line @next/next/no-img-element */}
@@ -130,23 +155,30 @@ export default function TitleDetailPage() {
           <div className="absolute inset-0 bg-[radial-gradient(circle_at_10%_10%,rgba(42,99,255,0.28),transparent_55%),radial-gradient(circle_at_90%_95%,rgba(21,122,110,0.2),transparent_60%)]" />
         )}
         <div className="relative grid gap-4 p-4 md:grid-cols-[220px_1fr] md:p-6">
-          <div className="overflow-hidden rounded-xl border border-white/15 bg-surface-muted shadow-elevated">
-            {posterUrl ? (
-              // eslint-disable-next-line @next/next/no-img-element
+          {posterUrl ? (
+            <button
+              type="button"
+              onClick={() => setIsPosterLightboxOpen(true)}
+              className="overflow-hidden rounded-xl border border-white/15 bg-surface-muted text-left shadow-elevated"
+              aria-label="Open poster full screen"
+            >
+              {/* eslint-disable-next-line @next/next/no-img-element */}
               <img
                 src={posterUrl}
                 alt={record.name}
-                className="h-full w-full object-cover"
+                className="w-full max-md:max-h-[200px] max-md:object-contain md:h-full md:w-full md:object-cover"
               />
-            ) : (
+            </button>
+          ) : (
+            <div className="overflow-hidden rounded-xl border border-white/15 bg-surface-muted shadow-elevated">
               <div className="flex h-full min-h-72 flex-col items-center justify-center gap-2 bg-surface-muted text-center">
                 <span className="inline-flex h-12 w-12 items-center justify-center rounded-full border border-border-subtle bg-surface text-base font-semibold text-text-muted">
                   {record.name.slice(0, 1).toUpperCase()}
                 </span>
                 <p className="text-sm text-text-muted">Poster unavailable</p>
               </div>
-            )}
-          </div>
+            </div>
+          )}
           <div className="space-y-3 text-white">
             <SectionHeader
               title={record.name}
@@ -239,7 +271,7 @@ export default function TitleDetailPage() {
       </PageCard>
 
       {isSoloHousehold ? (
-        <PageCard className="p-5">
+        <PageCard className="-mx-4 p-5 md:mx-0 max-md:rounded-none max-md:border-0 max-md:ring-0">
           <SectionHeader
             title="Personal Summary"
             titleLevel="h2"
@@ -256,7 +288,7 @@ export default function TitleDetailPage() {
           </div>
         </PageCard>
       ) : (
-        <PageCard className="p-5">
+        <PageCard className="-mx-4 p-5 md:mx-0 max-md:rounded-none max-md:border-0 max-md:ring-0">
           <SectionHeader
             title="Household Summary"
             titleLevel="h2"
@@ -324,6 +356,35 @@ export default function TitleDetailPage() {
           queryClient.setQueryData(titleQueryKey(next.id), next);
         }}
       />
+
+      {posterUrl && isPosterLightboxOpen && isClient
+        ? createPortal(
+            <div
+              role="dialog"
+              aria-modal="true"
+              aria-label={`${record.name} poster`}
+              className="fixed inset-0 z-[100] flex items-center justify-center bg-black/92 p-2 sm:p-4"
+              onClick={() => setIsPosterLightboxOpen(false)}
+            >
+              <button
+                type="button"
+                className="absolute top-3 right-3 rounded-full border border-white/35 bg-black/45 px-3 py-1 text-sm font-semibold text-white hover:bg-black/65"
+                onClick={() => setIsPosterLightboxOpen(false)}
+                aria-label="Close poster lightbox"
+              >
+                Close
+              </button>
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img
+                src={posterUrl}
+                alt={record.name}
+                className="max-h-[100dvh] max-w-[100vw] object-contain"
+                onClick={(event) => event.stopPropagation()}
+              />
+            </div>,
+            document.body,
+          )
+        : null}
     </div>
   );
 }

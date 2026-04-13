@@ -352,7 +352,7 @@ export function TitleStatusEditor({
   }
 
   return (
-    <PageCard className="space-y-4 p-5">
+    <PageCard className="-mx-4 space-y-4 p-5 md:mx-0 max-md:rounded-none max-md:border-0 max-md:ring-0">
       {!isSoloHousehold ? (
         <section className="space-y-2">
           <SectionHeader

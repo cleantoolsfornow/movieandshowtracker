@@ -221,7 +221,7 @@ export function SearchResultCard({
   return (
     <PageCard
       as="article"
-      className="app-interactive p-3 transition hover:-translate-y-[1px] hover:shadow-elevated"
+      className="app-interactive p-3 transition hover:-translate-y-[1px] hover:shadow-elevated max-md:rounded-none max-md:!border-0 max-md:!ring-0 max-md:shadow-none max-md:hover:translate-y-0 max-md:hover:shadow-none"
     >
       <div className="flex gap-3">
         <div className="h-24 w-16 shrink-0 overflow-hidden rounded-lg border border-border-subtle/80 bg-surface-muted">

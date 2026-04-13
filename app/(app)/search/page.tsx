@@ -119,18 +119,22 @@ export default function SearchPage() {
         </p>
       ) : null}
 
-      <section className="app-stagger grid gap-3 md:grid-cols-2 xl:grid-cols-3">
-        {results.map((result) => (
-          <SearchResultCard
+      <section className="-mx-4 app-stagger grid gap-0 md:mx-0 md:gap-3 md:grid-cols-2 xl:grid-cols-3">
+        {results.map((result, index) => (
+          <div
             key={`${result.mediaType}_${result.tmdbId}`}
-            item={result}
-            existingRecord={trackedTitleLookup.get(
-              `${result.mediaType}_${result.tmdbId}`,
-            )}
-            onAdded={(record) => {
-              showToast(`Saved “${record.name}”.`);
-            }}
-          />
+            className={index > 0 ? "max-md:border-t max-md:border-border-subtle/70" : ""}
+          >
+            <SearchResultCard
+              item={result}
+              existingRecord={trackedTitleLookup.get(
+                `${result.mediaType}_${result.tmdbId}`,
+              )}
+              onAdded={(record) => {
+                showToast(`Saved “${record.name}”.`);
+              }}
+            />
+          </div>
         ))}
       </section>
     </div>
