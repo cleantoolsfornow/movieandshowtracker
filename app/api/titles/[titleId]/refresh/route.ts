@@ -43,25 +43,41 @@ export async function POST(
       );
     }
 
+    const metadataPatch: Record<string, unknown> = {
+      name: detail.name,
+      overview: detail.overview,
+      updatedAt: FieldValue.serverTimestamp(),
+    };
+
+    if (detail.posterPath !== undefined) {
+      metadataPatch.posterPath = detail.posterPath;
+    }
+    if (detail.backdropPath !== undefined) {
+      metadataPatch.backdropPath = detail.backdropPath;
+    }
+    if (detail.releaseDate !== undefined) {
+      metadataPatch.releaseDate = detail.releaseDate;
+    }
+    if (detail.firstAirDate !== undefined) {
+      metadataPatch.firstAirDate = detail.firstAirDate;
+    }
+    if (detail.genres !== undefined) {
+      metadataPatch.genres = detail.genres;
+    }
+    if (detail.runtime !== undefined) {
+      metadataPatch.runtime = detail.runtime;
+    }
+    if (detail.numberOfSeasons !== undefined) {
+      metadataPatch.numberOfSeasons = detail.numberOfSeasons;
+    }
+    if (detail.voteAverage !== undefined) {
+      metadataPatch.voteAverage = detail.voteAverage;
+    }
+
     await getAdminDb()
       .collection("titles")
       .doc(titleId)
-      .set(
-        {
-          name: detail.name,
-          overview: detail.overview,
-          posterPath: detail.posterPath ?? undefined,
-          backdropPath: detail.backdropPath ?? undefined,
-          releaseDate: detail.releaseDate ?? undefined,
-          firstAirDate: detail.firstAirDate ?? undefined,
-          genres: detail.genres ?? undefined,
-          runtime: detail.runtime ?? undefined,
-          numberOfSeasons: detail.numberOfSeasons ?? undefined,
-          voteAverage: detail.voteAverage ?? undefined,
-          updatedAt: FieldValue.serverTimestamp(),
-        },
-        { merge: true },
-      );
+      .set(metadataPatch, { merge: true });
 
     const record = await getTitleViewModelById(householdId, titleId, uid);
     if (!record) {

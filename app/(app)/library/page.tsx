@@ -43,6 +43,15 @@ type SortFilter =
   | "alphabetical"
   | "recently_added";
 
+function getRecordYear(record: TitleViewModel): string | null {
+  const dateValue = record.releaseDate ?? record.firstAirDate;
+  if (!dateValue) {
+    return null;
+  }
+  const year = new Date(dateValue).getUTCFullYear();
+  return Number.isNaN(year) ? null : String(year);
+}
+
 function shouldShowInLibrary(record: TitleViewModel) {
   return (
     record.household.wantsToWatch ||
@@ -81,6 +90,24 @@ export function applyLocalLibraryFilter(
   return records;
 }
 
+export function applyLibrarySearch(
+  records: TitleViewModel[],
+  rawQuery: string,
+) {
+  const query = rawQuery.trim().toLowerCase();
+  if (!query) {
+    return records;
+  }
+
+  return records.filter((record) => {
+    if (record.name.toLowerCase().includes(query)) {
+      return true;
+    }
+    const year = getRecordYear(record);
+    return year ? year.includes(query) : false;
+  });
+}
+
 function toApiFilter(
   filter: DynamicFilter,
   isMemberSpecificFilter: boolean,
@@ -107,6 +134,7 @@ export default function LibraryPage() {
   const [mediaType, setMediaType] = useState<MediaFilter>("all");
   const [filter, setFilter] = useState<DynamicFilter>("all");
   const [sort, setSort] = useState<SortFilter>("recently_updated");
+  const [searchQuery, setSearchQuery] = useState("");
 
   const isMemberSpecificFilter =
     filter.startsWith("member_watched:") || filter.startsWith("member_wants:");
@@ -146,6 +174,10 @@ export default function LibraryPage() {
   const visibleRecords = useMemo(
     () => applyLocalLibraryFilter(statusTrackedRecords, filter),
     [filter, statusTrackedRecords],
+  );
+  const searchFilteredRecords = useMemo(
+    () => applyLibrarySearch(visibleRecords, searchQuery),
+    [visibleRecords, searchQuery],
   );
   const watchedTogetherRecords = useMemo(
     () =>
@@ -197,6 +229,13 @@ export default function LibraryPage() {
   }
 
   function emptyStateCopy() {
+    if (searchQuery.trim()) {
+      return {
+        title: "No matches for this search",
+        description:
+          "Try another title or year, or clear search to see all filtered titles.",
+      };
+    }
     const selectedLabel = filterLabel(filter);
     if (filter === "all") {
       return {
@@ -217,7 +256,7 @@ export default function LibraryPage() {
   }
 
   return (
-    <div className="space-y-5">
+    <div className="space-y-3 md:space-y-5">
       <div className="-mx-4 -mt-6 md:mx-0 md:mt-0">
         <details className="group rounded-none border-0 bg-surface/72 px-3 py-2 shadow-soft md:rounded-2xl md:border md:border-border-subtle/85 md:p-4">
           <summary className="flex cursor-pointer list-none items-center justify-between gap-3">
@@ -460,6 +499,28 @@ export default function LibraryPage() {
         </details>
       </div>
 
+      <div className="-mx-4 -mt-3 max-md:sticky max-md:top-[6.5rem] max-md:z-10 max-md:bg-background md:mx-0 md:mt-0">
+        <div className="border-y border-border-subtle/75 bg-surface-strong px-2 py-2 max-md:shadow-[0_8px_18px_rgb(62_67_39_/0.12)] md:rounded-2xl md:border md:border-border-subtle/85 md:bg-surface md:px-3 md:shadow-none">
+          <div className="flex gap-2">
+            <input
+              value={searchQuery}
+              onChange={(event) => setSearchQuery(event.target.value)}
+              placeholder="Search your library by title or year..."
+              className="app-input w-full px-3 py-2 text-sm max-md:rounded-none max-md:border-0 max-md:shadow-none max-md:focus-visible:border-0 max-md:focus-visible:shadow-none"
+            />
+            {searchQuery.trim() ? (
+              <Button
+                variant="secondary"
+                size="sm"
+                onClick={() => setSearchQuery("")}
+              >
+                Clear
+              </Button>
+            ) : null}
+          </div>
+        </div>
+      </div>
+
       {error ? (
         <p className="rounded-xl border border-red-200/85 bg-red-50/80 p-3 text-sm text-red-700">
           {error instanceof Error ? error.message : "Failed to load library."}
@@ -474,14 +535,14 @@ export default function LibraryPage() {
       ) : null}
 
       {isLoading ? (
-        <div className="app-stagger grid grid-cols-2 gap-3 sm:grid-cols-4 lg:grid-cols-6">
+        <div className="app-stagger -mx-3 grid grid-cols-3 gap-2 px-1 md:mx-0 md:gap-3 md:px-0 sm:grid-cols-4 lg:grid-cols-6">
           {Array.from({ length: 12 }).map((_, index) => (
             <LoadingSkeleton key={index} className="aspect-[2/3]" rounded="xl" />
           ))}
         </div>
       ) : null}
 
-      {!isLoading && visibleRecords.length === 0 ? (
+      {!isLoading && searchFilteredRecords.length === 0 ? (
         <EmptyStateCard
           title={emptyState.title}
           description={emptyState.description}
@@ -491,8 +552,8 @@ export default function LibraryPage() {
         />
       ) : null}
 
-      <section className="app-stagger grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-5">
-        {visibleRecords.map((record) => (
+      <section className="app-stagger -mx-3 grid grid-cols-3 gap-2 px-1 md:mx-0 md:gap-3 md:px-0 sm:grid-cols-3 lg:grid-cols-5">
+        {searchFilteredRecords.map((record) => (
           <PosterCard key={record.id} record={record} />
         ))}
       </section>

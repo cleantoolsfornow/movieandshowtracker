@@ -578,4 +578,70 @@ describe("title mutation/read routes", () => {
 
     global.fetch = originalFetch;
   });
+
+  it("POST /api/titles/[titleId]/refresh omits undefined fields in metadata patch", async () => {
+    const originalFetch = global.fetch;
+    process.env.TVDB_API_KEY = "test-key";
+
+    getTitleViewModelByIdMock
+      .mockResolvedValueOnce({
+        ...viewModelFixture,
+        tvdbId: 444,
+        mediaType: "movie",
+      })
+      .mockResolvedValueOnce({
+        ...viewModelFixture,
+        id: "h1_movie_444",
+        tvdbId: 444,
+        mediaType: "movie",
+        name: "Updated Minimal",
+      });
+
+    global.fetch = vi.fn(async (input) => {
+      const url = String(input);
+      if (url.includes("/login")) {
+        return {
+          ok: true,
+          status: 200,
+          async json() {
+            return { data: { token: "tvdb-token" } };
+          },
+        } as Response;
+      }
+
+      return {
+        ok: true,
+        status: 200,
+        async json() {
+          return {
+            data: {
+              id: 444,
+              name: "Updated Minimal",
+              overview: "Overview only",
+            },
+          };
+        },
+      } as Response;
+    }) as typeof fetch;
+
+    const response = await refreshTitlePost(
+      new Request("http://localhost/api/titles/h1_movie_444/refresh", {
+        method: "POST",
+      }) as never,
+      { params: Promise.resolve({ titleId: "h1_movie_444" }) },
+    );
+
+    expect(response.status).toBe(200);
+    const titleWrite = activeDb.setCalls.find(
+      (call) => call.ref._collection === "titles",
+    );
+    const payload = (titleWrite?.data ?? {}) as Record<string, unknown>;
+    expect(payload.name).toBe("Updated Minimal");
+    expect(payload.overview).toBe("Overview only");
+    expect("runtime" in payload).toBe(false);
+    expect("numberOfSeasons" in payload).toBe(false);
+    expect("posterPath" in payload).toBe(false);
+
+    global.fetch = originalFetch;
+  });
 });

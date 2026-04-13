@@ -13,6 +13,7 @@ import { LoadingSkeleton } from "@/components/common/loading-skeleton";
 import { PageCard } from "@/components/common/page-card";
 import { SectionHeader } from "@/components/common/section-header";
 import { SharedWatchCallout } from "@/components/common/shared-watch-callout";
+import { useToast } from "@/components/common/toast";
 import { TitleStatusEditor } from "@/components/status/title-status-editor";
 import { refreshTitleMetadata } from "@/lib/tracker/client-api";
 import {
@@ -26,16 +27,39 @@ import { getTitleMemberLabel } from "@/components/household/member-display";
 export default function TitleDetailPage() {
   const { id } = useParams<{ id: string }>();
   const queryClient = useQueryClient();
+  const { showToast } = useToast();
   const { data: record, isLoading, error } = useTitleQuery(id);
   const [isRefreshingMetadata, setIsRefreshingMetadata] = useState(false);
-  const [refreshSuccessMessage, setRefreshSuccessMessage] = useState<
-    string | null
-  >(null);
   const [refreshErrorMessage, setRefreshErrorMessage] = useState<string | null>(
     null,
   );
   const [isPosterLightboxOpen, setIsPosterLightboxOpen] = useState(false);
   const [isClient, setIsClient] = useState(false);
+
+  useEffect(() => {
+    setIsClient(true);
+  }, []);
+
+  useEffect(() => {
+    if (!isPosterLightboxOpen) {
+      return;
+    }
+
+    function onKeyDown(event: KeyboardEvent) {
+      if (event.key === "Escape") {
+        setIsPosterLightboxOpen(false);
+      }
+    }
+
+    const previousOverflow = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+    window.addEventListener("keydown", onKeyDown);
+
+    return () => {
+      document.body.style.overflow = previousOverflow;
+      window.removeEventListener("keydown", onKeyDown);
+    };
+  }, [isPosterLightboxOpen]);
 
   if (isLoading) {
     return (
@@ -84,31 +108,16 @@ export default function TitleDetailPage() {
           : undefined;
       })
       .filter((value): value is string => Boolean(value));
-
-  useEffect(() => {
-    setIsClient(true);
-  }, []);
-
-  useEffect(() => {
-    if (!isPosterLightboxOpen) {
-      return;
-    }
-
-    function onKeyDown(event: KeyboardEvent) {
-      if (event.key === "Escape") {
-        setIsPosterLightboxOpen(false);
-      }
-    }
-
-    const previousOverflow = document.body.style.overflow;
-    document.body.style.overflow = "hidden";
-    window.addEventListener("keydown", onKeyDown);
-
-    return () => {
-      document.body.style.overflow = previousOverflow;
-      window.removeEventListener("keydown", onKeyDown);
-    };
-  }, [isPosterLightboxOpen]);
+  const activePersonalStatusChips = [
+    record.currentUser.watched
+      ? { label: "Watched", tone: "success" as const }
+      : null,
+    record.currentUser.wantsToWatch
+      ? { label: "Want to watch", tone: "accent" as const }
+      : null,
+  ].filter((value): value is { label: string; tone: "success" | "accent" } =>
+    Boolean(value),
+  );
 
   async function handleRefreshMetadata() {
     if (!record) {
@@ -116,14 +125,13 @@ export default function TitleDetailPage() {
     }
 
     setIsRefreshingMetadata(true);
-    setRefreshSuccessMessage(null);
     setRefreshErrorMessage(null);
 
     try {
       const next = await refreshTitleMetadata(record.id);
       queryClient.setQueryData(titleQueryKey(record.id), next);
       void invalidateTitlesQuery(queryClient);
-      setRefreshSuccessMessage("Metadata refreshed.");
+      showToast("Metadata refreshed.");
     } catch (err) {
       setRefreshErrorMessage(
         err instanceof Error ? err.message : "Failed to refresh metadata.",
@@ -135,11 +143,22 @@ export default function TitleDetailPage() {
 
   return (
     <div className="space-y-5 max-md:-mt-3 max-md:space-y-2">
-      <Button asChild variant="secondary" size="sm">
-        <Link href="/library">← Back to library</Link>
-      </Button>
+      <div className="flex flex-wrap items-center justify-between gap-2">
+        <Button asChild variant="secondary" size="sm">
+          <Link href="/library">← Back to library</Link>
+        </Button>
+        {activePersonalStatusChips.length > 0 ? (
+          <div className="flex flex-wrap items-center justify-end gap-2">
+            {activePersonalStatusChips.map((chip) => (
+              <Chip key={chip.label} tone={chip.tone} className="text-xs">
+                {chip.label}: Yes
+              </Chip>
+            ))}
+          </div>
+        ) : null}
+      </div>
 
-      <PageCard className="relative -mx-4 overflow-hidden p-0 max-md:rounded-none max-md:border-0 max-md:ring-0 md:mx-0">
+      <PageCard className="relative -mx-4 overflow-hidden p-0 ring-black/28 [background:none] max-md:rounded-none max-md:border-0 max-md:ring-0 md:mx-0">
         {backdropUrl ? (
           <>
             {/* eslint-disable-next-line @next/next/no-img-element */}
@@ -147,12 +166,13 @@ export default function TitleDetailPage() {
               src={backdropUrl}
               alt=""
               aria-hidden="true"
-              className="absolute inset-0 h-full w-full object-cover"
+              className="absolute inset-0 h-full w-full object-cover brightness-[0.58] saturate-[1.18]"
             />
-            <div className="absolute inset-0 bg-gradient-to-r from-slate-900/80 via-slate-900/70 to-slate-900/35" />
+            <div className="absolute inset-0 bg-[linear-gradient(106deg,rgba(10,17,31,0.95)_0%,rgba(12,20,36,0.88)_46%,rgba(16,28,45,0.72)_72%,rgba(22,34,51,0.44)_100%)]" />
+            <div className="absolute inset-0 bg-gradient-to-t from-black/42 via-transparent to-black/26" />
           </>
         ) : (
-          <div className="absolute inset-0 bg-[radial-gradient(circle_at_10%_10%,rgba(42,99,255,0.28),transparent_55%),radial-gradient(circle_at_90%_95%,rgba(21,122,110,0.2),transparent_60%)]" />
+          <div className="absolute inset-0 bg-[radial-gradient(circle_at_10%_10%,rgba(58,122,255,0.34),transparent_52%),radial-gradient(circle_at_88%_94%,rgba(25,150,125,0.28),transparent_58%),linear-gradient(120deg,rgba(12,20,36,0.95),rgba(18,31,48,0.88))]" />
         )}
         <div className="relative grid gap-4 p-4 md:grid-cols-[220px_1fr] md:p-6">
           {posterUrl ? (
@@ -179,16 +199,18 @@ export default function TitleDetailPage() {
               </div>
             </div>
           )}
-          <div className="space-y-3 text-white">
+          <div className="space-y-3 text-slate-100">
             <SectionHeader
               title={record.name}
               titleLevel="h1"
-              titleClassName="text-3xl text-white md:text-4xl"
+              titleClassName="text-3xl text-slate-50 drop-shadow-[0_2px_10px_rgba(0,0,0,0.45)] md:text-4xl"
             />
-            <p className="text-sm text-white/75">
+            <p className="text-sm text-slate-200/90">
               {record.mediaType.toUpperCase()} · {titleYear ?? "-"}
             </p>
-            <p className="text-sm leading-6 text-white/90">{record.overview}</p>
+            <p className="max-w-3xl text-sm leading-6 text-slate-100/92">
+              {record.overview}
+            </p>
 
             <div className="flex flex-wrap gap-2">
               {typeof record.runtime === "number" ? (
@@ -231,66 +253,65 @@ export default function TitleDetailPage() {
               </div>
             ) : null}
 
-            <div className="pt-1">
-              <Button
+            <a
+              href="https://thetvdb.com/api-information"
+              target="_blank"
+              rel="noreferrer"
+              className="inline-flex items-start gap-1 text-[11px] text-slate-200/86 hover:text-white"
+            >
+              <span>Uses data from TheTVDB.</span>
+            </a>
+            <div>
+              <button
+                type="button"
                 onClick={() => void handleRefreshMetadata()}
                 disabled={isRefreshingMetadata}
-                variant="ghost"
-                size="sm"
-                className="text-white hover:bg-white/15 hover:text-white"
+                className="inline-flex items-center gap-1 text-[11px] font-medium text-slate-200/90 hover:text-white disabled:cursor-not-allowed disabled:opacity-70"
               >
-                {isRefreshingMetadata
-                  ? "Refreshing metadata..."
-                  : "Refresh metadata"}
-              </Button>
-              {refreshSuccessMessage ? (
-                <p className="mt-1 text-xs text-emerald-200">
-                  {refreshSuccessMessage}
-                </p>
-              ) : null}
+                <svg
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  aria-hidden="true"
+                  className={`h-3.5 w-3.5 ${isRefreshingMetadata ? "animate-spin" : ""}`}
+                >
+                  <path
+                    d="M16.024 7.976A5.5 5.5 0 0 0 6.5 12M7.976 16.024A5.5 5.5 0 0 0 17.5 12"
+                    stroke="currentColor"
+                    strokeWidth="1.8"
+                    strokeLinecap="round"
+                  />
+                  <path
+                    d="M16.5 4.5v3.5H13"
+                    stroke="currentColor"
+                    strokeWidth="1.8"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                  />
+                  <path
+                    d="M7.5 19.5V16H11"
+                    stroke="currentColor"
+                    strokeWidth="1.8"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                  />
+                </svg>
+                <span>
+                  {isRefreshingMetadata
+                    ? "Refreshing metadata..."
+                    : "Refresh metadata"}
+                </span>
+              </button>
               {refreshErrorMessage ? (
                 <p className="mt-1 text-xs text-rose-200">
                   {refreshErrorMessage}
                 </p>
               ) : null}
             </div>
-
-            <a
-              href="https://thetvdb.com/api-information"
-              target="_blank"
-              rel="noreferrer"
-              className="inline-flex items-start gap-1 text-[11px] text-white/70 hover:text-white/90"
-            >
-              <span>Uses data from TheTVDB.</span>
-            </a>
           </div>
         </div>
       </PageCard>
 
-      {isSoloHousehold ? (
-        <PageCard className="-mx-4 p-5 max-md:rounded-none max-md:border-0 max-md:ring-0 md:mx-0">
-          <SectionHeader
-            title="Personal Summary"
-            titleLevel="h2"
-            titleClassName="app-kicker text-sm"
-            description="Your current status for this title."
-          />
-          <div className="mt-2 flex flex-wrap gap-2">
-            <Chip
-              tone={record.currentUser.watched ? "success" : "muted"}
-              className="text-xs"
-            >
-              Watched by me: {record.currentUser.watched ? "Yes" : "No"}
-            </Chip>
-            <Chip
-              tone={record.currentUser.wantsToWatch ? "accent" : "muted"}
-              className="text-xs"
-            >
-              Want to watch: {record.currentUser.wantsToWatch ? "Yes" : "No"}
-            </Chip>
-          </div>
-        </PageCard>
-      ) : (
+      {!isSoloHousehold ? (
         <PageCard className="-mx-4 p-5 max-md:rounded-none max-md:border-0 max-md:ring-0 md:mx-0">
           <SectionHeader
             title="Household Summary"
@@ -353,7 +374,7 @@ export default function TitleDetailPage() {
             </p>
           ) : null}
         </PageCard>
-      )}
+      ) : null}
 
       <TitleStatusEditor
         record={record}

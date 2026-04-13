@@ -114,7 +114,7 @@ export function PosterCard({ record }: { record: TitleViewModel }) {
     <Link
       href={`/title/${record.id}`}
       className={cn(
-        "app-interactive group relative overflow-hidden rounded-3xl border border-border-subtle bg-surface shadow-soft ring-1 ring-white/45 transition hover:-translate-y-0.5 hover:shadow-elevated",
+        "app-interactive group relative flex h-full flex-col overflow-hidden rounded-2xl border border-border-subtle bg-surface shadow-soft ring-1 ring-white/45 transition hover:-translate-y-0.5 hover:shadow-elevated md:rounded-3xl",
         hasSharedWatchMoment ? "border-shared-watch/35 ring-1 ring-shared-watch/25" : "",
       )}
     >
@@ -144,26 +144,39 @@ export function PosterCard({ record }: { record: TitleViewModel }) {
           </span>
         ) : null}
       </div>
-      <div className="space-y-2 p-4">
-        <p className="line-clamp-1 text-sm font-semibold text-foreground">
+      <div className="flex flex-1 flex-col gap-1 p-3 md:gap-2 md:p-4">
+        <p className="line-clamp-2 text-xs leading-[1.2] font-semibold text-foreground sm:text-sm sm:leading-5">
           {record.name}
         </p>
-        <p className="text-xs text-text-soft">
+        <p className="text-[11px] leading-[1.15] text-text-soft sm:text-xs sm:leading-normal">
           {record.mediaType.toUpperCase()} · {year ?? "-"}
         </p>
 
         {isSoloHousehold ? (
-          <div className="flex flex-wrap gap-1">
-            {record.currentUser.watched ? (
-              <Chip tone="success" className="px-2 py-0.5 text-xs">
-                Watched
-              </Chip>
-            ) : null}
-            {record.currentUser.wantsToWatch ? (
-              <Chip tone="accent" className="px-2 py-0.5 text-xs">
-                Want to watch
-              </Chip>
-            ) : null}
+          <div className="mt-auto">
+            <div className="-mx-3 -mb-3 mt-1.5 flex overflow-hidden rounded-b-2xl md:mx-0 md:mb-0 md:mt-0 md:flex-wrap md:gap-1 md:overflow-visible md:rounded-none">
+              {record.currentUser.watched ? (
+                <Chip
+                  tone="success"
+                  className="flex-1 justify-center rounded-none border-0 px-1 py-1 text-[10px] leading-4 md:flex-none md:rounded-full md:border md:px-2 md:py-0.5 md:text-xs"
+                >
+                  Watched
+                </Chip>
+              ) : null}
+              {record.currentUser.wantsToWatch ? (
+                <Chip
+                  tone="accent"
+                  className={cn(
+                    "flex-1 justify-center rounded-none border-0 border-[#a6bc46]/90 bg-[linear-gradient(140deg,#bfd45c,#95ae36)] px-1 py-1 text-[10px] leading-4 text-[#1f2e12] md:flex-none md:rounded-full md:border md:px-2 md:py-0.5 md:text-xs",
+                    record.currentUser.watched
+                      ? "border-l border-white/20 md:border-l-0"
+                      : "",
+                  )}
+                >
+                  Want to watch
+                </Chip>
+              ) : null}
+            </div>
           </div>
         ) : null}
 

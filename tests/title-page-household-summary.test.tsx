@@ -8,6 +8,7 @@ const useTitleQueryMock = vi.fn();
 const setQueryDataMock = vi.fn();
 const invalidateQueriesMock = vi.fn();
 const refreshTitleMetadataMock = vi.fn();
+const showToastMock = vi.fn();
 
 vi.mock("next/navigation", () => ({
   useParams: () => ({ id: "h1_movie_42" }),
@@ -39,6 +40,12 @@ vi.mock("@/lib/tracker/client-api", () => ({
 
 vi.mock("@/components/status/title-status-editor", () => ({
   TitleStatusEditor: () => <div data-testid="title-status-editor" />,
+}));
+
+vi.mock("@/components/common/toast", () => ({
+  useToast: () => ({
+    showToast: showToastMock,
+  }),
 }));
 
 function buildRecord(overrides?: Partial<TitleViewModel>): TitleViewModel {
@@ -82,6 +89,7 @@ describe("Title detail household summary", () => {
     setQueryDataMock.mockReset();
     invalidateQueriesMock.mockReset();
     refreshTitleMetadataMock.mockReset();
+    showToastMock.mockReset();
   });
 
   it("shows a personal-only summary for solo households", () => {
@@ -93,9 +101,24 @@ describe("Title detail household summary", () => {
 
     render(<TitleDetailPage />);
 
-    expect(screen.getByText("Personal Summary")).toBeInTheDocument();
+    expect(screen.queryByText("Personal Summary")).not.toBeInTheDocument();
     expect(screen.queryByText("Household Summary")).not.toBeInTheDocument();
     expect(screen.queryByText("Watched together")).not.toBeInTheDocument();
+  });
+
+  it("shows only active personal status chips beside back button", () => {
+    useTitleQueryMock.mockReturnValue({
+      data: buildRecord({
+        currentUser: { userId: "u1", wantsToWatch: true, watched: false },
+      }),
+      isLoading: false,
+      error: null,
+    });
+
+    render(<TitleDetailPage />);
+
+    expect(screen.getByText("Want to watch: Yes")).toBeInTheDocument();
+    expect(screen.queryByText("Watched: Yes")).not.toBeInTheDocument();
   });
 
   it("keeps watchedTogether separate from allMembersWatched in two-member mode", () => {

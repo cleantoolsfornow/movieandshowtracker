@@ -8,6 +8,7 @@ import { Button } from "@/components/common/button";
 import { Chip, ChipButton } from "@/components/common/chip";
 import { PageCard } from "@/components/common/page-card";
 import { useHousehold } from "@/components/household/household-context";
+import { LibraryIcon } from "@/components/marketing/inline-icons";
 import { invalidateTitlesQuery, titleQueryKey } from "@/lib/tracker/queries";
 import {
   buildPosterUrl,
@@ -161,6 +162,7 @@ export function SearchResultCard({
         {
           label: "In library",
           tone: "neutral" as const,
+          withLibraryIcon: true,
         },
         ...(trackedRecord.currentUser.wantsToWatch
           ? [{ label: "Want to watch", tone: "accent" as const }]
@@ -265,7 +267,14 @@ export function SearchResultCard({
                   tone={chip.tone}
                   className="px-2 py-0.5 text-[11px]"
                 >
-                  {chip.label}
+                  {chip.withLibraryIcon ? (
+                    <span className="inline-flex items-center gap-1">
+                      <LibraryIcon className="h-3.5 w-3.5" />
+                      <span>{chip.label}</span>
+                    </span>
+                  ) : (
+                    chip.label
+                  )}
                 </Chip>
               ))}
             </div>

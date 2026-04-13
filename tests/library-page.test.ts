@@ -1,8 +1,11 @@
 import { createElement } from "react";
-import { render, screen } from "@testing-library/react";
+import { fireEvent, render, screen } from "@testing-library/react";
 import { describe, expect, it, vi } from "vitest";
 
-import LibraryPage, { applyLocalLibraryFilter } from "@/app/(app)/library/page";
+import LibraryPage, {
+  applyLibrarySearch,
+  applyLocalLibraryFilter,
+} from "@/app/(app)/library/page";
 import type { TitleViewModel } from "@/lib/tracker/types";
 
 const useHouseholdMock = vi.fn();
@@ -83,6 +86,22 @@ describe("applyLocalLibraryFilter", () => {
   });
 });
 
+describe("applyLibrarySearch", () => {
+  it("matches by title and by release year", () => {
+    const records = [
+      record("matrix", { name: "The Matrix", releaseDate: "1999-03-31" }),
+      record("dune", { name: "Dune", releaseDate: "2021-10-22" }),
+    ];
+
+    expect(applyLibrarySearch(records, "matrix").map((item) => item.id)).toEqual([
+      "matrix",
+    ]);
+    expect(applyLibrarySearch(records, "2021").map((item) => item.id)).toEqual([
+      "dune",
+    ]);
+  });
+});
+
 describe("LibraryPage browse views", () => {
   it("shows simpler personal filters for solo households", () => {
     useHouseholdMock.mockReturnValue({
@@ -112,5 +131,62 @@ describe("LibraryPage browse views", () => {
     expect(
       screen.queryByRole("button", { name: "Not watched by me" }),
     ).not.toBeInTheDocument();
+  });
+
+  it("filters visible cards by search query (title or year)", () => {
+    useHouseholdMock.mockReturnValue({
+      otherMembers: [],
+      memberCount: 1,
+      isSoloHousehold: true,
+      isThreePlusHousehold: false,
+    });
+    useTitlesQueryMock.mockReturnValue({
+      data: [
+        record("r1", {
+          name: "The Matrix",
+          releaseDate: "1999-03-31",
+          currentUser: { userId: "u1", wantsToWatch: true, watched: false },
+          household: {
+            wantsToWatch: true,
+            watchedTogether: false,
+            allMembersWatched: false,
+            someMembersWatched: false,
+            watchedCount: 0,
+            wantsToWatchCount: 1,
+            memberCount: 1,
+          },
+        }),
+        record("r2", {
+          name: "Dune",
+          releaseDate: "2021-10-22",
+          currentUser: { userId: "u1", wantsToWatch: true, watched: false },
+          household: {
+            wantsToWatch: true,
+            watchedTogether: false,
+            allMembersWatched: false,
+            someMembersWatched: false,
+            watchedCount: 0,
+            wantsToWatchCount: 1,
+            memberCount: 1,
+          },
+        }),
+      ],
+      isLoading: false,
+      error: null,
+    });
+
+    render(createElement(LibraryPage));
+
+    const searchInput = screen.getByPlaceholderText(
+      "Search your library by title or year...",
+    );
+    fireEvent.change(searchInput, { target: { value: "2021" } });
+
+    expect(screen.getByTestId("poster-r2")).toBeInTheDocument();
+    expect(screen.queryByTestId("poster-r1")).not.toBeInTheDocument();
+
+    fireEvent.change(searchInput, { target: { value: "matrix" } });
+    expect(screen.getByTestId("poster-r1")).toBeInTheDocument();
+    expect(screen.queryByTestId("poster-r2")).not.toBeInTheDocument();
   });
 });

@@ -31,7 +31,7 @@ function Section({
   return (
     <section className="app-fade-in space-y-2">
       <SectionHeader title={title} titleLevel="h2" description={description} />
-      <div className="app-stagger grid grid-cols-2 gap-3 sm:grid-cols-4 lg:grid-cols-6">
+      <div className="app-stagger -mx-3 grid grid-cols-3 gap-2 px-1 md:mx-0 md:gap-3 md:px-0 sm:grid-cols-4 lg:grid-cols-6">
         {records.slice(0, 6).map((record) => (
           <PosterCard key={record.id} record={record} />
         ))}
@@ -256,7 +256,7 @@ export function DashboardPage() {
       ) : null}
 
       {isLoading ? (
-        <div className="app-stagger grid grid-cols-2 gap-3 sm:grid-cols-4 lg:grid-cols-6">
+        <div className="app-stagger -mx-3 grid grid-cols-3 gap-2 px-1 md:mx-0 md:gap-3 md:px-0 sm:grid-cols-4 lg:grid-cols-6">
           {Array.from({ length: 6 }).map((_, index) => (
             <LoadingSkeleton
               key={index}
