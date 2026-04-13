@@ -59,7 +59,8 @@ function asStringArray(value: unknown): string[] | undefined {
   }
 
   const next = value.filter(
-    (entry): entry is string => typeof entry === "string" && entry.trim().length > 0,
+    (entry): entry is string =>
+      typeof entry === "string" && entry.trim().length > 0,
   );
 
   return next.length ? next : undefined;
@@ -103,7 +104,7 @@ function mapTitleDocument(
   return {
     id: snapshot.id,
     householdId: asString(data.householdId) ?? "",
-    tmdbId: asNumber(data.tmdbId) ?? 0,
+    tvdbId: asNumber(data.tvdbId) ?? 0,
     mediaType: mediaType === "tv" ? "tv" : "movie",
     name,
     originalName: asString(data.originalName),
@@ -115,7 +116,7 @@ function mapTitleDocument(
     genres: mapGenres(data.genres),
     runtime: asNumber(data.runtime),
     numberOfSeasons: asNumber(data.numberOfSeasons),
-    voteAverage: asNumber(data.voteAverage) ?? asNumber(data.tmdbVoteAverage),
+    voteAverage: asNumber(data.voteAverage),
     createdAt: asTimestampLike(data.createdAt),
     createdBy: asString(data.createdBy),
     updatedAt: asTimestampLike(data.updatedAt),

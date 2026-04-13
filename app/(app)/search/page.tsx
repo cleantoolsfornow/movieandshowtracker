@@ -9,12 +9,12 @@ import { LoadingSkeleton } from "@/components/common/loading-skeleton";
 import { PageCard } from "@/components/common/page-card";
 import { useToast } from "@/components/common/toast";
 import { useTitlesQuery } from "@/lib/tracker/queries";
-import { searchTmdb } from "@/lib/tracker/client-api";
-import type { TmdbSearchResult } from "@/lib/tracker/types";
+import { searchTvdb } from "@/lib/tracker/client-api";
+import type { TvdbSearchResult } from "@/lib/tracker/types";
 
 export default function SearchPage() {
   const [query, setQuery] = useState("");
-  const [results, setResults] = useState<TmdbSearchResult[]>([]);
+  const [results, setResults] = useState<TvdbSearchResult[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const { showToast } = useToast();
@@ -26,7 +26,7 @@ export default function SearchPage() {
     () =>
       new Map(
         trackedTitles.map((record) => [
-          `${record.mediaType}_${record.tmdbId}`,
+          `${record.mediaType}_${record.tvdbId}`,
           record,
         ]),
       ),
@@ -45,7 +45,7 @@ export default function SearchPage() {
       setError(null);
 
       try {
-        const nextResults = await searchTmdb(normalizedQuery);
+        const nextResults = await searchTvdb(normalizedQuery);
         setResults(nextResults);
       } catch (err) {
         setError(err instanceof Error ? err.message : "Search failed.");
@@ -62,7 +62,7 @@ export default function SearchPage() {
       <div className="-mx-4 -mt-6 max-md:sticky max-md:top-[5.875rem] max-md:z-10 md:mx-0 md:mt-0">
         <PageCard
           elevated
-          className="app-hero p-5 md:p-6 max-md:rounded-none max-md:border-0 max-md:p-2 max-md:ring-0 max-md:shadow-none"
+          className="app-hero p-5 max-md:rounded-none max-md:border-0 max-md:p-2 max-md:shadow-none max-md:ring-0 md:p-6"
         >
           <div className="flex gap-2">
             <input
@@ -83,7 +83,6 @@ export default function SearchPage() {
               </Button>
             ) : null}
           </div>
-
         </PageCard>
       </div>
 
@@ -113,22 +112,30 @@ export default function SearchPage() {
       ) : null}
 
       {!isLoading && hasQuery && results.length > 0 ? (
-        <p className="text-sm text-text-muted">
-          Found <span className="font-semibold text-foreground">{results.length}</span>{" "}
-          results for <span className="font-semibold text-foreground">“{normalizedQuery}”</span>
+        <p className="text-text-muted text-sm">
+          Found{" "}
+          <span className="text-foreground font-semibold">
+            {results.length}
+          </span>{" "}
+          results for{" "}
+          <span className="text-foreground font-semibold">
+            “{normalizedQuery}”
+          </span>
         </p>
       ) : null}
 
-      <section className="-mx-4 app-stagger grid gap-0 md:mx-0 md:gap-3 md:grid-cols-2 xl:grid-cols-3">
+      <section className="app-stagger -mx-4 grid gap-0 md:mx-0 md:grid-cols-2 md:gap-3 xl:grid-cols-3">
         {results.map((result, index) => (
           <div
-            key={`${result.mediaType}_${result.tmdbId}`}
-            className={index > 0 ? "max-md:border-t max-md:border-border-subtle/70" : ""}
+            key={`${result.mediaType}_${result.tvdbId}`}
+            className={
+              index > 0 ? "max-md:border-border-subtle/70 max-md:border-t" : ""
+            }
           >
             <SearchResultCard
               item={result}
               existingRecord={trackedTitleLookup.get(
-                `${result.mediaType}_${result.tmdbId}`,
+                `${result.mediaType}_${result.tvdbId}`,
               )}
               onAdded={(record) => {
                 showToast(`Saved “${record.name}”.`);

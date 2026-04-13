@@ -15,7 +15,7 @@ export type TimestampLike =
 export type TitleDocument = {
   id: string;
   householdId: string;
-  tmdbId: number;
+  tvdbId: number;
   mediaType: MediaType;
   name: string;
   originalName?: string;
@@ -98,7 +98,7 @@ export type TitleViewModelMember = {
 export type TitleViewModel = {
   id: string;
   householdId: string;
-  tmdbId: number;
+  tvdbId: number;
   mediaType: MediaType;
   name: string;
   overview?: string;
@@ -144,8 +144,8 @@ export type TitleViewModel = {
   updatedAt: string;
 };
 
-export type TmdbSearchResult = {
-  tmdbId: number;
+export type TvdbSearchResult = {
+  tvdbId: number;
   mediaType: MediaType;
   name: string;
   originalName?: string;
@@ -165,7 +165,7 @@ export type AddTitleAction =
   | "mark_watched_together";
 
 export type AddTitleRequest = {
-  tmdbId: number;
+  tvdbId: number;
   mediaType: MediaType;
   action: AddTitleAction;
   targetUserId?: string;

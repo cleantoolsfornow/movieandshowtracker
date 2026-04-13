@@ -8,10 +8,7 @@ import { Button } from "@/components/common/button";
 import { Chip, ChipButton } from "@/components/common/chip";
 import { PageCard } from "@/components/common/page-card";
 import { useHousehold } from "@/components/household/household-context";
-import {
-  invalidateTitlesQuery,
-  titleQueryKey,
-} from "@/lib/tracker/queries";
+import { invalidateTitlesQuery, titleQueryKey } from "@/lib/tracker/queries";
 import {
   buildPosterUrl,
   normalizeParticipantUserIds,
@@ -19,7 +16,7 @@ import {
 import { cn } from "@/lib/ui/cn";
 import type {
   AddTitleAction,
-  TmdbSearchResult,
+  TvdbSearchResult,
   TitleViewModel,
 } from "@/lib/tracker/types";
 
@@ -28,7 +25,7 @@ export function SearchResultCard({
   existingRecord,
   onAdded,
 }: {
-  item: TmdbSearchResult;
+  item: TvdbSearchResult;
   existingRecord?: TitleViewModel;
   onAdded?: (record: TitleViewModel) => void;
 }) {
@@ -106,7 +103,7 @@ export function SearchResultCard({
 
     try {
       const record = await addTitle({
-        tmdbId: item.tmdbId,
+        tvdbId: item.tvdbId,
         mediaType: item.mediaType,
         action,
         name: titleName,
@@ -145,7 +142,8 @@ export function SearchResultCard({
   }
 
   async function submitParticipantSelection() {
-    const participantUserIds = normalizeParticipantUserIds(participantSelection);
+    const participantUserIds =
+      normalizeParticipantUserIds(participantSelection);
     if (!participantUserIds || participantUserIds.length < 2) {
       setError("Choose at least 2 household members for a shared watch.");
       return;
@@ -155,7 +153,8 @@ export function SearchResultCard({
   }
 
   const hasTrackedRecord = Boolean(trackedRecord);
-  const currentUserWantsToWatch = trackedRecord?.currentUser.wantsToWatch ?? false;
+  const currentUserWantsToWatch =
+    trackedRecord?.currentUser.wantsToWatch ?? false;
   const currentUserWatched = trackedRecord?.currentUser.watched ?? false;
   const currentLibraryStatusChips = trackedRecord
     ? [
@@ -221,10 +220,10 @@ export function SearchResultCard({
   return (
     <PageCard
       as="article"
-      className="app-interactive p-3 transition hover:-translate-y-[1px] hover:shadow-elevated max-md:rounded-none max-md:!border-0 max-md:!ring-0 max-md:shadow-none max-md:hover:translate-y-0 max-md:hover:shadow-none"
+      className="app-interactive hover:shadow-elevated p-3 transition hover:-translate-y-[1px] max-md:rounded-none max-md:!border-0 max-md:shadow-none max-md:!ring-0 max-md:hover:translate-y-0 max-md:hover:shadow-none"
     >
       <div className="flex gap-3">
-        <div className="h-24 w-16 shrink-0 overflow-hidden rounded-lg border border-border-subtle/80 bg-surface-muted">
+        <div className="border-border-subtle/80 bg-surface-muted h-24 w-16 shrink-0 overflow-hidden rounded-lg border">
           {posterUrl ? (
             // eslint-disable-next-line @next/next/no-img-element
             <img
@@ -233,22 +232,22 @@ export function SearchResultCard({
               className="h-full w-full object-cover"
             />
           ) : (
-            <div className="flex h-full items-center justify-center bg-[radial-gradient(circle_at_20%_10%,rgba(42,99,255,0.2),transparent_65%),radial-gradient(circle_at_100%_100%,rgba(21,122,110,0.15),transparent_65%)] text-[10px] font-semibold text-text-soft">
+            <div className="text-text-soft flex h-full items-center justify-center bg-[radial-gradient(circle_at_20%_10%,rgba(42,99,255,0.2),transparent_65%),radial-gradient(circle_at_100%_100%,rgba(21,122,110,0.15),transparent_65%)] text-[10px] font-semibold">
               NO IMAGE
             </div>
           )}
         </div>
         <div className="min-w-0 flex-1">
-          <h3 className="line-clamp-1 text-sm font-semibold tracking-[-0.01em] text-foreground">
+          <h3 className="text-foreground line-clamp-1 text-sm font-semibold tracking-[-0.01em]">
             {titleName}
           </h3>
-          <p className="text-xs text-text-soft">
+          <p className="text-text-soft text-xs">
             {item.mediaType.toUpperCase()} · {yearLabel ?? "-"}
           </p>
-          <p className="mt-1 line-clamp-2 text-xs text-text-muted">
+          <p className="text-text-muted mt-1 line-clamp-2 text-xs">
             {item.overview ?? ""}
           </p>
-          <p className="mt-1 text-[11px] text-text-soft">
+          <p className="text-text-soft mt-1 text-[11px]">
             {isSoloHousehold
               ? "Personal actions only."
               : isTwoMemberHousehold
@@ -280,7 +279,7 @@ export function SearchResultCard({
               aria-pressed={currentUserWantsToWatch}
               className={cn(
                 currentUserWantsToWatch
-                  ? "ring-2 ring-accent/20 ring-offset-1 ring-offset-transparent"
+                  ? "ring-accent/20 ring-2 ring-offset-1 ring-offset-transparent"
                   : "",
               )}
             >
@@ -298,7 +297,7 @@ export function SearchResultCard({
               aria-pressed={currentUserWatched}
               className={cn(
                 currentUserWatched
-                  ? "border-shared-watch/80 bg-[linear-gradient(140deg,var(--shared-watch),#2b5f4f)] text-white shadow-[0_10px_24px_rgb(43_95_79_/_0.28)] hover:border-shared-watch hover:brightness-105 ring-2 ring-shared-watch/15 ring-offset-1 ring-offset-transparent"
+                  ? "border-shared-watch/80 hover:border-shared-watch ring-shared-watch/15 bg-[linear-gradient(140deg,var(--shared-watch),#2b5f4f)] text-white shadow-[0_10px_24px_rgb(43_95_79_/_0.28)] ring-2 ring-offset-1 ring-offset-transparent hover:brightness-105"
                   : "",
               )}
             >
@@ -344,14 +343,15 @@ export function SearchResultCard({
       ) : null}
 
       {isThreePlusHousehold && expanded && !isSelectingParticipants ? (
-        <p className="mt-2 text-[11px] text-text-soft">
-          Shared-watch actions can record which household members watched together.
+        <p className="text-text-soft mt-2 text-[11px]">
+          Shared-watch actions can record which household members watched
+          together.
         </p>
       ) : null}
 
       {isSelectingParticipants ? (
-        <div className="mt-3 space-y-3 rounded-2xl border border-border-subtle bg-surface-muted/70 p-3">
-          <p className="text-xs font-medium text-foreground">
+        <div className="border-border-subtle bg-surface-muted/70 mt-3 space-y-3 rounded-2xl border p-3">
+          <p className="text-foreground text-xs font-medium">
             Choose the members who watched together
           </p>
           <div className="flex flex-wrap gap-2">
@@ -384,8 +384,9 @@ export function SearchResultCard({
               Cancel
             </Button>
           </div>
-          <p className="text-[11px] text-text-soft">
-            Pick at least 2 members. This records the shared-watch participants without changing each person’s watched status.
+          <p className="text-text-soft text-[11px]">
+            Pick at least 2 members. This records the shared-watch participants
+            without changing each person’s watched status.
           </p>
         </div>
       ) : null}

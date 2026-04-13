@@ -9,7 +9,7 @@ import {
   getHouseholdIdForUid,
   getTitleViewModelById,
 } from "@/lib/tracker/server";
-import { normalizeTmdbDetailResult } from "@/lib/tracker/tmdb";
+import { fetchTvdbDetail, normalizeTvdbDetailResult } from "@/lib/tracker/tvdb";
 
 export async function POST(
   request: NextRequest,
@@ -27,44 +27,18 @@ export async function POST(
       return NextResponse.json({ error: "Title not found." }, { status: 404 });
     }
 
-    const apiKey = process.env.TMDB_API_KEY;
-    if (!apiKey) {
+    const payload = await fetchTvdbDetail(existing.mediaType, existing.tvdbId);
+    if (!payload) {
       return NextResponse.json(
-        { error: "TMDB_API_KEY is not configured." },
-        { status: 500 },
+        { error: "TVDB payload was invalid." },
+        { status: 502 },
       );
     }
 
-    const baseUrl = process.env.TMDB_BASE_URL ?? "https://api.themoviedb.org/3";
-    const normalizedBaseUrl = baseUrl.endsWith("/") ? baseUrl : `${baseUrl}/`;
-    const detailPath =
-      existing.mediaType === "movie"
-        ? `movie/${existing.tmdbId}`
-        : `tv/${existing.tmdbId}`;
-    const url = new URL(detailPath, normalizedBaseUrl);
-    url.searchParams.set("api_key", apiKey);
-    url.searchParams.set("language", "en-US");
-
-    const tmdbResponse = await fetch(url, {
-      method: "GET",
-      headers: { Accept: "application/json" },
-      next: { revalidate: 120 },
-    });
-
-    if (!tmdbResponse.ok) {
-      return NextResponse.json(
-        { error: "TMDb request failed." },
-        { status: tmdbResponse.status },
-      );
-    }
-
-    const detail = normalizeTmdbDetailResult(
-      existing.mediaType,
-      (await tmdbResponse.json()) as Record<string, unknown>,
-    );
+    const detail = normalizeTvdbDetailResult(existing.mediaType, payload);
     if (!detail) {
       return NextResponse.json(
-        { error: "TMDb payload was invalid." },
+        { error: "TVDB payload was invalid." },
         { status: 502 },
       );
     }
@@ -102,7 +76,9 @@ export async function POST(
         ? 401
         : message === "Forbidden."
           ? 403
-          : 500;
+          : message === "TVDB title not found."
+            ? 404
+            : 500;
     logServerError("api.titles.refresh", error, { status });
 
     return NextResponse.json(

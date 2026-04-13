@@ -8,7 +8,10 @@
    - `FIREBASE_ADMIN_PROJECT_ID`
    - `FIREBASE_ADMIN_CLIENT_EMAIL`
    - `FIREBASE_ADMIN_PRIVATE_KEY` (preserve newlines as `\n`)
-4. Start dev:
+4. Set TheTVDB server config:
+   - `TVDB_API_KEY`
+   - `TVDB_BASE_URL` (optional, defaults to `https://api4.thetvdb.com/v4`)
+5. Start dev:
 
 ```bash
 npm run dev
@@ -16,6 +19,19 @@ npm run dev
 
 `npm run dev` opens `http://localhost:3000/onboarding`.  
 Use `npm run dev:no-open` to skip auto-open.
+
+## Resetting test data
+
+To wipe the household and tracker Firestore collections for a fresh TVDB-first reset:
+
+```bash
+set -a
+source .env.local
+set +a
+npm run reset:tracker-data -- --yes
+```
+
+Use `--dry-run` first if you want a preview. This clears Firestore documents only; it does not delete Firebase Auth users.
 
 ## Security notes
 

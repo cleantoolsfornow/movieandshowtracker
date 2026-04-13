@@ -136,7 +136,7 @@ function createDb(options?: {
 const viewModelFixture = {
   id: "h1_movie_101",
   householdId: "h1",
-  tmdbId: 101,
+  tvdbId: 101,
   mediaType: "movie" as const,
   name: "Arrival",
   household: {
@@ -185,7 +185,7 @@ describe("title mutation/read routes", () => {
       new Request("http://localhost/api/titles/add", {
         method: "POST",
         body: JSON.stringify({
-          tmdbId: 101,
+          tvdbId: 101,
           mediaType: "movie",
           action: "mark_user_wants_to_watch",
           targetUserId: "u2",
@@ -197,7 +197,10 @@ describe("title mutation/read routes", () => {
     const payload = await response.json();
     expect(response.status).toBe(200);
     expect(payload.record.id).toBe("h1_movie_101");
-    expect(assertUserHasHouseholdMembershipMock).toHaveBeenCalledWith("u1", "h1");
+    expect(assertUserHasHouseholdMembershipMock).toHaveBeenCalledWith(
+      "u1",
+      "h1",
+    );
     expect(assertUserIsInHouseholdMock).toHaveBeenCalledWith("u1", "u2", "h1");
     expect(
       activeDb.setCalls.some(
@@ -227,7 +230,7 @@ describe("title mutation/read routes", () => {
       new Request("http://localhost/api/titles/add", {
         method: "POST",
         body: JSON.stringify({
-          tmdbId: 101,
+          tvdbId: 101,
           mediaType: "movie",
           action: "mark_user_watched",
         }),
@@ -238,9 +241,9 @@ describe("title mutation/read routes", () => {
     const userStatusWrite = activeDb.setCalls.find(
       (call) => call.ref._collection === "titleUserStatuses",
     );
-    expect((userStatusWrite?.data as Record<string, unknown>).wantsToWatch).toBe(
-      false,
-    );
+    expect(
+      (userStatusWrite?.data as Record<string, unknown>).wantsToWatch,
+    ).toBe(false);
     expect((userStatusWrite?.data as Record<string, unknown>).watched).toBe(
       true,
     );
@@ -253,7 +256,7 @@ describe("title mutation/read routes", () => {
       new Request("http://localhost/api/titles/add", {
         method: "POST",
         body: JSON.stringify({
-          tmdbId: 101,
+          tvdbId: 101,
           mediaType: "movie",
           action: "mark_user_watched",
         }),
@@ -270,7 +273,7 @@ describe("title mutation/read routes", () => {
       new Request("http://localhost/api/titles/add", {
         method: "POST",
         body: JSON.stringify({
-          tmdbId: 101,
+          tvdbId: 101,
           mediaType: "movie",
           action: "mark_user_wants_to_watch",
           name: "Arrival",
@@ -299,7 +302,7 @@ describe("title mutation/read routes", () => {
       new Request("http://localhost/api/titles/add", {
         method: "POST",
         body: JSON.stringify({
-          tmdbId: 101,
+          tvdbId: 101,
           mediaType: "movie",
           action: "mark_user_watched",
         }),
@@ -438,9 +441,9 @@ describe("title mutation/read routes", () => {
     const userStatusWrite = activeDb.setCalls.find(
       (call) => call.ref._collection === "titleUserStatuses",
     );
-    expect((userStatusWrite?.data as Record<string, unknown>).wantsToWatch).toBe(
-      true,
-    );
+    expect(
+      (userStatusWrite?.data as Record<string, unknown>).wantsToWatch,
+    ).toBe(true);
     expect((userStatusWrite?.data as Record<string, unknown>).watched).toBe(
       false,
     );
@@ -467,9 +470,9 @@ describe("title mutation/read routes", () => {
     expect((userStatusWrite?.data as Record<string, unknown>).watched).toBe(
       true,
     );
-    expect((userStatusWrite?.data as Record<string, unknown>).wantsToWatch).toBe(
-      false,
-    );
+    expect(
+      (userStatusWrite?.data as Record<string, unknown>).wantsToWatch,
+    ).toBe(false);
   });
 
   it("GET /api/titles/[titleId] returns canonical TitleViewModel record", async () => {
@@ -491,12 +494,12 @@ describe("title mutation/read routes", () => {
 
   it("POST /api/titles/[titleId]/refresh updates title metadata and returns TitleViewModel", async () => {
     const originalFetch = global.fetch;
-    process.env.TMDB_API_KEY = "test-key";
+    process.env.TVDB_API_KEY = "test-key";
 
     getTitleViewModelByIdMock
       .mockResolvedValueOnce({
         ...viewModelFixture,
-        tmdbId: 101,
+        tvdbId: 101,
         mediaType: "movie",
       })
       .mockResolvedValueOnce({
@@ -504,23 +507,47 @@ describe("title mutation/read routes", () => {
         name: "Updated Arrival",
       });
 
-    global.fetch = vi.fn(async () => ({
-      ok: true,
-      status: 200,
-      async json() {
+    global.fetch = vi.fn(async (input) => {
+      const url = String(input);
+
+      if (url.includes("/login")) {
         return {
-          id: 101,
-          title: "Updated Arrival",
-          overview: "Updated overview",
-          poster_path: "/poster.jpg",
-          backdrop_path: "/backdrop.jpg",
-          release_date: "2026-01-01",
-          runtime: 116,
-          vote_average: 7.2,
-          genres: [{ id: 1, name: "Sci-Fi" }],
-        };
-      },
-    })) as typeof fetch;
+          ok: true,
+          status: 200,
+          async json() {
+            return {
+              data: {
+                token: "tvdb-token",
+              },
+            };
+          },
+        } as Response;
+      }
+
+      return {
+        ok: true,
+        status: 200,
+        async json() {
+          return {
+            data: {
+              id: 101,
+              name: "Updated Arrival",
+              overview: "Updated overview",
+              image: "https://artworks.thetvdb.com/poster.jpg",
+              first_release: { date: "2026-01-01" },
+              runtime: 116,
+              genres: [{ id: 1, name: "Sci-Fi" }],
+              artworks: [
+                {
+                  type: 15,
+                  image: "https://artworks.thetvdb.com/backdrop.jpg",
+                },
+              ],
+            },
+          };
+        },
+      } as Response;
+    }) as typeof fetch;
 
     const response = await refreshTitlePost(
       new Request("http://localhost/api/titles/h1_movie_101/refresh", {

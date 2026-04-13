@@ -23,7 +23,7 @@ const addActionSchema = z.enum([
 ]);
 
 const addTitleSchema = z.object({
-  tmdbId: z.number().int().positive(),
+  tvdbId: z.number().int().positive(),
   mediaType: z.enum(["movie", "tv"]),
   action: addActionSchema,
   targetUserId: z.string().min(1).optional(),
@@ -73,7 +73,9 @@ function compactObject<T extends Record<string, unknown>>(value: T) {
   return next;
 }
 
-function buildExclusiveUserStatusFields(action: z.infer<typeof addActionSchema>) {
+function buildExclusiveUserStatusFields(
+  action: z.infer<typeof addActionSchema>,
+) {
   if (action === "mark_user_wants_to_watch") {
     return {
       wantsToWatch: true,
@@ -96,9 +98,8 @@ async function getValidatedParticipantUserIds(
   householdId: string,
   participantUserIds?: string[],
 ) {
-  const normalizedParticipantUserIds = normalizeParticipantUserIds(
-    participantUserIds,
-  );
+  const normalizedParticipantUserIds =
+    normalizeParticipantUserIds(participantUserIds);
 
   if (!normalizedParticipantUserIds) {
     return undefined;
@@ -135,7 +136,7 @@ export async function POST(request: NextRequest) {
     const titleId = createTitleKey(
       householdId,
       parsed.mediaType,
-      parsed.tmdbId,
+      parsed.tvdbId,
     );
     const targetUserId = parsed.targetUserId ?? uid;
 
@@ -155,7 +156,7 @@ export async function POST(request: NextRequest) {
 
     const titleFields = compactObject({
       householdId,
-      tmdbId: parsed.tmdbId,
+      tvdbId: parsed.tvdbId,
       mediaType: parsed.mediaType,
       name: parsed.name ?? parsed.title,
       overview: parsed.overview,
@@ -263,7 +264,7 @@ export async function POST(request: NextRequest) {
               parsed.action === "mark_watched_together" ? true : undefined,
             watchedTogetherParticipantUserIds:
               parsed.action === "mark_watched_together"
-                ? participantUserIds ?? FieldValue.delete()
+                ? (participantUserIds ?? FieldValue.delete())
                 : undefined,
             updatedAt: now,
             updatedBy: uid,
@@ -283,7 +284,7 @@ export async function POST(request: NextRequest) {
   } catch (error) {
     const message =
       error instanceof z.ZodError
-        ? error.issues[0]?.message ?? "Invalid title payload."
+        ? (error.issues[0]?.message ?? "Invalid title payload.")
         : error instanceof Error
           ? error.message
           : "Failed to save title.";
@@ -295,11 +296,11 @@ export async function POST(request: NextRequest) {
           ? 403
           : error instanceof z.ZodError
             ? 400
-          : message.includes("household") ||
-              message.includes("name") ||
-              message.includes("participant")
-            ? 400
-            : 500;
+            : message.includes("household") ||
+                message.includes("name") ||
+                message.includes("participant")
+              ? 400
+              : 500;
     logServerError("api.titles.add", error, { status });
 
     return NextResponse.json(

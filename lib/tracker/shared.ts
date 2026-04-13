@@ -10,9 +10,9 @@ import type {
 export function createTitleKey(
   householdId: string,
   mediaType: MediaType,
-  tmdbId: number,
+  tvdbId: number,
 ): string {
-  return `${householdId}_${mediaType}_${tmdbId}`;
+  return `${householdId}_${mediaType}_${tvdbId}`;
 }
 
 export function createTitleUserStatusId(
@@ -85,6 +85,10 @@ export function normalizeUserStatus(
 export function buildPosterUrl(path: string | null, size = "w342") {
   if (!path) {
     return null;
+  }
+
+  if (/^https?:\/\//i.test(path)) {
+    return path;
   }
 
   return `https://image.tmdb.org/t/p/${size}${path}`;

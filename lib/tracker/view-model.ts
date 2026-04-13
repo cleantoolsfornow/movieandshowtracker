@@ -55,9 +55,8 @@ export function buildTitleViewModel({
   }
 
   const household = normalizeHouseholdStatus(householdStatus);
-  const watchedTogetherParticipants = getWatchedTogetherParticipantState(
-    household,
-  );
+  const watchedTogetherParticipants =
+    getWatchedTogetherParticipantState(household);
   const membersView = mapMembersToTitleViewModelMembers(
     members,
     userStatusesByUserId,
@@ -71,7 +70,7 @@ export function buildTitleViewModel({
   return {
     id: title.id,
     householdId: title.householdId,
-    tmdbId: title.tmdbId,
+    tvdbId: title.tvdbId,
     mediaType: title.mediaType,
     name: title.name,
     overview: title.overview,
@@ -99,8 +98,7 @@ export function buildTitleViewModel({
       noMembersWatched: derived.noMembersWatched,
       anyMembersWantToWatch: derived.anyMembersWantToWatch,
       allMembersWantToWatch: derived.allMembersWantToWatch,
-      someButNotAllMembersWantToWatch:
-        derived.someButNotAllMembersWantToWatch,
+      someButNotAllMembersWantToWatch: derived.someButNotAllMembersWantToWatch,
       noMembersWantToWatch: derived.noMembersWantToWatch,
       someMembersWantToWatch: derived.someMembersWantToWatch,
       multipleMembersWantToWatch: derived.multipleMembersWantToWatch,

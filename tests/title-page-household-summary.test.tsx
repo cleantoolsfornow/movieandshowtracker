@@ -33,7 +33,8 @@ vi.mock("@/lib/tracker/queries", () => ({
 }));
 
 vi.mock("@/lib/tracker/client-api", () => ({
-  refreshTitleMetadata: (...args: unknown[]) => refreshTitleMetadataMock(...args),
+  refreshTitleMetadata: (...args: unknown[]) =>
+    refreshTitleMetadataMock(...args),
 }));
 
 vi.mock("@/components/status/title-status-editor", () => ({
@@ -44,7 +45,7 @@ function buildRecord(overrides?: Partial<TitleViewModel>): TitleViewModel {
   return {
     id: "h1_movie_42",
     householdId: "h1",
-    tmdbId: 42,
+    tvdbId: 42,
     mediaType: "movie",
     name: "Dune",
     overview: "Overview",
@@ -66,7 +67,9 @@ function buildRecord(overrides?: Partial<TitleViewModel>): TitleViewModel {
       wantsToWatchCount: 0,
       memberCount: 1,
     },
-    members: [{ userId: "u1", displayName: "You", wantsToWatch: false, watched: false }],
+    members: [
+      { userId: "u1", displayName: "You", wantsToWatch: false, watched: false },
+    ],
     currentUser: { userId: "u1", wantsToWatch: false, watched: false },
     createdAt: "2026-01-01T00:00:00.000Z",
     updatedAt: "2026-01-01T00:00:00.000Z",
@@ -160,7 +163,9 @@ describe("Title detail household summary", () => {
       screen.getAllByText(/Watched together \(household event\)/).length,
     ).toBeGreaterThan(0);
     expect(
-      screen.getByText("Participants were not recorded for this shared moment."),
+      screen.getByText(
+        "Participants were not recorded for this shared moment.",
+      ),
     ).toBeInTheDocument();
   });
 

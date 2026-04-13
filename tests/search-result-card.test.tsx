@@ -33,7 +33,7 @@ function buildRecord(): TitleViewModel {
   return {
     id: "h1_movie_42",
     householdId: "h1",
-    tmdbId: 42,
+    tvdbId: 42,
     mediaType: "movie",
     name: "Dune",
     overview: "Overview",
@@ -60,7 +60,12 @@ function buildRecord(): TitleViewModel {
     },
     members: [
       { userId: "u1", displayName: "You", wantsToWatch: false, watched: false },
-      { userId: "u2", displayName: "Casey", wantsToWatch: false, watched: false },
+      {
+        userId: "u2",
+        displayName: "Casey",
+        wantsToWatch: false,
+        watched: false,
+      },
     ],
     currentUser: { userId: "u1", wantsToWatch: false, watched: false },
     createdAt: "2026-01-01T00:00:00.000Z",
@@ -69,7 +74,7 @@ function buildRecord(): TitleViewModel {
 }
 
 const item = {
-  tmdbId: 42,
+  tvdbId: 42,
   mediaType: "movie" as const,
   name: "Dune",
   overview: "Overview",
@@ -129,7 +134,14 @@ describe("SearchResultCard", () => {
         ...buildRecord().household,
         memberCount: 1,
       },
-      members: [{ userId: "u1", displayName: "You", wantsToWatch: true, watched: false }],
+      members: [
+        {
+          userId: "u1",
+          displayName: "You",
+          wantsToWatch: true,
+          watched: false,
+        },
+      ],
       currentUser: { userId: "u1", wantsToWatch: true, watched: false },
     };
 
@@ -162,7 +174,14 @@ describe("SearchResultCard", () => {
         ...buildRecord().household,
         memberCount: 1,
       },
-      members: [{ userId: "u1", displayName: "You", wantsToWatch: false, watched: true }],
+      members: [
+        {
+          userId: "u1",
+          displayName: "You",
+          wantsToWatch: false,
+          watched: true,
+        },
+      ],
       currentUser: { userId: "u1", wantsToWatch: false, watched: true },
     };
 
@@ -195,8 +214,18 @@ describe("SearchResultCard", () => {
         noMembersWantToWatch: false,
       },
       members: [
-        { userId: "u1", displayName: "You", wantsToWatch: false, watched: false },
-        { userId: "u2", displayName: "Casey", wantsToWatch: true, watched: false },
+        {
+          userId: "u1",
+          displayName: "You",
+          wantsToWatch: false,
+          watched: false,
+        },
+        {
+          userId: "u2",
+          displayName: "Casey",
+          wantsToWatch: true,
+          watched: false,
+        },
       ],
       currentUser: { userId: "u1", wantsToWatch: false, watched: false },
     };
@@ -336,9 +365,7 @@ describe("SearchResultCard", () => {
       }),
     );
     fireEvent.click(screen.getByRole("button", { name: "Casey" }));
-    fireEvent.click(
-      screen.getByRole("button", { name: "Save shared watch" }),
-    );
+    fireEvent.click(screen.getByRole("button", { name: "Save shared watch" }));
 
     await waitFor(() => {
       expect(addTitleMock).toHaveBeenCalledWith(

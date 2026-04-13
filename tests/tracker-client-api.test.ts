@@ -17,7 +17,7 @@ vi.mock("@/lib/auth/auth-client", () => ({
 const baseRecord = {
   id: "h1_movie_101",
   householdId: "h1",
-  tmdbId: 101,
+  tvdbId: 101,
   mediaType: "movie" as const,
   name: "Arrival",
   household: {
@@ -54,7 +54,7 @@ describe("tracker client api", () => {
       );
 
     const record = await addTitle({
-      tmdbId: 101,
+      tvdbId: 101,
       mediaType: "movie",
       action: "mark_user_wants_to_watch",
       name: "Arrival",
@@ -63,7 +63,7 @@ describe("tracker client api", () => {
     expect(record.id).toBe("h1_movie_101");
     const requestBody = JSON.parse(String(fetchMock.mock.calls[0][1]?.body));
     expect(requestBody.action).toBe("mark_user_wants_to_watch");
-    expect(requestBody.tmdbId).toBe(101);
+    expect(requestBody.tvdbId).toBe(101);
   });
 
   it("listTitles uses canonical filter/sort params", async () => {

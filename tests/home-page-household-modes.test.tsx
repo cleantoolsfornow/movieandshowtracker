@@ -25,7 +25,7 @@ function buildRecord(overrides?: Partial<TitleViewModel>): TitleViewModel {
   return {
     id: "h1_movie_1",
     householdId: "h1",
-    tmdbId: 1,
+    tvdbId: 1,
     mediaType: "movie",
     name: "Dune",
     household: {
@@ -46,7 +46,9 @@ function buildRecord(overrides?: Partial<TitleViewModel>): TitleViewModel {
       wantsToWatchCount: 0,
       memberCount: 1,
     },
-    members: [{ userId: "u1", displayName: "You", wantsToWatch: false, watched: false }],
+    members: [
+      { userId: "u1", displayName: "You", wantsToWatch: false, watched: false },
+    ],
     currentUser: { userId: "u1", wantsToWatch: false, watched: false },
     createdAt: "2026-01-01T00:00:00.000Z",
     updatedAt: "2026-01-01T00:00:00.000Z",
@@ -77,7 +79,9 @@ describe("Home household copy", () => {
     expect(screen.getByText("Solo household")).toBeInTheDocument();
     expect(screen.getByText("Want to watch")).toBeInTheDocument();
     expect(screen.queryByText("Shared watchlist")).not.toBeInTheDocument();
-    expect(screen.queryByText("Recently watched together")).not.toBeInTheDocument();
+    expect(
+      screen.queryByText("Recently watched together"),
+    ).not.toBeInTheDocument();
   });
 
   it("uses two-member wording where appropriate", () => {

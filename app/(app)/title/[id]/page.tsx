@@ -139,7 +139,7 @@ export default function TitleDetailPage() {
         <Link href="/library">← Back to library</Link>
       </Button>
 
-      <PageCard className="-mx-4 relative overflow-hidden p-0 md:mx-0 max-md:rounded-none max-md:border-0 max-md:ring-0">
+      <PageCard className="relative -mx-4 overflow-hidden p-0 max-md:rounded-none max-md:border-0 max-md:ring-0 md:mx-0">
         {backdropUrl ? (
           <>
             {/* eslint-disable-next-line @next/next/no-img-element */}
@@ -159,7 +159,7 @@ export default function TitleDetailPage() {
             <button
               type="button"
               onClick={() => setIsPosterLightboxOpen(true)}
-              className="overflow-hidden rounded-xl border border-white/15 bg-surface-muted text-left shadow-elevated"
+              className="bg-surface-muted shadow-elevated overflow-hidden rounded-xl border border-white/15 text-left"
               aria-label="Open poster full screen"
             >
               {/* eslint-disable-next-line @next/next/no-img-element */}
@@ -170,12 +170,12 @@ export default function TitleDetailPage() {
               />
             </button>
           ) : (
-            <div className="overflow-hidden rounded-xl border border-white/15 bg-surface-muted shadow-elevated">
-              <div className="flex h-full min-h-72 flex-col items-center justify-center gap-2 bg-surface-muted text-center">
-                <span className="inline-flex h-12 w-12 items-center justify-center rounded-full border border-border-subtle bg-surface text-base font-semibold text-text-muted">
+            <div className="bg-surface-muted shadow-elevated overflow-hidden rounded-xl border border-white/15">
+              <div className="bg-surface-muted flex h-full min-h-72 flex-col items-center justify-center gap-2 text-center">
+                <span className="border-border-subtle bg-surface text-text-muted inline-flex h-12 w-12 items-center justify-center rounded-full border text-base font-semibold">
                   {record.name.slice(0, 1).toUpperCase()}
                 </span>
-                <p className="text-sm text-text-muted">Poster unavailable</p>
+                <p className="text-text-muted text-sm">Poster unavailable</p>
               </div>
             </div>
           )}
@@ -192,22 +192,26 @@ export default function TitleDetailPage() {
 
             <div className="flex flex-wrap gap-2">
               {typeof record.runtime === "number" ? (
-                <Chip tone="muted" className="border-white/20 bg-white/10 text-xs text-white">
+                <Chip
+                  tone="muted"
+                  className="border-white/20 bg-white/10 text-xs text-white"
+                >
                   Runtime: {record.runtime} min
                 </Chip>
               ) : null}
               {typeof record.numberOfSeasons === "number" ? (
-                <Chip tone="muted" className="border-white/20 bg-white/10 text-xs text-white">
+                <Chip
+                  tone="muted"
+                  className="border-white/20 bg-white/10 text-xs text-white"
+                >
                   Seasons: {record.numberOfSeasons}
                 </Chip>
               ) : null}
-              {typeof record.voteAverage === "number" ? (
-                <Chip tone="muted" className="border-white/20 bg-white/10 text-xs text-white">
-                  TMDB: {record.voteAverage.toFixed(1)}
-                </Chip>
-              ) : null}
               {record.releaseDate ? (
-                <Chip tone="muted" className="border-white/20 bg-white/10 text-xs text-white">
+                <Chip
+                  tone="muted"
+                  className="border-white/20 bg-white/10 text-xs text-white"
+                >
                   Released: {record.releaseDate}
                 </Chip>
               ) : null}
@@ -252,26 +256,19 @@ export default function TitleDetailPage() {
             </div>
 
             <a
-              href="https://www.themoviedb.org/about/logos-attribution?language=en-GB"
+              href="https://thetvdb.com/api-information"
               target="_blank"
               rel="noreferrer"
-              className="inline-flex flex-col items-start gap-1 text-[11px] text-white/70 hover:text-white/90"
+              className="inline-flex items-start gap-1 text-[11px] text-white/70 hover:text-white/90"
             >
-              {/* Official TMDB attribution logo from themoviedb.org */}
-              {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img
-                src="https://www.themoviedb.org/assets/2/v4/logos/v2/blue_short-8e7b30f73a4020692ccca9c88bafe5dcb6f8a62a4c6bc55cd9ba82bb2cd95f6c.svg"
-                alt="TMDB"
-                className="h-3 w-auto opacity-90"
-              />
-              <span>Uses TMDB data; not endorsed or certified by TMDB.</span>
+              <span>Uses data from TheTVDB.</span>
             </a>
           </div>
         </div>
       </PageCard>
 
       {isSoloHousehold ? (
-        <PageCard className="-mx-4 p-5 md:mx-0 max-md:rounded-none max-md:border-0 max-md:ring-0">
+        <PageCard className="-mx-4 p-5 max-md:rounded-none max-md:border-0 max-md:ring-0 md:mx-0">
           <SectionHeader
             title="Personal Summary"
             titleLevel="h2"
@@ -279,16 +276,22 @@ export default function TitleDetailPage() {
             description="Your current status for this title."
           />
           <div className="mt-2 flex flex-wrap gap-2">
-            <Chip tone={record.currentUser.watched ? "success" : "muted"} className="text-xs">
+            <Chip
+              tone={record.currentUser.watched ? "success" : "muted"}
+              className="text-xs"
+            >
               Watched by me: {record.currentUser.watched ? "Yes" : "No"}
             </Chip>
-            <Chip tone={record.currentUser.wantsToWatch ? "accent" : "muted"} className="text-xs">
+            <Chip
+              tone={record.currentUser.wantsToWatch ? "accent" : "muted"}
+              className="text-xs"
+            >
               Want to watch: {record.currentUser.wantsToWatch ? "Yes" : "No"}
             </Chip>
           </div>
         </PageCard>
       ) : (
-        <PageCard className="-mx-4 p-5 md:mx-0 max-md:rounded-none max-md:border-0 max-md:ring-0">
+        <PageCard className="-mx-4 p-5 max-md:rounded-none max-md:border-0 max-md:ring-0 md:mx-0">
           <SectionHeader
             title="Household Summary"
             titleLevel="h2"
@@ -343,8 +346,10 @@ export default function TitleDetailPage() {
               className="mt-3"
             />
           ) : isThreePlusHousehold ? (
-            <p className="mt-1 text-xs text-text-soft">
-              For 3+ households, watched together stays separate from all-members-watched and may still have legacy rows without recorded participants.
+            <p className="text-text-soft mt-1 text-xs">
+              For 3+ households, watched together stays separate from
+              all-members-watched and may still have legacy rows without
+              recorded participants.
             </p>
           ) : null}
         </PageCard>

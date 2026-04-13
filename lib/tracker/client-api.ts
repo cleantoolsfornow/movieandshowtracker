@@ -2,7 +2,7 @@ import { getCurrentIdToken } from "@/lib/auth/auth-client";
 import type {
   AddTitleRequest,
   PatchTitleAction,
-  TmdbSearchResult,
+  TvdbSearchResult,
   TitleViewModel,
 } from "@/lib/tracker/types";
 
@@ -31,10 +31,10 @@ async function authedFetch<T>(
   return data as T;
 }
 
-export async function searchTmdb(query: string): Promise<TmdbSearchResult[]> {
+export async function searchTvdb(query: string): Promise<TvdbSearchResult[]> {
   const params = new URLSearchParams({ q: query });
-  const data = await authedFetch<{ results: TmdbSearchResult[] }>(
-    `/api/tmdb/search?${params.toString()}`,
+  const data = await authedFetch<{ results: TvdbSearchResult[] }>(
+    `/api/tvdb/search?${params.toString()}`,
     { method: "GET" },
   );
   return data.results;

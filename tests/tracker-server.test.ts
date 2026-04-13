@@ -95,7 +95,7 @@ describe("tracker server read path", () => {
       titles: {
         t1: {
           householdId: "h1",
-          tmdbId: 101,
+          tvdbId: 101,
           mediaType: "movie",
           name: "Arrival",
           createdAt: new Date("2026-01-01T00:00:00.000Z"),
@@ -103,7 +103,7 @@ describe("tracker server read path", () => {
         },
         t2: {
           householdId: "h1",
-          tmdbId: 202,
+          tvdbId: 202,
           mediaType: "tv",
           name: "Andor",
           createdAt: new Date("2026-01-02T00:00:00.000Z"),

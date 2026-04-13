@@ -1,71 +1,72 @@
 import { describe, expect, it } from "vitest";
 
 import {
-  normalizeTmdbDetailResult,
-  normalizeTmdbMultiResult,
-} from "@/lib/tracker/tmdb";
+  normalizeTvdbDetailResult,
+  normalizeTvdbSearchResult,
+} from "@/lib/tracker/tvdb";
 
-describe("normalizeTmdbMultiResult", () => {
+describe("normalizeTvdbSearchResult", () => {
   it("normalizes movie payload", () => {
-    const result = normalizeTmdbMultiResult({
-      id: 10,
-      media_type: "movie",
-      title: "Inception",
+    const result = normalizeTvdbSearchResult({
+      type: "movie",
+      tvdb_id: "219",
+      name: "Arrival",
       overview: "Dreams",
-      poster_path: "/a.jpg",
-      backdrop_path: "/b.jpg",
-      release_date: "2010-07-16",
-      vote_average: 8.75,
+      image_url: "https://artworks.thetvdb.com/poster.jpg",
+      first_air_time: "2010-07-16",
     });
 
     expect(result).toEqual({
-      tmdbId: 10,
+      tvdbId: 219,
       mediaType: "movie",
-      name: "Inception",
-      title: "Inception",
+      name: "Arrival",
+      title: "Arrival",
       overview: "Dreams",
-      posterPath: "/a.jpg",
-      backdropPath: "/b.jpg",
+      posterPath: "https://artworks.thetvdb.com/poster.jpg",
+      backdropPath: undefined,
       releaseDate: "2010-07-16",
       firstAirDate: undefined,
-      voteAverage: 8.8,
+      voteAverage: undefined,
     });
   });
 
   it("returns null for unsupported types", () => {
     expect(
-      normalizeTmdbMultiResult({
+      normalizeTvdbSearchResult({
         id: 1,
-        media_type: "person",
+        type: "person",
         name: "Someone",
       }),
     ).toBeNull();
   });
 
   it("normalizes detail payload with genre ids and richer metadata", () => {
-    const result = normalizeTmdbDetailResult("tv", {
-      id: 20,
+    const result = normalizeTvdbDetailResult("tv", {
+      id: 393189,
       name: "Andor",
       overview: "Rebellion",
-      poster_path: "/tv-a.jpg",
-      backdrop_path: "/tv-b.jpg",
-      first_air_date: "2022-09-21",
-      vote_average: 8.41,
-      number_of_seasons: 2,
-      episode_run_time: [47],
+      image: "https://artworks.thetvdb.com/poster.jpg",
+      firstAired: "2022-09-21",
+      averageRuntime: 47,
       genres: [{ id: 10765, name: "Sci-Fi & Fantasy" }],
+      artworks: [{ type: 3, image: "https://artworks.thetvdb.com/bg.jpg" }],
+      seasons: [
+        { number: 0, type: { id: 1 } },
+        { number: 1, type: { id: 1 } },
+        { number: 2, type: { id: 1 } },
+      ],
     });
 
     expect(result).toEqual({
-      tmdbId: 20,
+      tvdbId: 393189,
       name: "Andor",
       title: "Andor",
       overview: "Rebellion",
-      posterPath: "/tv-a.jpg",
-      backdropPath: "/tv-b.jpg",
+      posterPath: "https://artworks.thetvdb.com/poster.jpg",
+      backdropPath: "https://artworks.thetvdb.com/bg.jpg",
       releaseDate: undefined,
       firstAirDate: "2022-09-21",
-      voteAverage: 8.4,
+      voteAverage: undefined,
       runtime: 47,
       numberOfSeasons: 2,
       genres: [{ id: 10765, name: "Sci-Fi & Fantasy" }],

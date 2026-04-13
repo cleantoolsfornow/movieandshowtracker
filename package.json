@@ -15,6 +15,7 @@
     "migrate:title-statuses": "node scripts/backfill-title-statuses.mjs",
     "normalize:title-user-statuses": "node scripts/normalize-title-user-statuses.mjs",
     "cleanup:legacy-title-statuses": "node scripts/delete-legacy-title-statuses.mjs",
+    "reset:tracker-data": "node scripts/reset-tracker-data.mjs",
     "format": "prettier --write .",
     "format:check": "prettier --check ."
   },

@@ -8,7 +8,7 @@ function buildRecord(overrides: Partial<TitleViewModel> = {}): TitleViewModel {
   return {
     id: "h1_movie_1",
     householdId: "h1",
-    tmdbId: 1,
+    tvdbId: 1,
     mediaType: "movie",
     name: "Dune",
     household: {

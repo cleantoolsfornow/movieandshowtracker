@@ -17,9 +17,8 @@ vi.mock("@/lib/tracker/queries", () => ({
 }));
 
 vi.mock("@/components/library/poster-card", () => ({
-  PosterCard: ({ record }: { record: TitleViewModel }) => (
-    createElement("div", { "data-testid": `poster-${record.id}` }, record.name)
-  ),
+  PosterCard: ({ record }: { record: TitleViewModel }) =>
+    createElement("div", { "data-testid": `poster-${record.id}` }, record.name),
 }));
 
 function record(
@@ -29,7 +28,7 @@ function record(
   return {
     id,
     householdId: "h1",
-    tmdbId: Number(id.replace(/\D/g, "")) || 1,
+    tvdbId: Number(id.replace(/\D/g, "")) || 1,
     mediaType: "movie",
     name: id,
     household: {
@@ -100,8 +99,12 @@ describe("LibraryPage browse views", () => {
 
     render(createElement(LibraryPage));
 
-    expect(screen.getByRole("button", { name: "All titles" })).toBeInTheDocument();
-    expect(screen.getByRole("button", { name: "Want to watch" })).toBeInTheDocument();
+    expect(
+      screen.getByRole("button", { name: "All titles" }),
+    ).toBeInTheDocument();
+    expect(
+      screen.getByRole("button", { name: "Want to watch" }),
+    ).toBeInTheDocument();
     expect(screen.getByRole("button", { name: "Watched" })).toBeInTheDocument();
     expect(
       screen.queryByRole("button", { name: "Watched by me" }),

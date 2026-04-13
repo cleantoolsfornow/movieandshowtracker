@@ -7,7 +7,7 @@ function baseTitle(overrides: Partial<TitleDocument> = {}): TitleDocument {
   return {
     id: "house1_movie_42",
     householdId: "house1",
-    tmdbId: 42,
+    tvdbId: 42,
     mediaType: "movie",
     name: "Dune",
     overview: "A test overview",

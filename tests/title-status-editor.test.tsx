@@ -33,7 +33,7 @@ function buildRecord(): TitleViewModel {
   return {
     id: "household-1_movie_550",
     householdId: "household-1",
-    tmdbId: 550,
+    tvdbId: 550,
     mediaType: "movie",
     name: "Fight Club",
     overview: "desc",
@@ -164,9 +164,7 @@ describe("TitleStatusEditor", () => {
   });
 
   it("optimistically clears want-to-watch when marking a member watched", async () => {
-    patchTitleStatusMock.mockImplementation(
-      () => new Promise(() => undefined),
-    );
+    patchTitleStatusMock.mockImplementation(() => new Promise(() => undefined));
 
     render(
       <TitleStatusEditor
@@ -215,7 +213,8 @@ describe("TitleStatusEditor", () => {
     const wantsHeadings = screen.getAllByRole("heading", {
       name: "Wants To Watch",
     });
-    const wantsSection = wantsHeadings[wantsHeadings.length - 1]?.closest("section");
+    const wantsSection =
+      wantsHeadings[wantsHeadings.length - 1]?.closest("section");
     if (!wantsSection) {
       throw new Error("Want to watch section should exist");
     }
