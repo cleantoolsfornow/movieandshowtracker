@@ -43,13 +43,25 @@ export async function ensureUserProfile(user: User): Promise<void> {
       return;
     }
 
+    const profileUpdate: {
+      email: string | null;
+      photoURL: string | null;
+      updatedAt: ReturnType<typeof serverTimestamp>;
+      displayName?: string;
+    } = {
+      email: user.email ?? null,
+      photoURL: user.photoURL ?? null,
+      updatedAt: now,
+    };
+
+    const trimmedDisplayName = user.displayName?.trim();
+    if (trimmedDisplayName) {
+      profileUpdate.displayName = trimmedDisplayName;
+    }
+
     transaction.set(
       ref,
-      {
-        email: user.email ?? null,
-        photoURL: user.photoURL ?? null,
-        updatedAt: now,
-      },
+      profileUpdate,
       { merge: true },
     );
   });

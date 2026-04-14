@@ -9,6 +9,7 @@ import {
 } from "firebase/auth";
 
 import { getFirebaseAuth, getGoogleProvider } from "@/lib/firebase/auth";
+import { ensureUserProfile } from "@/lib/firestore/users";
 
 export function subscribeToAuthState(
   callback: Parameters<typeof onAuthStateChanged>[1],
@@ -37,7 +38,9 @@ export async function signUpWithEmail(
     email,
     password,
   );
-  await updateProfile(credential.user, { displayName });
+  const trimmedDisplayName = displayName.trim();
+  await updateProfile(credential.user, { displayName: trimmedDisplayName });
+  await ensureUserProfile(credential.user);
   return credential;
 }
 
