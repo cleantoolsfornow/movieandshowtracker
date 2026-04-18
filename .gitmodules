@@ -1,0 +1,3 @@
+[submodule "tools/haiku-method"]
+	path = tools/haiku-method
+	url = https://github.com/gigsmart/haiku-method.git
