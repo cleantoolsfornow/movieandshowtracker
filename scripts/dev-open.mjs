@@ -1,18 +1,14 @@
 import { spawn } from "node:child_process";
 
-const port = process.env.PORT ?? "3000";
-const url = process.env.DEV_START_URL ?? `http://localhost:${port}/onboarding`;
-const bundler = process.env.NEXT_DEV_BUNDLER === "webpack" ? "--webpack" : null;
+const argv = new Set(process.argv.slice(2));
+const shouldOpenBrowser = !argv.has("--no-open");
+const useWebpack =
+  argv.has("--webpack") || process.env.NEXT_DEV_BUNDLER === "webpack";
 
-const nextBin = process.platform === "win32" ? "next.cmd" : "next";
-const nextArgs = ["dev", "--port", port];
-if (bundler) {
-  nextArgs.push(bundler);
-}
-const next = spawn(nextBin, nextArgs, {
-  stdio: "inherit",
-  shell: process.platform === "win32",
-});
+const port = Number.parseInt(process.env.PORT ?? "3000", 10) || 3000;
+const dir = process.cwd();
+const url = process.env.DEV_START_URL ?? `http://localhost:${port}/onboarding`;
+const isWindows = process.platform === "win32";
 
 let opened = false;
 
@@ -45,12 +41,66 @@ function openBrowser(targetUrl) {
   child.unref();
 }
 
-setTimeout(() => openBrowser(url), 1500);
+async function runWindowsDevServer() {
+  const envModule = await import("@next/env");
+  const { loadEnvConfig } = envModule.default ?? envModule;
+  const { startServer } = await import("next/dist/server/lib/start-server.js");
 
-next.on("exit", (code, signal) => {
-  if (signal) {
-    process.kill(process.pid, signal);
-    return;
+  loadEnvConfig(dir, true);
+
+  process.env.NODE_ENV = "development";
+  process.env.NEXT_RUNTIME = "nodejs";
+  process.env.__NEXT_DEV_SERVER = "1";
+  process.env.NEXT_PRIVATE_START_TIME =
+    process.env.NEXT_PRIVATE_START_TIME ?? Date.now().toString();
+
+  if (useWebpack) {
+    delete process.env.TURBOPACK;
+  } else {
+    process.env.TURBOPACK = process.env.TURBOPACK || "1";
   }
-  process.exit(code ?? 0);
-});
+
+  await startServer({
+    dir,
+    port,
+    allowRetry: true,
+    isDev: true,
+    serverFastRefresh: true,
+  });
+}
+
+async function runNonWindowsDevServer() {
+  const nextBin = process.platform === "win32" ? "next.cmd" : "next";
+  const nextArgs = ["dev", "--port", String(port)];
+  if (useWebpack) {
+    nextArgs.push("--webpack");
+  }
+
+  const child = spawn(nextBin, nextArgs, {
+    stdio: "inherit",
+    shell: process.platform === "win32",
+  });
+
+  child.on("error", (error) => {
+    console.error(error);
+    process.exit(1);
+  });
+
+  child.on("exit", (code, signal) => {
+    if (signal) {
+      process.kill(process.pid, signal);
+      return;
+    }
+    process.exit(code ?? 0);
+  });
+}
+
+if (shouldOpenBrowser) {
+  setTimeout(() => openBrowser(url), 1500);
+}
+
+if (isWindows) {
+  await runWindowsDevServer();
+} else {
+  await runNonWindowsDevServer();
+}
