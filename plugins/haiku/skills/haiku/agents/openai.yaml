@@ -1,0 +1,6 @@
+interface:
+  display_name: "Haiku Method"
+  short_description: "Structured Haiku workflow for this repo"
+  icon_small: "./assets/haiku-small.svg"
+  icon_large: "./assets/haiku.svg"
+  default_prompt: "Use $haiku to start, pick up, or reflect on work with the Haiku Method in this repository."

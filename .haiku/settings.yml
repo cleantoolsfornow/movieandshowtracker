@@ -1,0 +1,37 @@
+git:
+  change_strategy: unit
+  elaboration_review: true
+  default_branch: main
+
+studio: software
+
+providers:
+  ticketing:
+    type: github-issues
+
+granularity: standard
+mockup_format: html
+default_announcements:
+  - changelog
+default_passes: []
+
+quality_gates:
+  lint:
+    command: npm run lint
+  test:
+    command: npm test
+  build:
+    command: npm run build
+
+review_agents:
+  security: true
+  performance: true
+  architecture: true
+  correctness: true
+  test_quality: true
+  accessibility: true
+  design_system: true
+
+visual_review: false
+default_archetype: editorial
+knowledge_refresh: true

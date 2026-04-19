@@ -1,0 +1,20 @@
+{
+  "name": "movieandshowtracker-local",
+  "interface": {
+    "displayName": "movieandshowtracker Local Plugins"
+  },
+  "plugins": [
+    {
+      "name": "haiku",
+      "source": {
+        "source": "local",
+        "path": "./plugins/haiku"
+      },
+      "policy": {
+        "installation": "AVAILABLE",
+        "authentication": "ON_INSTALL"
+      },
+      "category": "Productivity"
+    }
+  ]
+}

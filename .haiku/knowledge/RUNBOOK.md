@@ -1,0 +1,23 @@
+# movieandshowtracker Haiku Runbook
+
+- This repository uses `next@16.2.2` with the App Router.
+- Before changing app code, read the relevant guide under `node_modules/next/dist/docs/`.
+- Core quality gates are `npm run lint`, `npm test`, and `npm run build`.
+- Default Haiku studio for this project is `software`.
+- Default software stage order:
+  - `inception`
+  - `design`
+  - `product`
+  - `development`
+  - `operations`
+  - `security`
+- Prefer small, verifiable units over large mixed frontend/backend changes.
+- Keep server/client boundaries explicit around Firebase and Firestore code.
+- When changing UI behavior, preserve the current visual language unless the request explicitly asks for a redesign.
+- Add or update Vitest coverage for changed behavior when practical.
+- When resuming work, check `.haiku/intents/` for any intent with `status: active` before starting a new one.
+- Favor measurable success criteria:
+  - exact route behavior
+  - expected auth or household state
+  - component rendering expectations
+  - specific test commands that must pass

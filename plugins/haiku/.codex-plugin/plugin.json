@@ -1,0 +1,32 @@
+{
+  "name": "haiku",
+  "version": "0.1.0",
+  "description": "Project-local Codex bridge for the Haiku Method, initialized for this repository's software studio workflow.",
+  "author": {
+    "name": "GigSmart + local Codex adaptation",
+    "email": "support@haikumethod.ai",
+    "url": "https://haikumethod.ai"
+  },
+  "homepage": "https://haikumethod.ai/docs/",
+  "repository": "https://github.com/gigsmart/haiku-method",
+  "license": "Apache-2.0",
+  "keywords": ["haiku", "haiku-method", "studio", "stages", "codex"],
+  "skills": "./skills/",
+  "interface": {
+    "displayName": "Haiku Method",
+    "shortDescription": "Use Haiku's studio and stage model from Codex in this repo",
+    "longDescription": "Repo-local Codex bridge for the Haiku Method. It initializes `.haiku/` project settings and exposes a Codex-native `$haiku` skill for start, pickup, refine, operate, and reflect flows without relying on Claude-only `/haiku:*` commands.",
+    "developerName": "GigSmart",
+    "category": "Productivity",
+    "capabilities": ["Interactive", "Write", "Workflow"],
+    "websiteURL": "https://haikumethod.ai/",
+    "defaultPrompt": [
+      "Use $haiku to start the next feature for this repo.",
+      "Use $haiku to pick up the current active intent.",
+      "Use $haiku to reflect on the last completed intent."
+    ],
+    "brandColor": "#B78A3F",
+    "composerIcon": "./assets/haiku-small.svg",
+    "logo": "./assets/haiku.svg"
+  }
+}
