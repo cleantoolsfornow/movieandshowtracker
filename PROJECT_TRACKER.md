@@ -25,7 +25,7 @@ Update the tracker when one of these is true:
 - project status changed
 - the next action changed
 - a blocker appeared or was resolved
-- deployment, domain, repo, or local path information changed
+- deployment, domain, repo, or portable local repo hint changed
 - the work produced context that would be expensive to rediscover later
 
 Do not update the tracker for trivial formatting, throwaway experiments, dependency churn with no project impact, or changes that do not affect restart context.
@@ -84,13 +84,26 @@ Do not make these changes without approval:
 - rewrite large parts of a project record
 - edit unrelated project records
 
+
+## Portable Local Path Guidance
+
+Project Hub records should not store machine-specific paths such as `/home/name/...`, `/Users/name/...`, drive-letter paths, or `~/development/...`.
+
+When updating local location metadata, prefer portable repo hints such as:
+
+```yaml
+local_path: "sibling repo: example-repo"
+```
+
+In handoff/checklist prose, prefer "open the sibling `example-repo` repo" instead of an absolute device path. Only record machine-specific paths after explicit human approval.
+
 ## What Not To Update
 
 - Do not rename markdown headings.
 - Do not reorder sections.
 - Do not edit unrelated sections in the linked record.
 - Do not edit other project records.
-- Do not invent repo URLs, local paths, domains, deployment links, or private details.
+- Do not invent repo URLs, machine-specific local paths, domains, deployment links, or private details.
 - Do not hand-edit `dashboard/data/projects.json`.
 - Do not add automation, scripts, scheduled jobs, GitHub API sync, or cross-repo commit behavior unless explicitly requested.
 
@@ -123,7 +136,7 @@ Ask before changing anything structural, ambiguous, or sensitive:
 - the schema or headings seem wrong
 - the linked tracker path is missing or points to the wrong repo
 - the update would affect multiple project records
-- private URLs, local paths, customer names, or credentials are involved
+- private URLs, machine-specific paths, customer names, or credentials are involved
 - the right project status or next action is unclear
 
 ## Good Handoff Format
